@@ -1,0 +1,335 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>5.7 Implementing Synchronization Objects</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Now that we have described locks and condition variables and shown how to use them in shared objects, we turn to how to implement these important building blocks. </FONT>
+<P>Recall from Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100004"}'>4</A> that threads can be implemented in the kernel or at user level. We start by describing how to implement synchronization for kernel threads; at the end of this section we discuss the changes needed to support these abstractions for user-level threads. </P>
+<P>Both locks and condition variables have state. For locks, this is the state of the lock (FREE&nbsp;or BUSY) and a queue of zero or more threads waiting for the lock to become FREE. For condition variables, the state is the queue of threads waiting to be signaled. Either way, the challenge is to atomically modify those data structures. </P>
+<P>The Too Much Milk discussion showed that it is both complex and costly to implement atomic actions with just memory reads and writes. Therefore, modern implementations use more powerful hardware primitives that let us atomically read, modify, and write pieces of state. We use two hardware primitives: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Disabling interrupts.</B> On a single processor, we can make a sequence of instructions atomic by disabling interrupts on that single processor. </P>
+<LI class=itemize>
+<P><B>Atomic read-modify-write instructions.</B> On a multiprocessor, disabling interrupts is insufficient to provide atomicity. Instead, architectures provide special instructions to atomically read and update a word of memory. These instructions are globally atomic with respect to the instructions on every processor.</P></LI></UL>
+<P>Each of these primitives also serves as a memory barrier; they inform the compiler and hardware that all prior instructions must complete before the atomic instruction is executed. <A id=x1-66001r109 name=x1-66001r109></A></P>
+<H4 class=subsectionHead>5.7.1 <A id=x1-670001 name=x1-670001></A>Implementing Uniprocessor Locks by Disabling Interrupts</H4>On a uniprocessor, any sequence of instructions by one thread appears atomic to other threads if no context switch occurs in the middle of the sequence. So, on a uniprocessor, a thread can make a sequence of actions atomic by disabling interrupts (and refraining from calling thread library functions that can trigger a context switch) during the sequence. 
+<P>This observation suggests a trivial &#8212; but seriously limited &#8212; approach to implementing locks on a uniprocessor: </P>
+<P><BR></P><PRE class=code>   &nbsp;Lock::acquire()&nbsp;{&nbsp;disableInterrupts();&nbsp;}
+   &nbsp;
+   &nbsp;Lock::release()&nbsp;{&nbsp;enableInterrupts();&nbsp;}</PRE><BR>
+<P>This implementation does provide the mutual exclusion property we need from locks. Some uniprocessor kernels use this simple approach, but it does not suffice as a general implementation for locks. If the code sequence the lock protects runs for a long time, interrupts will be disabled for that long. This will prevent other threads from running, and it will make the system unresponsive to handling user inputs or other real-time tasks. Furthermore, although this approach can work in the kernel where all code is (presumably) carefully crafted and trusted to release the lock quickly, we cannot let untrusted user-level code run with interrupts turned off since a malicious or buggy program could then monopolize the processor. <A id=x1-67001r112 name=x1-67001r112></A></P>
+<H4 class=subsectionHead>5.7.2 <A id=x1-680002 name=x1-680002></A>Implementing Uniprocessor Queueing Locks</H4>A more general solution is based on the observation that if the lock is BUSY, there is no point in running the acquiring thread until the lock is free. Instead, we should context switch to the next ready thread. 
+<P>The implementation briefly disables interrupts to protect the lock&#8217;s data structures, but re-enables them once a thread has acquired the lock or determined that the lock is BUSY. The Lock implementation shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6800115"}'>5.15</A> illustrates this approach. If a lock is BUSY&nbsp;when a thread tries to acquire it, the thread moves its TCB onto the lock&#8217;s waiting list. The thread then suspends itself and switches to the next runnable thread. The call to suspend does not return until the thread is put back on the ready list, e.g., until some thread calls Lock::release. <A id=x1-6800115 name=x1-6800115></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;class&nbsp;Lock&nbsp;{
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;value&nbsp;=&nbsp;FREE;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Queue&nbsp;waiting;
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;release();
+&nbsp;}
+&nbsp;
+&nbsp;Lock::acquire()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TCB&nbsp;*chosenTCB;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;disableInterrupts();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(value&nbsp;==&nbsp;BUSY)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waiting.add(runningThread);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runningThread-&gt;state&nbsp;=&nbsp;WAITING;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chosenTCB&nbsp;=&nbsp;readyList.remove();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_switch(runningThread,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chosenTCB);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runningThread-&gt;state&nbsp;=&nbsp;RUNNING;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value&nbsp;=&nbsp;BUSY;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enableInterrupts();
+&nbsp;}
+&nbsp;
+&nbsp;Lock::release()&nbsp;{
+&nbsp;//&nbsp;next&nbsp;thread&nbsp;to&nbsp;hold&nbsp;lock
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TCB&nbsp;*next;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;disableInterrupts();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(waiting.notEmpty())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;move&nbsp;one&nbsp;TCB&nbsp;from&nbsp;waiting
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;to&nbsp;ready
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next&nbsp;=&nbsp;waiting.remove();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next-&gt;state&nbsp;=&nbsp;READY;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;readyList.add(next);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value&nbsp;=&nbsp;FREE;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enableInterrupts();
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.15: </B>Pseudo-code for a uniprocessor queueing lock. Temporarily disabling interrupts provides atomic access to the data structures implementing the lock. suspend(oldTCB, newTCB) switches from the current thread to the next to be run. It returns only after some other thread calls release and moves it to the ready list.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>In our implementation, if a thread is waiting for the lock, a call to release does not set value to FREE. Instead, it leaves value as BUSY. The woken thread is guaranteed to be the next that executes the critical section. This arrangement ensures freedom from starvation. </P>
+<P><B>WARNING</B>: This optimization is specific to this implementation. Users of locks should not make assumptions about the order in which waiting threads acquire a lock. </P>
+<P><B>EXAMPLE: </B>In Lock::acquire, thread_switch is called with interrupts turned off. Who turns them back on? </P>
+<P><B>ANSWER: </B><B>The next thread to run re-enables interrupts.</B> In particular, most implementations of thread systems enforce the invariant that a thread always disables interrupts before performing a context switch. As a result, interrupts are always disabled when the thread runs again after a context switch. Thus, whenever a thread returns from a context switch, it must re-enable interrupts. For example, the Lock::acquire code in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6800115"}'>5.15</A> re-enables interrupts before returning; the yield implementation in Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100004"}'>4</A> disables interrupts before the context switch and then re-enables them afterwards. &#9633; <A id=x1-68002r113 name=x1-68002r113></A></P>
+<H4 class=subsectionHead>5.7.3 <A id=x1-690003 name=x1-690003></A>Implementing Multiprocessor Spinlocks</H4>On a multiprocessor, however, disabling interrupts is insufficient. Even when interrupts are turned off on one processor, other threads are running concurrently. Operations by a thread on one processor are interleaved with operations by other threads on other processors. 
+<P>Since turning off interrupts is insufficient, most processor architectures provide <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:atomic read-modify-write instruction"}'>atomic read-modify-write instructions</A></EM> to support synchronization. These instructions can read a value from a memory location to a register, modify the value, and write the modified value to memory atomically with respect to all instructions on other processors. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Implementing read-modify-write instructions</I></B></SPAN> </P>
+<P>Students often ask at this point how the processor hardware implements atomic instructions such as test-and-set. If each processor has its own cache, what is to keep two processors from reading and updating the same location at the same time? Although a complete explanation is beyond the scope of this textbook, the hardware uses the same mechanism as it uses for cache coherence. </P>
+<P>Every entry in a processor cache has a state, either <EM>exclusive</EM> or <EM>read-only</EM>. If any other processors have a cached copy of the data, it must be <EM>read-only</EM> everywhere. To modify a shared memory location, the processor must have an <EM>exclusive</EM> copy of the data; no other cache is allowed to have a copy. Otherwise, one processor could read an out-of-date value for some location that another processor has already updated. To read or write a location that is stored <EM>exclusive</EM> in some other cache, the processor needs to fetch the latest value from that cache. </P>
+<P>Read-modify-write instructions piggyback on this mechanism. To execute one of these instructions, the hardware acquires an <EM>exclusive</EM> copy of the memory, removing copies from all other caches. Then the instruction executes on the local copy; after the instruction completes, other processors are allowed to read the result by fetching the latest value. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P>As an example, some architectures provide a <EM>test-and-set</EM> instruction, which atomically reads a value from memory to a register and writes the value 1 to that memory location. <A id=x1-6900116 name=x1-6900116></A></P>
+<HR>
+<PRE class=code>&nbsp;class&nbsp;SpinLock&nbsp;{
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;value&nbsp;=&nbsp;0;&nbsp;//&nbsp;0&nbsp;=&nbsp;FREE;&nbsp;1&nbsp;=&nbsp;BUSY
+&nbsp;
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;acquire()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(test_and_set(&amp;value))&nbsp;//&nbsp;while&nbsp;BUSY
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;&nbsp;//&nbsp;spin
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;release()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value&nbsp;=&nbsp;0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;memory_barrier();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.16: </B>A multiprocessor spinlock implementation using test-and-set.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6900116"}'>5.16</A> implements a lock using test_and_set. This lock is called a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:spinlock"}'>spinlock</A></EM> because a thread waiting for a BUSY&nbsp;lock &#8220;spins&#8221; (busy-waits) in a tight loop until some other lock releases the lock. This approach is inefficient if locks are held for long periods. However, for locks that are only held for short periods (i.e., less time than a context switch would take), spinlocks make sense. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Interrupt handlers and spinlocks</I></B></SPAN> </P>
+<P>Whenever an interrupt handler accesses shared data, that data must be protected by a spinlock instead of a queueing lock. As we explained in Chapter&nbsp;2 and Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100004"}'>4</A>, interrupt handlers are not threads: they must run to completion without blocking so that the hardware can deliver the next interrupt. With a queueing lock, the lock might be held when the interrupt handler starts, making it impossible for the interrupt handler to work correctly. </P>
+<P>Whenever any thread acquires a spinlock used within an interrupt handler, the thread <EM>must</EM> disable interrupts first. Otherwise, deadlock can result if the interrupt arrives at an inopportune moment. The handler could spin forever waiting for a lock held by the thread it interrupted. Most likely, the system would need to be rebooted to clear the problem. </P>
+<P>To avoid these types of errors, most operating systems keep interrupt handlers extremely simple. For example, many interrupt handlers simply wake up a thread to do the heavy lifting of managing the I/O device. Waking up a thread requires mutually exclusive access to the ready list, protected by a spinlock that is never used without first disabling interrupts. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-69002r115 name=x1-69002r115></A>
+<H4 class=subsectionHead>5.7.4 <A id=x1-700004 name=x1-700004></A>Implementing Multiprocessor Queueing Locks</H4>Often, we need to support critical sections of varying length. For example, we may want a general solution that does not make assumptions about the running time of methods that hold locks. <A id=x1-7000117 name=x1-7000117></A>
+<HR>
+
+<P></P><PRE class=code>&nbsp;class&nbsp;Lock&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;value&nbsp;=&nbsp;FREE;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SpinLock&nbsp;spinLock;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Queue&nbsp;waiting;
+&nbsp;&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;release();
+&nbsp;}
+&nbsp;
+&nbsp;Lock::acquire()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spinLock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(value&nbsp;!=&nbsp;FREE)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waiting.add(runningThread);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scheduler.suspend(&amp;spinLock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;scheduler&nbsp;releases&nbsp;spinLock
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value&nbsp;=&nbsp;BUSY;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spinLock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+&nbsp;
+&nbsp;void&nbsp;Lock::release()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TCB&nbsp;*next;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spinLock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(waiting.notEmpty())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;next&nbsp;=&nbsp;waiting.remove();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scheduler.makeReady(next);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value&nbsp;=&nbsp;FREE;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spinLock.release();
+&nbsp;}
+</PRE><PRE class=code>&nbsp;class&nbsp;Scheduler&nbsp;{
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Queue&nbsp;readyList;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;SpinLock&nbsp;schedulerSpinLock;
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;suspend(SpinLock&nbsp;*lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;makeReady(Thread&nbsp;*thread);
+&nbsp;}
+&nbsp;
+&nbsp;void
+&nbsp;Scheduler::suspend(SpinLock&nbsp;*lock)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TCB&nbsp;*chosenTCB;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;disableInterrupts();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;schedulerSpinLock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock-&gt;release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runningThread-&gt;state&nbsp;=&nbsp;WAITING;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chosenTCB&nbsp;=&nbsp;readyList.getNextThread();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_switch(runningThread,
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chosenTCB);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runningThread-&gt;state&nbsp;=&nbsp;RUNNING;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;schedulerSpinLock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enableInterrupts();
+&nbsp;}
+&nbsp;
+&nbsp;void
+&nbsp;Scheduler::makeReady(TCB&nbsp;*thread)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;disableInterrupts();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;schedulerSpinLock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;readyList.add(thread);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread-&gt;state&nbsp;=&nbsp;READY;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;schedulerSpinLock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enableInterrupts();
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.17: </B>Pseudo-code for a multiprocessor queueing lock. Both the scheduler and the lock use spinlocks to protect their internal data structures. Any thread that tries to acquire the lock when it is BUSY&nbsp;is put on a queue for later wakeup. Care is needed to prevent the waiting thread from being put back on the ready list before it has completed the thread_switch.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>We cannot completely eliminate busy-waiting on a multiprocessor, but we can minimize it. As we mentioned, the scheduler ready list needs a spinlock. The scheduler holds this spinlock for only a few instructions; further, if the ready list spinlock is BUSY, there is no point in trying to switch to a different thread, as that would require access to the ready list. </P>
+<P>To reduce contention on the ready list spinlock, we use a <EM>separate</EM> spinlock to guard access to each lock&#8217;s internal state. Once a thread holds the lock&#8217;s spinlock, the thread can inspect and update the lock&#8217;s state. If the lock is FREE, the thread sets the value and releases its spinlock. If the lock is BUSY, more work is needed: we need to put the current thread on the waiting list for the lock, suspend the current thread, and switch to a new thread. </P>
+<P>Careful sequencing is needed, however, as shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-7000117"}'>5.17</A>. To suspend a thread on a multiprocessor, we need to first disable interrupts to ensure the thread is not preempted while holding the ready list spinlock. We then acquire the ready list spinlock, and <EM>only then</EM> is it safe to release the lock&#8217;s spinlock and switch to a new thread. The ready list spinlock is released by the next thread to run. Otherwise, a different thread on another processor might put the waiting thread back on the ready list (and start it running) before the waiting thread has completed its context switch. </P>
+<P>Later, when the lock is released, if any threads are waiting for the lock, one of them is moved off the lock&#8217;s waiting list to the scheduler&#8217;s ready list. </P>
+<P><B>EXAMPLE: </B>What might happen if we released the Lock&#8217;s spinlock before the call to suspend? </P>
+<P><B>ANSWER: </B>The basic issue is that we want to make sure the acquiring thread finishes suspending itself before a thread releasing the lock tries to reschedule it. If we allowed makeReady to run before suspend, makeReady would mark the acquring thread READY, but suspend would then change the thread&#8217;s state to WAITING. The acquiring thread would then be stuck in the WAITING state forever. Since this sequence would happen very rarely, it would be extremely difficult to locate the problem. &#9633; </P>
+<P><B>NOTE</B>: In the implementation in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-7000117"}'>5.17</A>, the single scheduler spinlock can become a bottleneck as the number of processors increases. Instead, as we explain in Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-780006"}'>6</A>, most systems have one ready list per processor, each protected by a different spinlock. Different processors can then simultaneously add and remove threads to different lists. Typically, the WAITING&nbsp;thread is placed on the ready list of the same processor where it had previously been RUNNING; this improves cache performance as that processor&#8217;s cache may still contain code and data from the last time the thread ran. Putting the thread back on the same ready list also prevents the thread from being run by any other processor before the thread has completed its context switch. Once it is READY, any idle processor can run the thread by acquiring the spinlock of the ready list where it is enqueued, removing the thread, and releasing the spinlock. <A id=x1-70002r117 name=x1-70002r117></A></P>
+<H4 class=subsectionHead>5.7.5 <A id=x1-710005 name=x1-710005></A>Case Study: Linux 2.6 Kernel Mutex Lock</H4>We illustrate how locks are implemented in practice by examining the Linux 2.6 kernel. The Linux code closely follows the approach we described above, except that it is <EM>optimized for the common case</EM>. 
+<P>In Linux, most locks are FREE&nbsp;most of the time. Further, even if a lock is BUSY, it is likely that no other thread is waiting for it. The alternative, that locks are often BUSY, or have long queues of threads waiting for them, means that any thread that needs the lock will usually need to wait, slowing the system down. </P>
+<P>The Linux implementation of locks takes advantage of this by providing an extremely fast path for the case when the thread does not need to wait for the lock in acquire, and when there is no thread not need to wake up a thread in release. A slow path, similar to Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-7000117"}'>5.17</A>, is used for all other cases. </P>
+<P>Further, having a fast path for acquiring a FREE&nbsp;lock, and releasing a lock with no waiting thread, is also a concern for user-level thread libraries, discussed below. </P>
+<P>To optimize the common case path, Linux takes advantage of hardware-specific features of the x86. The x86 supports a large number of different read-modify-write instructions, including atomic decrement (subtract one from the memory location, returning the previous value), atomic increment, atomic exchange (swap the value of the memory location with the value stored in a register), and atomic test-and-set. </P>
+<P>The key idea is to design the lock data structures to allow the lock to be acquired and released on the fast path <EM>without</EM> first acquiring the spinlock or disabling interrupts. The slowpath does require acquiring the spinlock. Instead of being binary, the lock value is an integer count with three states: </P>
+<P><BR></P><PRE class=code>   &nbsp;struct&nbsp;mutex&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/*&nbsp;1:&nbsp;unlocked,&nbsp;0:&nbsp;locked,&nbsp;negative:&nbsp;locked,&nbsp;possible&nbsp;waiters&nbsp;*/
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;atomic_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;count;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;spinlock_t&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wait_lock;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;struct&nbsp;list_head&nbsp;&nbsp;wait_list;
+   &nbsp;};</PRE><BR>
+<P>The Linux lock acquire code is a macro (to avoid making a procedure call on the fast path) that translates to a short sequence of instructions. The x86 lock prefix before the decl instruction signifies to the processor that the instruction should be executed atomically. </P>
+<P><BR></P><PRE class=code>   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock&nbsp;decl&nbsp;(%eax)&nbsp;&nbsp;//&nbsp;atomic&nbsp;decrement&nbsp;of&nbsp;a&nbsp;memory&nbsp;location
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;address&nbsp;in&nbsp;%eax&nbsp;is&nbsp;pointer&nbsp;to&nbsp;lock-&gt;count
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jns&nbsp;1f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;jump&nbsp;if&nbsp;not&nbsp;signed&nbsp;(if&nbsp;value&nbsp;is&nbsp;now&nbsp;0)
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call&nbsp;slowpath_acquire
+   &nbsp;1:</PRE><BR>
+<P>If the lock was FREE, the lock is acquired with only two instructions; if the lock was BUSY, the code leaves count &lt; 0 and invokes a separate routine to handle the slow path. The slow path disables preemption, acquires the spinlock, puts the thread on the lock wait queue, and then re-checks whether the lock has been released in the meantime. For this, it uses the atomic exchange instruction: </P>
+<P><BR></P><PRE class=code>   &nbsp;for&nbsp;(;;)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/*
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Lets&nbsp;try&nbsp;to&nbsp;take&nbsp;the&nbsp;lock&nbsp;again&nbsp;-&nbsp;this&nbsp;is&nbsp;needed&nbsp;even&nbsp;if
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;we&nbsp;get&nbsp;here&nbsp;for&nbsp;the&nbsp;first&nbsp;time&nbsp;(shortly&nbsp;after&nbsp;failing&nbsp;to
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;acquire&nbsp;the&nbsp;lock),&nbsp;to&nbsp;make&nbsp;sure&nbsp;that&nbsp;we&nbsp;get&nbsp;a&nbsp;wakeup&nbsp;once
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;it&#8217;s&nbsp;unlocked.&nbsp;Later&nbsp;on,&nbsp;if&nbsp;we&nbsp;sleep,&nbsp;this&nbsp;is&nbsp;the
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;operation&nbsp;that&nbsp;gives&nbsp;us&nbsp;the&nbsp;lock.&nbsp;We&nbsp;xchg&nbsp;it&nbsp;to&nbsp;-1,&nbsp;so
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;that&nbsp;when&nbsp;we&nbsp;release&nbsp;the&nbsp;lock,&nbsp;we&nbsp;properly&nbsp;wake&nbsp;up&nbsp;the
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;other&nbsp;waiters:
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(atomic_xchg(&amp;lock-&gt;count,&nbsp;-1)&nbsp;==&nbsp;1)
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;break;
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/*&nbsp;didn&#8217;t&nbsp;get&nbsp;the&nbsp;lock,&nbsp;go&nbsp;to&nbsp;sleep:&nbsp;*/
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
+   &nbsp;}</PRE><BR>
+<P>If successful, the lock is acquired. If unsuccessful, the thread releases the spinlock and switches to the next ready thread. When the thread returns from suspend, unlike in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-7000117"}'>5.17</A>, the lock may not be FREE, and so the thread must try again. </P>
+<P>Eventually, the thread breaks out of the loop, which means that it found a moment when the lock was FREE&nbsp;(lock-&gt;count = 1), and at that moment it set the lock to the &#8220;busy, possible waiters&#8221; state (by setting count = -1). The thread now has the lock, and it cleans up by resetting count = 0 if there are no other waiters. </P>
+<P><BR></P><PRE class=code>   &nbsp;/*&nbsp;set&nbsp;it&nbsp;to&nbsp;0&nbsp;if&nbsp;there&nbsp;are&nbsp;no&nbsp;waiters&nbsp;left:&nbsp;*/
+   &nbsp;if&nbsp;(list_empty(&amp;lock-&gt;wait_list))
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;atomic_set(&amp;lock-&gt;count,&nbsp;0);</PRE><BR>
+<P>It then releases the spinlock and re-enables preemptions. </P>
+<P>On release, the fast path is two inlined instructions if the lock value was 0 (the lock has no waiters). </P>
+<P><BR></P><PRE class=code>   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock&nbsp;incl&nbsp;(%eax)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;atomic&nbsp;increment
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;jg&nbsp;1f&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;jump&nbsp;if&nbsp;new&nbsp;value&nbsp;is&nbsp;1
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;call&nbsp;slowpath_release
+   &nbsp;1:</PRE><BR>
+<P>On the slow path, count was negative. The increment instruction leaves the lock BUSY. Then, the thread acquires the spinlock, sets the count to be FREE, and wakes up one of the waiting threads. </P>
+<P><BR></P><PRE class=code>   &nbsp;spin_lock_mutex(&amp;lock-&gt;wait_lock,&nbsp;flags);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/*
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*&nbsp;Unlock&nbsp;lock&nbsp;here
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/
+   &nbsp;atomic_set(&amp;lock-&gt;count,&nbsp;1);
+   &nbsp;if&nbsp;(!list_empty(&amp;lock-&gt;wait_list))&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;struct&nbsp;mutex_waiter&nbsp;*waiter&nbsp;=
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;list_entry(lock-&gt;wait_list.next,
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;struct&nbsp;mutex_waiter,&nbsp;list);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wake_up_process(waiter-&gt;task);
+   &nbsp;}
+   &nbsp;spin_unlock_mutex(&amp;lock-&gt;wait_lock,&nbsp;flags);</PRE><BR>
+<P>Notice that this function always sets count to 1, even if there are waiting threads. As a result, a new thread may swoop in and acquire the lock on its fast path, setting count = 0. In this case, the waiting thread is still woken up, and when it eventually runs, the main loop above will set count = -1. </P>
+<P>This example demonstrates that acquiring and releasing a lock can be inexpensive. Programmers sometimes go to great lengths to avoid acquiring a lock in a particular situation. However, the reasoning in such cases can be subtle, and omitting needed locks is dangerous. In cases where there is little contention, avoiding locks is unlikely to significantly improve performance, so it is usually better just to keep things simple and rely on locks to ensure mutual exclusion when accessing shared state. <A id=x1-71001r119 name=x1-71001r119></A></P>
+<H4 class=subsectionHead>5.7.6 <A id=x1-720006 name=x1-720006></A>Implementing Condition Variables</H4>We can implement condition variables using a similar approach to the one used to implement locks, with one simplification: since the lock is held whenever the <TT>wait</TT>, <TT>signal</TT>, or <TT>broadcast</TT>&nbsp;is called, we already have mutually exclusive access to the condition wait queue. As with locks, care is needed to prevent a waiting thread from being put back on the ready list until it has completed its context switch; we can accomplish this by acquiring the scheduler spinlock <EM>before</EM> we release the monitor lock. Another thread may acquire the monitor lock and start to signal the waiting thread, but it will not be able to complete the signal until the scheduler lock is released immediately after the context switch. <A id=x1-7200118 name=x1-7200118></A>
+<HR>
+
+<P></P><PRE class=code>&nbsp;class&nbsp;CV&nbsp;{
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Queue&nbsp;waiting;
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;wait(Lock&nbsp;*lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;signal();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;broadcast();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Monitor&nbsp;lock&nbsp;is&nbsp;held&nbsp;by&nbsp;current&nbsp;thread.
+&nbsp;void&nbsp;CV::wait(Lock&nbsp;*lock)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert(lock.isHeld());
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waiting.add(myTCB);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Switch&nbsp;to&nbsp;new&nbsp;thread&nbsp;and&nbsp;release&nbsp;lock.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scheduler.suspend(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock-&gt;acquire();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Monitor&nbsp;lock&nbsp;is&nbsp;held&nbsp;by&nbsp;current&nbsp;thread.
+&nbsp;void&nbsp;CV::signal()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(waiting.notEmpty())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread&nbsp;=&nbsp;waiting.remove();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scheduler.makeReady(thread);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+&nbsp;
+&nbsp;void&nbsp;CV::broadcast()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(waiting.notEmpty())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread&nbsp;=&nbsp;waiting.remove();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;scheduler.makeReady(thread);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.18: </B>Pseudo-code for implementing a condition variable. suspend and makeReady are defined in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-7000117"}'>5.17</A>.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-7200118"}'>5.18</A> shows an implementation with Mesa semantics &#8212; when we signal a waiting thread, that thread becomes READY, but it may not run immediately and must still re-acquire the monitor lock. It is possible for another thread to acquire the monitor lock first and to change the state guarded by the lock before the waiting thread returns from CV::wait. <A id=x1-72002r120 name=x1-72002r120></A></P>
+<H4 class=subsectionHead>5.7.7 <A id=x1-730007 name=x1-730007></A>Implementing Application-level Synchronization</H4>The preceding discussion focused on implementing locks and condition variables for kernel threads. In that case, everything (code, shared state, lock data structures, thread control blocks, and the ready list) is in kernel memory, and all threads run in kernel mode. Fortunately, although some details change, the same basic approach works when we implement locks and condition variables for use by threads that run at user level. 
+<P>Recall from Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100004"}'>4</A> that there are two ways of supporting application-level concurrency: via system calls to access kernel thread operations or via a user-level thread scheduler. </P>
+<P><B>Kernel-Managed Threads.</B> With kernel-managed threads, the kernel provides threads to a process and manages the thread ready list. The kernel scheduler needs to know when a thread is waiting for a lock or condition variable so that it can suspend the thread and switch to the next ready thread. </P>
+<P>In the simplest case, we can place the lock and condition variable data structures, including the waiting lists, in the kernel&#8217;s address space. Each method call on the synchronization object translates to a system call. Then, the implementations described above for kernel-level locks and condition variables can be used without significant change. </P>
+<P>A more sophisticated approach splits the lock&#8217;s state and implementation into a fast path and slow path, similar to the Linux lock described above. For example, each lock has two data structures: (i) the process&#8217;s address space holds something similar to the count field and (ii) the kernel holds the spinlock and wait_list queue. </P>
+<P>Then, acquiring a FREE&nbsp;lock or releasing a lock with no waiting threads takes a few instructions at user level, with no system call. The slow path still needs a system call (e.g., when a waiting thread needs to suspend execution). We leave the details of the implementation as an exercise for the reader. </P>
+<P><B>User-Managed Threads.</B> In a <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-300002"}'>thread library that operates completely at user level</A>, the library creates multiple kernel threads to serve as virtual processors, and then multiplexes user-level threads over those virtual processors. This situation is similar to kernel threads, except operating inside the process&#8217;s address space rather than in the kernel&#8217;s address space. In particular, the code, shared state, lock and condition variable data structures, thread control blocks, and the ready list are in the process&#8217;s address space. </P>
+<P>The only significant change has to do with disabling interrupts. Obviously, a user-level thread package cannot disable system-level interrupts; the kernel cannot allow an untrusted process to disable interrupts and potentially run forever. </P>
+<P>Fortunately, the thread library only needs to disable upcalls from the operating system; these are used to trigger thread preemption and other operations in the user-level scheduler, and they could cause inconsistency if they occur while the library is modifying scheduler data structures. Most modern operating systems have a way to temporarily disable upcalls, and then to deliver those upcalls once it is safe to do so. By ensuring the user-level scheduler and upcall handler cannot run at the same time, the fast path mutex implementation described above can be used here as well. <A id=x1-73001r111 name=x1-73001r111></A></P><A id=x1-740008 name=x1-740008>

@@ -1,0 +1,14 @@
+Introduction 
+<P></P>
+<P>This chapter describes the object file format, called ELF (Executable and Linking Format). </P><SPAN class=extract>
+<P>There are three main types of object files. 
+<P>&#8226; A relocatable file holds code and data suitable for linking with other object files to create an executable or a shared object file. 
+<P>&#8226; An executable file holds a program suitable for execution. 
+<P>&#8226; A shared object file holds code and data suitable for linking in two contexts. First, the link editor may process it with other relocatable and shared object files to create another object file. Second, the dynamic linker combines it with an executable file and other shared objects to create a process image</P>
+<P></SPAN>. 
+<P><SPAN class=extract>Created by the assembler and link editor, object files are binary representations of programs intended to execute directly on a processor. Programs that require other abstract machines are excluded</SPAN>. 
+<P>After the introductory material, this chapter focuses on the file format and how it pertains to building programs. Chapter 2 also describes parts of the object file, concentrating on the information necessary to execute a program. 
+<P><SPAN class=extract>An ELF header resides at the beginning and holds a "road map'' describing the file's organization</SPAN>. <SPAN class=extract>Sections hold the bulk of object file information for the linking view: instructions, data, symbol table, relocation information</SPAN>, and so on. Descriptions of special sections appear later in this section. Chapter 2 also describes segments and the program execution view of the file. 
+<P><SPAN class=extract>A program header table, if present, tells the system how to create a process image. Files used to build a process image (execute a program) must have a program header table; relocatable files do not need one</SPAN>. 
+<P><SPAN class=extract><SPAN class=extract><SPAN class=extract>A section header table contains information describing the file's sections</SPAN>. Every section has an entry in the table; each entry gives information such as the section name, the section size, and so on. Files used during linking must have a section header table; other object files may or may not have one</SPAN></SPAN>. 
+<P><SPAN class=extract>Although the figure shows the program header table immediately after the ELF header, and the section header table following the sections, actual files may differ. Moreover, sections and segments have no specified order. Only the ELF header has a fixed position in the file</SPAN>.

@@ -1,0 +1,49 @@
+<STRONG><FONT color=blue>: </FONT></STRONG>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.8 Implementing Upcalls</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">We can use system calls for most of the communication between applications and the operating system kernel. When a program requests a protected operation, it can trap to ask the kernel to perform the operation on its behalf. Likewise, if the application needs data inside the kernel, a system call can retrieve it. </FONT>
+<P>To allow applications to implement operating system-like functionality, we need something more. For many of the reasons that kernels need interrupt-based event delivery, applications can also benefit from being told when events occur that need their immediate attention. <SPAN class=extract>Throughout this book, we will see this pattern repeatedly: the need to <EM>virtualize</EM> some part of the kernel so that applications can behave more like operating systems.</SPAN> <SPAN class=extract>We call virtualized interrupts and exceptions <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:upcall"}'>upcalls</A></EM>. In UNIX, they are called <EM>signals</EM>; in Windows, they are <EM>asynchronous events</EM></SPAN>. </P>
+<P>There are several uses for immediate event delivery with upcalls: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Preemptive user-level threads. </STRONG>Just as the operating system kernel runs multiple processes on a single processor, an application may run multiple tasks, or threads, in a process. A user-level thread package can use a periodic timer upcall as a trigger to switch tasks, to share the processor more evenly among user-level tasks or to stop a runaway task, e.g., if a web browser needs to terminate an embedded third party script</SPAN>. </P>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Asynchronous I/O notification. </STRONG>Most system calls wait until the requested operation completes and then return. What if the process has other work to do in the meantime? One approach is <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:asynchronous I/O"}'>asynchronous I/O</A></EM>: a system call starts the request and returns immediately. Later, the application can poll the kernel for I/O completion, or a separate notification can be sent via an upcall to the application when the I/O completes</SPAN>. </P>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Interprocess communication. </STRONG>Most interprocess communication can be handled with system calls &#8212; one process writes data, while the other reads it sometime later. A kernel upcall is needed if a process generates an event that needs the instant attention of another process. As an example, UNIX sends an upcall to notify a process when the debugger wants to suspend or resume the process. Another use is for logout &#8212; to notify applications that they should save file data and cleanly terminate</SPAN>. </P>
+<LI class=itemize>
+<P><B>User-level exception handling.</B> Earlier, we described a mechanism where processor exceptions, such as divide-by-zero errors, are handled by the kernel. However, many applications have their own exception handling routines, e.g., to ensure that files are saved before the application shuts down. For this, the operating system needs to inform the application when it receives a processor exception so the application runtime, rather than the kernel, handles the event. </P>
+<LI class=itemize>
+<P><B>User-level resource allocation.</B> Operating systems allocate resources &#8212; deciding which users and processes should get how much CPU time, how much memory, and so forth. In turn, many applications are resource adaptive &#8212; able to optimize their behavior to differing amounts of CPU time or memory. An example is Java garbage collection. Within limits, a Java process can adapt to different amounts of available memory by changing the frequency with which it runs its garbage collector. The more memory, the less time Java needs to run its collector, speeding execution. For this, the operating system must inform the process when its allocation changes, e.g., because some other process needs more or less memory. </P></LI></UL>
+<P><SPAN class=extract>Upcalls from kernels to user processes are not always needed. Many applications are more simply structured around an event loop that polls for events and then processes each event in turn. In this model, the kernel can pass data to the process by sending it events that do not need to be handled immediately</SPAN>. In fact, until recently, Windows lacked support for the immediate delivery of upcalls to user-level programs. <A id=x1-4900116 name=x1-4900116></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00202.gif" data-calibre-src="OEBPS/Images/image00202.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.16: </B>The state of the user program and signal handler before a UNIX signal. UNIX signals behave analogously to processor exceptions, but at user level.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>We next describe UNIX signals as a concrete example of kernel support for upcalls. As shown in Figures&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4900116"}'>2.16</A> and <A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4900217"}'>2.17</A>, UNIX signals share many similarities with hardware interrupts: <A id=x1-4900217 name=x1-4900217></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00203.gif" data-calibre-src="OEBPS/Images/image00203.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.17: </B>The state of the user program and signal handler during a UNIX signal. The signal stack stores the state of the hardware registers at the point where the process was interrupted, with room for the signal handler to execute on the signal stack.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<UL class=itemize1>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Types of signals. </STRONG>In place of hardware-defined interrupts and processor exceptions, the kernel defines a limited number of signal types that a process can receive</SPAN>. </P>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Handlers. </STRONG>Each process defines its own handlers for each signal type, much as the kernel defines its own interrupt vector table. If a process does not define a handler for a specific signal, then the kernel calls a default handler instead</SPAN>. </P>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Signal stack. </STRONG>Applications have the option to run UNIX signal handlers on the process&#8217;s normal execution stack or on a special signal stack allocated by the user process in user memory. Running signal handlers on the normal stack makes it more difficult for the signal handler to manipulate the stack, e.g., if the runtime needs to raise a language-level exception</SPAN>. </P>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Signal masking. </STRONG>UNIX defers signals for events that occur while the signal handler for those types of events is in progress. Instead, the signal is delivered once the handler returns to the kernel. UNIX also provides a system call for applications to mask signals as needed</SPAN>. </P>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Processor state. </STRONG>The kernel copies onto the signal stack the saved state of the program counter, stack pointer, and general-purpose registers at the point when the program stopped. Normally, when the signal handler returns, the kernel reloads the saved state into the processor to resume program execution. The signal handler can also modify the saved state, e.g., so that the kernel resumes a different user-level task when the handler returns</SPAN>. </P></LI></UL>
+<P><SPAN class=extract>The mechanism for delivering UNIX signals to user processes requires only a small modification to the techniques already described for transferring control across the kernel-user boundary. For example, on a timer interrupt, the hardware and the kernel interrupt handler save the state of the user-level computation. To deliver the timer interrupt to user level, the kernel copies that saved state to the bottom of the signal stack, resets the saved state to point to the signal handler and signal stack, and then exits the kernel handler. The iret instruction then resumes user-level execution at the signal handler. When the signal handler returns, these steps are unwound: the processor state is copied back from the signal handler into kernel memory, and the iret returns to the original computation</SPAN>. <A id=x1-49003r81 name=x1-49003r81></A></P><A id=x1-500009 name=x1-500009></A>

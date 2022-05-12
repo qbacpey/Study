@@ -1,0 +1,7 @@
+<SPAN class=headers><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.4.1 Interrupt Vector Table</SPAN></FONT></SPAN> 
+<P></P>
+<P><B>EXAMPLE: </B>Why is the interrupt vector table stored in kernel rather than user memory? </P>
+<P></P>
+<P><B>ANSWER: </B>If the interrupt vector table could be modified by application code, the application could potentially hijack the network by directing all network interrupts to its own code. Similarly, the hardware register that points to the interrupt vector table must be a protected register that can be set only when in kernel mode. 
+<P><SPAN class=extract>&#20013;&#26029;&#21521;&#37327;&#34920;&#20043;&#25152;&#20197;&#20445;&#23384;&#22312;&#20869;&#26680;&#20013;&#65292;&#26159;&#22240;&#20026;&#22914;&#26524;&#23558;&#20013;&#26029;&#21521;&#37327;&#34920;&#20445;&#23384;&#22312;&#29992;&#25143;&#20195;&#30721;&#20013;&#65292;&#24694;&#24847;&#20195;&#30721;&#23601;&#21487;&#20197;&#36890;&#36807;&#20462;&#25913;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#20174;&#32780;&#25511;&#21046;&#25152;&#26377;&#31243;&#24207;&#20013;&#26029;&#20043;&#21518;&#30340;&#34892;&#20026;</SPAN> 
+<P><SPAN class=extract>&#20445;&#23384;&#20013;&#26029;&#21521;&#37327;&#34920;&#25152;&#22312;&#20301;&#32622;&#30340;&#23492;&#23384;&#22120;&#21482;&#33021;&#22312;&#20869;&#26680;&#24577;&#20013;&#34987;&#20462;&#25913;</SPAN>

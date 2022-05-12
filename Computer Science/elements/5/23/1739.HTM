@@ -1,0 +1,22 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Calling Convention</SPAN> </P>
+<P></P>
+<P></P>
+<P></P>
+<P></P>
+<P><SPAN class=RefText></SPAN><SPAN class=extract>Calling convention is a procedure for how to call and return from functions</SPAN>. <SPAN class=extract>They specify stack management, passing in parameters, any registers that need to be saved,&nbsp; returning values, and more</SPAN>. <SPAN class=extract>There are two sets of rules: one for the caller of the function and one for the callee of the function</SPAN>.</P>
+<P><SPAN class=extract>Calling conventions are heavily tied into the language that&#8217;s being compiled</SPAN>. In this class, we will use the calling convention de&#64257;ned by the i386 System V ABI as the default calling convention.</P><SPAN class=extract>
+<P>Caller 
+<P>Before calling the function (i.e. prologue), the caller needs to 
+<P>1. Save caller-saved GPRs (EAX, ECX, EDX) onto the stack if needed after the function call. 
+<P>2. Push parameters onto the stack in reverse order (i.e. store &#64257;rst parameter at the lowest address). Add necessary padding before the parameters to ensure a 16-byte alignment. 
+<P>Then the caller calls the function by pushing the return address onto the stack and jumping to the function. 
+<P>Once the function call returns (i.e. epilogue), the caller needs to 
+<P>1. Remove the parameters from the stack. 
+<P>2. Restore caller-saved GPRs (if any) from the prologue.</SPAN></P>
+<P><SPAN class=extract>Instructions</SPAN> 
+<P>&nbsp;<SPAN class=extract>
+<P>Optimizations 
+<P>When compiling with some optimizations using GCC (e.g. O3 &#64258;ag), you may notice some violations of these calling conventions, most notably the saving of the base pointer. This is because the base pointer is not a necessity: the stack pointer is su&#64259;cient to address anything we need. Even when using RISC-V, the equivalent frame pointer was not saved during calling convention. 
+<P>Another notable omission is the 16-byte stack alignment which GCC omits by default even without any optimizations. As a result, you will need to specify the -fno-ipa-stack-alignment &#64258;ag when compiling to get the necessary 16-byte alignment</P>
+<P></SPAN>. 
+<P><SPAN class=extract>

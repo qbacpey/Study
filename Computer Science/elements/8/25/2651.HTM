@@ -1,0 +1,36 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> statically/dynamically typed vs static/dynamic binding</SPAN></FONT> 
+<P></P>
+<P><EM><SPAN class=extract><EM>Static</EM><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><EM>dynamic</EM><SPAN>&nbsp;</SPAN>are jargon words that refer to the point in time at which some programming element is resolved.<SPAN>&nbsp;</SPAN><EM>Static</EM><SPAN>&nbsp;</SPAN>indicates that resolution takes place at the time a program is constructed.<SPAN>&nbsp;</SPAN><EM>Dynamic</EM><SPAN>&nbsp;</SPAN>indicates that resolution takes place at the time a program is run</SPAN></EM>.</P>
+<H3><SPAN class=extract>
+<H3>Static and Dynamic Typing</H3>
+<P><EM>Typing</EM><SPAN>&nbsp;</SPAN>refers to changes in program structure that are due to the differences between data values: integers, characters, floating point numbers, strings, objects and so on. These differences can have many effects, for example:</P>
+<UL>
+<LI>memory layout (e.g. 4 bytes for an int, 8 bytes for a double, more for an object) 
+<LI>instructions executed (e.g. primitive operations to add small integers, library calls to add large ones) 
+<LI>program flow (simple subroutine calling conventions versus hash-dispatch for multi-methods)</LI></UL>
+<P><EM>Static typing</EM><SPAN>&nbsp;</SPAN>means that the executable form of a program generated at build time will vary depending upon the types of data values found in the program.<SPAN>&nbsp;</SPAN><EM>Dynamic typing</EM><SPAN>&nbsp;</SPAN>means that the generated code will always be the same, irrespective of type -- any differences in execution will be determined at run-time.</P>
+<P>Note that few real systems are either purely one or the other, it is just a question of which is the preferred strategy.</P></SPAN></H3>
+<H3><SPAN class=extract>
+<H3>Static and Dynamic Binding</H3>
+<P><EM>Binding</EM><SPAN>&nbsp;</SPAN>refers to the association of names in program text to the storage locations to which they refer. In<SPAN>&nbsp;</SPAN><EM>static binding</EM>, this association is predetermined at build time. With<SPAN>&nbsp;</SPAN><EM>dynamic binding</EM>, this association is not determined until run-time.</P>
+<P>Truly static binding is almost extinct. Earlier assemblers and FORTRAN, for example, would completely precompute the exact memory location of all variables and subroutine locations. This situation did not last long, with the introduction of stack and heap allocation for variables and dynamically-loaded libraries for subroutines.</P>
+<P>So one must take some liberty with the definitions. It is the spirit of the concept that counts here: statically bound programs precompute as much as possible about storage layout as is practical in a modern virtual memory, garbage collected, separately compiled application. Dynamically bound programs wait as late as possible.</P>
+<P>An example might help. If I attempt to invoke a method<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">MyClass.foo()</FONT></CODE>, a static-binding system will verify at build time that there is a class called<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">MyClass</FONT></CODE><SPAN>&nbsp;</SPAN>and that class has a method called<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">foo</FONT></CODE>. A dynamic-binding system will wait until run-time to see whether either exists.</P></SPAN></H3>
+<H3><SPAN class=extract>
+<H3>Contrasts</H3>
+<P>The main strength of static strategies is that the program translator is much more aware of the programmer's intent. This makes it easier to:</P>
+<UL>
+<LI>
+<P>catch many common errors early, during the build phase</P>
+<LI>
+<P>build refactoring tools</P>
+<LI>
+<P>incur a significant amount of the computational cost required to determine the executable form of the program only once, at build time</P></LI></UL>
+<P>The main strength of dynamic strategies is that they are much easier to implement, meaning that:</P>
+<UL>
+<LI>
+<P>a working dynamic environment can be created at a fraction of the cost of a static one</P>
+<LI>
+<P>it is easier to add language features that might be very challenging to check statically</P>
+<LI>
+<P>it is easier to handle situations that require self-modifying code</P></LI></UL></SPAN></H3>

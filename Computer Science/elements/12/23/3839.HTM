@@ -1,0 +1,122 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>7.2 Multiprocessor Scheduling</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Today, most general-purpose computers are multiprocessors. Physical constraints in circuit design make it easier to add computational power by adding processors, or cores, onto a single chip, rather than making individual processors faster. Many high-end desktops and servers have multiple processing chips, each with multiple cores, and each core with hyperthreading. Even smartphones have 2-4 processors. This trend is likely to accelerate, with systems of the future having dozens or perhaps hundreds of processors per computer. </FONT>
+<P>This poses two questions for operating system scheduling: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>How do we make effective use of multiple cores for running sequential tasks? </P>
+<LI class=itemize>
+<P>How do we adapt scheduling algorithms for parallel applications?</P></LI></UL><A id=x1-115001r195 name=x1-115001r195></A>
+<H4 class=subsectionHead>7.2.1 <A id=x1-1160001 name=x1-1160001></A>Scheduling Sequential Applications on Multiprocessors</H4>Consider a server handling a very large number of web requests. A common software architecture for servers is to allocate a separate thread for each user connection. Each thread consults a shared data structure to see which portions of the requested data are cached, and fetches any missing elements from disk. The thread then spools the result out across the network. 
+<P>How should the operating system schedule these server threads? Each thread is I/O-bound, repeatedly reading or writing data to disk and the network, and therefore makes many small trips through the processor. Some requests may require more computation; to keep average response time low, we will want to favor short tasks. </P>
+<P>A simple approach would be to use a centralized multi-level feedback queue, with a lock to ensure only one processor at a time is reading or modifying the data structure. Each idle processor takes the next task off the MFQ and runs it. As the disk or network finishes requests, threads waiting on I/O are put back on the MFQ and executed by the network processor that becomes idle. </P>
+<P>There are several potential performance problems with this approach: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Contention for the MFQ lock.</B> Depending on how much computation each thread does before blocking on I/O, the centralized lock may become a bottleneck, particularly as the number of processors increases. </P>
+<LI class=itemize>
+<P><B>Cache Coherence Overhead.</B> Although only a modest number of instructions are needed for each visit to the MFQ, each processor will need to fetch the current state of the MFQ from the cache of the previous processor to hold the lock. On a single processor, the scheduling data structure is likely to be already loaded into the cache. On a multiprocessor, the data structure will be accessed and modified by different processors in turn, so the most recent version of the data is likely to be cached only by the processor that made the most recent update. Fetching data from a remote cache can take two to three orders of magnitude longer than accessing locally cached data. Since the cache miss delay occurs while holding the MFQ lock, the MFQ lock is held for longer periods and so can become even more of a bottleneck. </P>
+<LI class=itemize>
+<P><B>Limited Cache Reuse.</B> If threads run on the first available processor, they are likely to be assigned to a different processor each time they are scheduled. This means that any data needed by the thread is unlikely to be cached on that processor. Of course, some of the thread&#8217;s data will have been displaced from the cache during the time it was blocked, but on-chip caches are so large today that much of the thread&#8217;s data will remain cached. Worse, the most recent version of the thread&#8217;s data is likely to be in a remote cache, requiring even more of a slowdown as the remote data is fetched into the local cache.</P></LI></UL><A id=x1-1160016 name=x1-1160016></A>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00421.gif" data-calibre-src="OEBPS/Images/image00421.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.6: </B>Per-processor scheduling data structures. Each processor has its own (multi-level) queue of ready threads.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>For these reasons, commercial operating systems such as Linux use a <EM>per-processor</EM> data structure: a separate copy of the multi-level feedback queue for each processor. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1160016"}'>7.6</A> illustrates this approach. </P>
+<P>Each processor uses <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:affinity scheduling"}'>affinity scheduling</A></EM>: once a thread is scheduled on a processor, it is returned to the same processor when it is re-scheduled, maximizing cache reuse. Each processor looks at its own copy of the queue for new work to do; this can mean that some processors can idle while others have work waiting to be done. Rebalancing occurs only if the queue lengths are persistent enough to compensate for the time to reload the cache for the migrated threads. Because rebalancing is possible, the per-processor data structures must still be protected by locks, but in the common case the next processor to use the data will be the last one to have written it, minimizing cache coherence overhead and lock contention. <A id=x1-116002r197 name=x1-116002r197></A></P>
+<H4 class=subsectionHead>7.2.2 <A id=x1-1170002 name=x1-1170002></A>Scheduling Parallel Applications</H4>A different set of challenges occurs when scheduling parallel applications onto a multiprocessor. There is often a natural decomposition of a parallel application onto a set of processors. For example, an image processing application may divide the image up into equal size chunks, assigning one to each processor. While the application could divide the image into many more chunks than processors, this comes at a cost in efficiency: less cache reuse and more communication to coordinate work at the boundary between each chunk. 
+<P>If there are multiple applications running at the same time, the application may receive fewer or more processors than it expected or started with. New applications can start up, acquiring processing resources. Other applications may complete, releasing resources. Even without multiple applications, the operating system itself will have system tasks to run from time to time, disrupting the mapping of parallel work onto a fixed number of processors. </P>
+<H5 class=subsubsectionHead><A id=x1-1180002 name=x1-1180002></A>Oblivious Scheduling</H5>One might imagine that the scheduling algorithms we have already discussed can take care of these cases. Each thread is time sliced onto the available processors; if two or more applications create more threads in aggregate than processors, multi-level feedback will ensure that each thread makes progress and receives a fair share of the processor. This is often called <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:oblivious scheduling"}'>oblivious scheduling</A></EM>, as the operating system scheduler operates without knowledge of the intent of the parallel application &#8212; each thread is scheduled as a completely independent entity. Figure &nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1180017"}'>7.7</A> illustrates oblivious scheduling. <A id=x1-1180017 name=x1-1180017></A>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00422.gif" data-calibre-src="OEBPS/Images/image00422.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.7: </B>With oblivious scheduling, threads are time sliced by the multiprocessor operating system, with no attempt to ensure threads from the same process run at the same time.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Unfortunately, several problems can occur with oblivious scheduling on multiprocessors: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Bulk synchronous delay.</B> A common design pattern in parallel programs is to split work into roughly equal sized chunks; once all the chunks finish, the processors synchronize at a barrier before communicating their results to the next stage of the computation. This <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:bulk synchronous"}'>bulk synchronous</A></EM> parallelism is easy to manage &#8212; each processor works independently, sharing its results only with the next stage in the computation. Google MapReduce is a widely used bulk synchronous application. <A id=x1-1180028 name=x1-1180028></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00423.gif" data-calibre-src="OEBPS/Images/image00423.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.8: </B>Bulk synchronous design pattern for a parallel program; each processor computes on local data and waits for every other processor to complete before proceeding to the next step. Preempting one processor can stall all processors until the preempted process is resumed.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1180028"}'>7.8</A> illustrates the problem with bulk synchronous computation under oblivious scheduling. At each step, the computation is limited by the slowest processor to complete that step. If a processor is preempted, its work will be delayed, stalling the remaining processors until the last one is scheduled. Even if one of the waiting processors picks up the preempted task, a single preemption can delay the entire computation by a factor of two, and possibly even more with cache effects. Since the application does not know that a processor was preempted, it cannot adapt its decomposition for the available number of processors, so each step is similarly delayed until the processor is returned. </P>
+<LI class=itemize>
+<P><B>Producer-consumer delay.</B> Some parallel applications use a producer-consumer design pattern, where the results of one thread are fed to the next thread, and the output of that thread is fed onward, as in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1180039"}'>7.9</A>. Preempting a thread in the middle of a producer-consumer chain can stall all of the processors in the chain. <A id=x1-1180039 name=x1-1180039></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00424.gif" data-calibre-src="OEBPS/Images/image00424.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.9: </B>Producer-consumer design pattern for a parallel program. Preempting one stage can stall the remainder.</P></TD></TR></TBODY></TABLE>
+<HR>
+<A id=x1-11800410 name=x1-11800410></A>
+<CENTER><img alt="" src="about:../Images/image00425.gif" data-calibre-src="OEBPS/Images/image00425.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.10: </B>Critical path of a parallel program; delays on the critical path increase execution time.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<LI class=itemize>
+<P><B>Critical path delay.</B> More generally, parallel programs have a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:critical path"}'>critical path</A></EM> &#8212; the minimum sequence of steps for the application to compute its result. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-11800410"}'>7.10</A> illustrates the critical path for a fork-join parallel program. Work off the critical path can occur in parallel, but its precise scheduling is less important. Preempting a thread on the critical path, however, will slow down the end result. Although the application programmer may know which parts of the computation are on the critical path, with oblivious scheduling, the operating system will not; it will be equally likely to preempt a thread on the critical path as off. </P>
+<LI class=itemize>
+<P><B>Preemption of lock holder.</B> Many parallel programs use locks and condition variables for synchronizing their parallel execution. Often, to reduce the cost of acquiring locks, parallel programs will use a &#8220;spin-then-wait&#8221; strategy &#8212; if a lock is busy, the waiting thread spin-waits briefly for it to be released, and if the lock is still busy, it blocks and looks for other work to do. This can reduce overhead in the common case that the lock is held for only short periods of time. With oblivious scheduling, however, the lock holder can be preempted &#8212; other tasks will spin-then-wait until the lock holder is re-scheduled, increasing overhead. </P>
+<LI class=itemize>
+<P><B>I/O.</B> Many parallel applications do I/O, and this can cause problems if the operating system scheduler is oblivious to the application decomposition into parallel work. If a read or write request blocks in the kernel, the thread blocks as well. To reuse the processor while the thread is waiting, the application program must have created more threads than processors, so that the scheduler can have an extra one to run in place of the blocked thread. However, if the thread does not block (e.g., on a file read when the file is cached in memory), that means that the scheduler has more threads than processors, and so needs to do time slicing to multiplex threads onto processors &#8212; causing all of the problems we have listed above. </P></LI></UL>
+<H5 class=subsubsectionHead><A id=x1-1190002 name=x1-1190002></A>Gang Scheduling</H5>One possible approach to some of these issues is to schedule all of the tasks of a program together. This is called <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:gang scheduling"}'>gang scheduling</A></EM>. The application picks some decomposition of work into some number of threads, and those threads run either together or not at all. If the operating system needs to schedule a different application, if there are insufficient idle resources, it preempts all of the processors of an application to make room. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-11900111"}'>7.11</A> illustrates an example of gang scheduling. <A id=x1-11900111 name=x1-11900111></A>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00426.gif" data-calibre-src="OEBPS/Images/image00426.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.11: </B>With gang scheduling, threads from the same process are scheduled at exactly the same time, and they are time sliced together to provide a chance for other processes to run.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Because of the value of gang scheduling, commercial operating systems, such as Linux, Windows, and MacOS, have mechanisms for dedicating a set of processors to a single application. This is often appropriate on a server dedicated to a single primary use, such as a database needing precise control over thread assignment. The application can <EM>pin</EM> each thread to a specific processor and (with the appropriate permissions) mark it to run with high priority. The system reserves a small subset of the processors to run other applications, multiplexed in the normal way but without interfering with the primary application. <A id=x1-11900212 name=x1-11900212></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00427.gif" data-calibre-src="OEBPS/Images/image00427.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.12: </B>Performance as a function of the number of processors, for some typical parallel applications. Some applications scale linearly with the number of processors; others achieve diminishing returns.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>For multiplexing multiple parallel applications, however, gang scheduling can be inefficient. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-11900212"}'>7.12</A> illustrates why. It shows the performance of three example parallel programs as a function of the number of processors assigned to the application. While some applications have perfect speedup and can make efficient use of many processors, other applications reach a point of diminishing returns, and still others have a maximum parallelism. For example, if adding processors does not decrease the time spent on the program&#8217;s critical path, there is no benefit to adding those resources. </P>
+<P>An implication of Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-11900212"}'>7.12</A> is that it is usually more efficient to run two parallel programs each with half the number of processors, than to time slice the two programs, each gang scheduled onto all of the processors. Allocating different processors to different tasks is called <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:space sharing"}'>space sharing</A></EM>, to differentiate it from time sharing, or time slicing &#8212; allocating a single processor among multiple tasks by alternating in time when each is scheduled onto the processor. Space sharing on a multiprocessor is also more efficient in that it minimizes processor context switches: as long as the operating system has not changed the allocation, the processors do not even need to be time sliced. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-11900313"}'>7.13</A> illustrates an example of space sharing. <A id=x1-11900313 name=x1-11900313></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00428.gif" data-calibre-src="OEBPS/Images/image00428.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.13: </B>With space sharing, each process is assigned a subset of the processors.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Space sharing is straightforward if all tasks start and stop at the same time; in that case, we can just allocate evenly. However, the number of available processors is often a dynamic property in a multiprogrammed setting, because tasks start and stop at irregular intervals. How does the application know how many processors to use if the number changes over time? </P>
+<H5 class=subsubsectionHead><A id=x1-1200002 name=x1-1200002></A>Scheduler Activations</H5>A solution, recently added to Windows, is to make the assignment and re-assignment of processors to applications visible to applications. Applications are given an execution context, or <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:scheduler activations"}'>scheduler activation</A></EM>, on each processor assigned to the application; the application is informed explicitly, via an upcall, whenever a processor is added to its allocation or taken away. Blocking on an I/O request also causes an upcall to allow the application to repurpose the processor while the thread is waiting for I/O. 
+<P>As we noted in Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100004"}'>4</A>, user-level thread management is possible with scheduler activations. The operating system kernel assigns processors to applications, either evenly or according to some priority weighting. Each application then schedules its user-level threads onto the processors assigned to it, changing its allocation as the number of processors varies due to external events such as other processes starting or stopping. If no other application is running, an application can use all of the processors of the machine; with more contention, the application must remap its work onto a smaller number of processors. </P>
+<P>Scheduler activations defines a <EM>mechanism</EM> for informing an application of its processor allocation, but it leaves open the question of the <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:multiprocessor scheduling policy"}'>multiprocessor scheduling policy</A></EM>: how many processors should we assign each process? This is an open research question. As we explained in our discussion of uniprocessor scheduling policies, there is a fundamental tradeoff between policies (such as Shortest Job First) that improve average response time and those (such as max-min fairness) that attempt to achieve fair allocation of resources among different applications. In the multiprocessor setting, average response time may be improved by giving extra resources to parallel interactive tasks provided this did not cause long-running compute intensive parallel tasks to starve for resources. <A id=x1-120001r196 name=x1-120001r196></A></P><A id=x1-1210003 name=x1-1210003>

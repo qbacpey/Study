@@ -1,0 +1,15 @@
+Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4700113"}'>2.13</A> illustrates the sequence of steps involved in a system call: 
+<P></P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-47003x1 name=x1-47003x1></A>
+<P>The user program calls the user stub in the normal way, oblivious to the fact the implementation of the procedure is in fact in the kernel. </P>
+<LI class=enumerate><A id=x1-47005x2 name=x1-47005x2></A>
+<P>The user stub fills in the code for the system call and executes the trap instruction. </P>
+<LI class=enumerate><A id=x1-47007x3 name=x1-47007x3></A>
+<P>The hardware transfers control to the kernel, vectoring to the system call handler. The handler acts as a stub on the kernel side, copying and checking arguments and then calling the kernel implementation of system call. </P>
+<LI class=enumerate><A id=x1-47009x4 name=x1-47009x4></A>
+<P>After the system call completes, it returns to the handler. </P>
+<LI class=enumerate><A id=x1-47011x5 name=x1-47011x5></A>
+<P><SPAN class=extract>The handler returns to user level at the next instruction in the stub.</SPAN> </P>
+<LI class=enumerate><A id=x1-47013x6 name=x1-47013x6></A>
+<P>The stub returns to the caller.</P></LI></OL>

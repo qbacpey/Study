@@ -1,0 +1,84 @@
+<STRONG><FONT color=blue>: </FONT></STRONG>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.10 Case Study: Virtual Machines</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Some operating system kernels provide the abstraction of an entire virtual machine at user level. How do interrupts, processor exceptions, and system calls work in this context? To avoid confusion when discussing virtual machines, we need to recap some terminology introduced in Chapter&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100001"}'>1</A><FONT style="BACKGROUND-COLOR: #ffffff">. The operating system providing the virtual machine abstraction is called the </FONT><EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:host operating system"}'>host operating system</A></EM><FONT style="BACKGROUND-COLOR: #ffffff">. The operating system running inside the virtual machine is called the </FONT><EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:guest operating system"}'>guest operating system</A></EM><FONT style="BACKGROUND-COLOR: #ffffff">. </FONT>
+<P>The host operating system provides the illusion that the guest kernel is running on real hardware. For example, to provide a guest disk, the host kernel simulates a virtual disk as a file on the physical disk. To provide network access to the guest kernel, the host kernel simulates a virtual network using physical network packets. Likewise, the host kernel must manage memory to provide the illusion that the guest kernel is managing its own memory protection even though it is running with virtual addresses. We discuss address translation for virtual machines in more detail in Chapter&nbsp;10. </P>
+<P>How does the host kernel manage mode transfer between guest processes and the guest kernel? During boot, the host kernel initializes its interrupt vector table to point to its own interrupt handlers in host kernel memory. When the host kernel starts the virtual machine, the guest kernel starts running as if it is being booted: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-51002x1 name=x1-51002x1></A>
+<P>The host loads the guest bootloader from the virtual disk and starts it running. </P>
+<LI class=enumerate><A id=x1-51004x2 name=x1-51004x2></A>
+<P>The guest bootloader loads the guest kernel from the virtual disk into memory and starts it running. </P>
+<LI class=enumerate><A id=x1-51006x3 name=x1-51006x3></A>
+<P>The guest kernel then initializes its interrupt vector table to point to the guest interrupt handlers. </P>
+<LI class=enumerate><A id=x1-51008x4 name=x1-51008x4></A>
+<P>The guest kernel loads a process from the virtual disk into guest memory. </P>
+<LI class=enumerate><A id=x1-51010x5 name=x1-51010x5></A>
+<P><SPAN class=extract>To start a process, the guest kernel issues instructions to resume execution at user level, e.g., using iret on the x86. Since changing the privilege level is a privileged operation, this instruction traps into the host kernel</SPAN>. </P>
+<LI class=enumerate><A id=x1-51012x6 name=x1-51012x6></A>
+<P>The host kernel simulates the requested mode transfer as if the processor had directly executed it. It restores the program counter, stack pointer, and processor status word exactly as the guest operating system had intended. Note that the host kernel must protect itself from bugs in the guest operating system, and so it also must check the validity of the mode transfer &#8212; to ensure that the guest kernel is not surreptitiously attempting to get the host kernel to &#8220;switch" to an arbitrary point in the kernel code.</P></LI></OL><A id=x1-5101319 name=x1-5101319></A>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00205.gif" data-calibre-src="OEBPS/Images/image00205.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.19: </B>Emulation of user- and kernel-mode transfer for processes running inside a virtual machine. Both the guest kernel and the host kernel have their own copies of an interrupt vector table and interrupt stack. The guest vector table points to interrupt handlers in the guest kernel; the host vector table points to interrupt handlers in the host kernel.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><SPAN class=extract>&nbsp;</P>
+<P>Next, consider what happens when the guest user process does a system call, illustrated in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-5101319"}'>2.19</A>. To the hardware, there is only one kernel, the host operating system. Thus, the trap instruction traps into the host kernel&#8217;s system call handler. Of course, the system call was not intended for the host! Rather, the host kernel simulates what would have happened had the system call instruction occurred on real hardware running the guest operating system: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-51015x1 name=x1-51015x1></A>
+<P>The host kernel saves the instruction counter, processor status register, and user stack pointer on the interrupt stack of the guest operating system. </P>
+<LI class=enumerate><A id=x1-51017x2 name=x1-51017x2></A>
+<P>The host kernel transfers control to the guest kernel at the beginning of the interrupt handler, but with the guest kernel running with user-mode privilege. </P>
+<LI class=enumerate><A id=x1-51019x3 name=x1-51019x3></A>
+<P>The guest kernel performs the system call &#8212; saving user state and checking arguments. </P>
+<LI class=enumerate><A id=x1-51021x4 name=x1-51021x4></A>
+<P>When the guest kernel attempts to return from the system call back to user level, this causes a processor exception, dropping back into the host kernel. </P>
+<LI class=enumerate><A id=x1-51023x5 name=x1-51023x5></A>
+<P>The host kernel can then restore the state of the user process, running at user level, as if the guest OS had been able to return there directly</P></LI></OL>
+<P></SPAN>.</P>
+<P>The host kernel handles processor exceptions similarly, with one caveat. Some exceptions generated by the virtual machine are due to the user process; the host kernel forwards these to the guest kernel for handling. Other exceptions are generated by the guest kernel (e.g., when it tries to execute privileged instructions); the host kernel simulates these itself. <SPAN class=extract>Thus, the host kernel must track whether the virtual machine is executing in virtual user mode or virtual kernel mode</SPAN>. </P>
+<P>The hardware vectors interrupts to the host kernel. Timer interrupts need special handling, as time can elapse in the host without elapsing in the guest. When a timer interrupt occurs, enough virtual time may have passed that the guest kernel is due for a timer interrupt. If so, the host kernel returns from the interrupt to the interrupt handler for the guest kernel. The guest kernel may in turn switch guest processes; its iret will cause a processor exception, returning to the host kernel, which can then resume the correct guest process. </P>
+<P>Handling I/O interrupts is simpler: the simulation of the virtual device does not need to be anything like a real device. When the guest kernel makes a request to a virtual disk, the kernel writes instructions to the buffer descriptor ring for the disk device; the host kernel translates these instructions into operations on the virtual disk. The host kernel can simulate the disk request however it likes &#8212; e.g., through regular file reads and writes, copied into the guest kernel memory as if there was true DMA hardware. The guest kernel expects to receive an interrupt when the virtual disk completes its work; this can be triggered by the timer interrupt, but vectored to the guest disk interrupt handler instead of the guest timer interrupt handler. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left><SPAN class=sidebar_name><B><SPAN class=extract>
+<P width=0><SPAN class=sidebar_name><B>Hardware support for operating systems</B></SPAN> </P>
+<P>We have described a number of hardware mechanisms that support operating systems: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Privilege levels</B>, user and kernel<EM>. </EM></P>
+<LI class=itemize>
+<P><B>Privileged instructions</B>: instructions available only in kernel mode.<EM> </EM></P>
+<LI class=itemize>
+<P><B>Memory translation</B> prevents user programs from accessing kernel data structures and aids in memory management. </P>
+<LI class=itemize>
+<P><B>Processor exceptions</B> trap to the kernel on a privilege violation or other unexpected event. </P>
+<LI class=itemize>
+<P><B>Timer interrupts</B> return control to the kernel on time expiration. </P>
+<LI class=itemize>
+<P><B>Device interrupts</B> return control to the kernel to signal I/O completion. </P>
+<LI class=itemize>
+<P><B>Interprocessor interrupts</B> cause another processor to return control to the kernel. </P>
+<LI class=itemize>
+<P><B>Interrupt masking</B> prevents interrupts from being delivered at inopportune times. </P>
+<LI class=itemize>
+<P><B>System calls</B> trap to the kernel to perform a privileged action on behalf of a user program. </P>
+<LI class=itemize>
+<P><B>Return from interrupt</B>: switch from kernel mode to user mode, to a specific location in a user process. </P>
+<LI class=itemize>
+<P><B>Boot ROM</B>: code that loads startup routines from disk into memory.</P></LI></UL></SPAN></B></SPAN>
+<P>To support threads, we will need one additional mechanism, described in Chapter&nbsp;5: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Atomic read-modify-write instructions</B> used to implement synchronization in multi-threaded programs.</P></LI></UL>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-51024r86 name=x1-51024r86></A><A id=x1-5200011 name=x1-5200011></A>

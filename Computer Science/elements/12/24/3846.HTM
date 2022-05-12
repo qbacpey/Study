@@ -1,0 +1,221 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=likesectionHead>Exercises</H3></A>
+<P></P>
+<OL class=problems>
+<P></P>
+<LI>For shortest job first, if the scheduler assigns a task to the processor, and no other task becomes schedulable in the meantime, will the scheduler ever preempt the current task? Why or why not? 
+<P></P>
+<LI>Devise a workload where FIFO is pessimal &#8212; it does the worst possible choices &#8212; for average response time. 
+<P></P>
+<LI>Suppose you do your homework assignments in SJF-order. After all, you feel like you are making a lot of progress! What might go wrong? 
+<P></P>
+<LI>
+<P>Given the following mix of tasks, task lengths, and arrival times, compute the completion and response time for each task, along with the average response time for the FIFO, RR, and SJF algorithms. Assume a time slice of 10 milliseconds and that all times are in milliseconds. </P>
+<P><BR></P>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Task</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>Length</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>Arrival Time</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>Completion Time</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>Response Time</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 85 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 30 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 10 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 35 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 15 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 20 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 80 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>4 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 50 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 85 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>Average:</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV><BR>
+<P></P>
+<P></P>
+<LI>Is it possible for an application to run slower when assigned 10 processors than when assigned 8? Why or why not? 
+<P></P>
+<LI>Suppose your company is considering using one of two candidate scheduling algorithms. One is Round Robin, with an overhead of 1% of the processing power of the system. The second is a wizzy new system that predicts the future and so it can closely approximate SJF, but it takes an overhead of 10% of the processing power of the system. 
+<P>Assume randomized arrivals and random task lengths. Under what conditions will the simpler algorithm outperform the more complex, and vice versa? </P>
+<P></P>
+<LI>Are there non-trivial workloads for which Multi-level Feedback Queue is an optimal policy? Why or why not? (A trivial workload is one with only one or a few tasks or tasks that last a single instruction.) 
+<P></P>
+<LI>If a queueing system with one server has a workload of 1000 tasks arriving per second, and the average number of tasks waiting or getting service is 5, what is the average response time per task? 
+<P></P>
+<LI>Is it possible for a system in equilibrium to have both bounded average response time and 100% utilization? Why or why not? 
+<P></P>
+<LI>For a queueing system with random arrivals and service times, how does the variance in the service time affect the system response time? Briefly explain. 
+<P></P>
+<LI>Most round-robin schedulers use a fixed size quantum. Give an argument in favor of and against a small quantum. 
+<P></P>
+<LI>Which provides the best average response time when there are multiple servers (e.g., bank tellers, supermarket cash registers, airline ticket takers): a single FIFO queue or a FIFO queue per server? Why? Assume that you cannot predict how long any customer is going to take at the server, and that once you have picked a queue to wait in, you are stuck and cannot change queues. 
+<P></P>
+<LI>Three tasks, A, B, and C are run concurrently on a computer system. 
+<UL class=itemize1>
+<LI class=itemize>
+<P>Task A arrives first at time 0, and uses the CPU for 100 ms before finishing. </P>
+<LI class=itemize>
+<P>Task B arrives shortly after A, still at time 0. Task B loops ten times; for each iteration of the loop, B uses the CPU for 2 ms and then it does I/O for 8 ms. </P>
+<LI class=itemize>
+<P>Task C is identical to B, but arrives shortly after B, still at time 0.</P></LI></UL>
+<P>Assuming there is no overhead to doing a context switch, identify when A, B and C will finish for each of the following CPU scheduling disciplines: </P>
+<P></P>
+<OL class=subproblems>
+<LI>FIFO 
+<LI>Round robin with a 1 ms time slice 
+<LI>Round robin with a 100 ms time slice 
+<LI>Multilevel feedback with four levels, and a time slice for the highest priority level is 1 ms. 
+<LI>Shortest job first </LI></OL>
+<P></P>
+<LI>For each of the following processor scheduling policies, describe the set of workloads under which that policy is optimal in terms of minimizing average response time (does the same thing as shortest job first) and the set of workloads under which the policy is pessimal (does the same thing as longest job first). If there are no workloads under which a policy is optimal or pessimal, indicate that. 
+<P></P>
+<OL class=subproblems>
+<LI>FIFO 
+<LI>Round robin 
+<LI>Multilevel feedback queues </LI></OL>
+<P></P>
+<LI>Explain how you would set up a valid experimental comparison between two scheduling policies, one of which can starve some jobs. 
+<P></P>
+<LI>As system administrator of a popular social networking website, you notice that usage peaks during working hours (10am &#8211; 5pm) and the evening (7 &#8211; 10pm) on the US east coast. The CEO asks you to design a system where during these peak hours there will be three levels of users. Users in level 1 are the center of the social network, and so they are to enjoy better response time than users in level 2, who in turn will enjoy better response time than users in level 3. You are to design such a system so that all users will still get some progress, but with the indicated preferences in place. 
+<P></P>
+<OL class=subproblems>
+<LI>Will a fixed priority scheme with pre-emption and three fixed priorities work? Why, or why not? 
+<P></P>
+<LI>Will a UNIX-style multi-feedback queue work? Why, or why not? </LI></OL>
+<P></P>
+<LI>Consider the following preemptive priority-scheduling algorithm based on dynamically changing priorities. Larger numbers imply higher priority. Tasks are preempted whenever there is a higher priority task. When a task is waiting for CPU (in the ready queue, but not running), its priority changes at a rate of a: 
+<P>P(t) = P<SUB>0</SUB> + a &#215; (t - t<SUB>0</SUB>) </P>
+<P>where t<SUB>0</SUB> is the time at which the task joins the ready queue and P<SUB>0</SUB> is its initial priority, assigned when the task enters the ready queue or is preempted. Similarly, when it is running, the task&#8217;s priority changes at a rate b. The parameters a, b and P<SUB>0</SUB> can be used to obtain many different scheduling algorithms. </P>
+<P></P>
+<OL class=subproblems>
+<LI>What is the algorithm that results from P<SUB>0</SUB> = 0 and b &gt; a &gt; 0? 
+<LI>What is the algorithm that results from P<SUB>0</SUB> = 0 and a &lt; b &lt; 0? 
+<LI>Suppose tasks are assigned a priority 0 when they arrive, but they retain their priority when they are preempted. What happens if two tasks arrive at nearly the same time and a &gt; 0 &gt; b? 
+<LI>How should we adjust the algorithm to eliminate this pathology? </LI></OL>
+<P></P>
+<LI>For a computer with two cores and a hyperthreading level of two, draw a graph of the rate of progress of a compute-intensive task as a function of time, depending on whether it is running alone, or with 1, 2, 3, or 4 other tasks. 
+<P></P>
+<LI>Implement a test on your computer to see if your answer to the previous problem is correct. 
+<P></P>
+<LI>A countermeasure is a strategy by which a user (or an application) exploits the characteristics of the processor scheduling policy to get as much of the processing time as possible. For example, if the scheduler trusts users to give accurate estimates of how long each task will take, it can give higher priority to short tasks. However, a countermeasure would be for the user to tell the system that the user&#8217;s tasks are short even when they are not. 
+<P>Devise a countermeasure strategy for each of the following processor scheduling policies; your strategy should minimize an individual application&#8217;s response time (even if it hurts overall system performance). You may assume perfect knowledge &#8212; for example, your strategy can be based on which jobs will arrive in the future, where your application is in the queue, and how long the tasks ahead of you will run before blocking. Your strategy should also be robust &#8212; it should work properly even if there are no other tasks in the system, there are only short tasks, or there are only long running tasks. If no strategy will improve your application&#8217;s response time, then explain why. </P>
+<P></P>
+<OL class=subproblems>
+<LI>Last in first out 
+<P></P>
+<LI>Round robin, assuming tasks are put at the end of the ready list when they become ready to run 
+<P></P>
+<LI>Multilevel feedback queues, where tasks are put on the highest priority queue when they become ready to run </LI></OL>
+<P></P>
+<P></P>
+<LI>Consider a computer system running a general-purpose workload. Measured utilizations (in terms of time, not space) are given in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-13600124"}'>7.24</A>. <A id=x1-13600124 name=x1-13600124></A>
+<HR>
+
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Processor utilization </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 20.0% </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Disk </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 99.7%</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Network </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 5.0% </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.24: </B>Measured utilizations of a computer system.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>For each of the following changes, say what its likely impact will be on processor utilization, and explain why. Is it likely to significantly increase, marginally increase, significantly decrease, marginally decrease, or have no effect on the processor utilization? </P>
+<P></P>
+<OL class=subproblems>
+<LI>Get a faster CPU 
+<P></P>
+<LI>Get a faster disk 
+<P></P>
+<LI>Increase the degree of multiprogramming 
+<P></P>
+<LI>Get a faster network </LI></OL>
+<P></P>
+<P></P></LI></OL><A id=Q1-1-239 name=Q1-1-239></A><A id=Q1-1-240 name=Q1-1-240></A><A id=Q1-1-241 name=Q1-1-241></A><A id=Q1-1-242 name=Q1-1-242></A><A id=Q1-1-243 name=Q1-1-243></A><A id=Q1-1-244 name=Q1-1-244></A><A id=Q1-1-245 name=Q1-1-245></A><A id=Q1-1-246 name=Q1-1-246></A><A id=Q1-1-247 name=Q1-1-247></A>
+<P></P>
+<P>
+<DIV style="break-after: always; -webkit-column-break-after: always"></DIV><BR><BR><BR>
+<P></P><A id=x1-1370008 name=x1-1370008>

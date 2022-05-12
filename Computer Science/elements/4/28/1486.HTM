@@ -1,0 +1,8 @@
+<B><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.8 Implementing Upcalls : Asynchronous I/O notification</SPAN></FONT>.</B> 
+<P></P><SPAN class=extract>
+<P>Most system calls wait until the requested operation completes and then return. </P>
+<P>&#22823;&#22810;&#25968;&#25191;&#34892;&#31995;&#32479;&#35843;&#29992;&#30340;&#31243;&#24207;&#20250;&#19968;&#30452;&#31561;&#24453;&#65292;&#30452;&#21040;&#31995;&#32479;&#35843;&#29992;&#25191;&#34892;&#23436;&#27605;</P></SPAN><SPAN class=extract>
+<P>What if the process has other work to do in the meantime? One approach is <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:asynchronous I/O"}'>asynchronous I/O</A></EM>: a system call starts the request and returns immediately. </P>
+<P>&#36890;&#36807;&#31995;&#32479;&#35843;&#29992;&#25191;&#34892;&#30340;&#24322;&#27493; IO &#20250;&#22312;&#35831;&#27714;&#21457;&#20986;&#21518;&#31435;&#21363;&#36820;&#22238;</SPAN><SPAN class=extract></P>
+<P>Later, the application can poll the kernel for I/O completion, or a separate notification can be sent via an upcall to the application when the I/O completes</P>
+<P>&#24322;&#27493; IO &#20013;&#30340;&#24212;&#29992;&#31243;&#24207;&#26082;&#21487;&#20197;&#36718;&#35810;&#20869;&#26680;&#20197;&#30830;&#35748; IO &#26159;&#21542;&#23436;&#25104;&#65292;&#20063;&#21487;&#20197;&#35753;&#20869;&#26680;&#22312; IO &#23436;&#25104;&#26102;&#21521;&#24212;&#29992;&#21457;&#36865;&#19968;&#20010;&#19978;&#34892;&#35843;&#29992;</SPAN>

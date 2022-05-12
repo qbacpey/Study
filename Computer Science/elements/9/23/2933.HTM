@@ -1,0 +1,18 @@
+<H3>Pointers to arrays</H3>
+<P>Note that the original code could be modified a little to make it work:</P>
+<P><SPAN class=extract>&#22914;&#20309;&#22768;&#26126;&#19968;&#20010;&#25351;&#21521;&#25968;&#32452;&#31867;&#22411;&#30340;&#25351;&#38024;&#65288;pointer to array&#65289;&#65311;int (*p) [4]</SPAN></P><PRE style="BOX-SIZING: border-box; FONT-SIZE: 13px; OVERFLOW: auto; BORDER-TOP: rgb(204,204,204) 1px solid; FONT-FAMILY: Consolas, monaco, monospace; BORDER-RIGHT: rgb(204,204,204) 1px solid; BACKGROUND: rgb(247,247,247); WHITE-SPACE: pre; WORD-SPACING: 0px; BORDER-BOTTOM: rgb(204,204,204) 1px solid; TEXT-TRANSFORM: none; WORD-BREAK: break-all; FONT-WEIGHT: 400; COLOR: rgb(51,51,51); PADDING-BOTTOM: 9px; FONT-STYLE: normal; PADDING-TOP: 9px; PADDING-LEFT: 9px; BORDER-LEFT: rgb(204,204,204) 1px solid; ORPHANS: 2; WIDOWS: 2; MARGIN: 0px 0px 10px; DISPLAY: block; LETTER-SPACING: normal; LINE-HEIGHT: 1.4285; PADDING-RIGHT: 9px; TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial; overflow-wrap: normal; border-radius: 4px"><SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">void</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">test</SPAN>(<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> (*p)[<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">4</SPAN>])
+{
+    (*p)[<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">2</SPAN>] = <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">10</SPAN>;
+}
+
+
+<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">main</SPAN>()
+{
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> arr[] = {<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">30</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">450</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">14</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">5</SPAN>};
+
+    test(&amp;arr);
+    printf(<SPAN style="BOX-SIZING: border-box; COLOR: rgb(127,0,127)">"%d\n"</SPAN>, arr[<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">2</SPAN>]);
+
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">return</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">0</SPAN>;
+}</PRE>
+<P>What is that weird type<SPAN>&nbsp;</SPAN><TT class="docutils literal"><SPAN class=pre>test</SPAN></TT><SPAN>&nbsp;</SPAN>accepts now? Say hello to a "pointer to array", one of the useless features of C

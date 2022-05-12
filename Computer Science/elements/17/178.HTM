@@ -1,0 +1,6 @@
+<STRONG>EXAMPLE: </STRONG>A trapframe is the data stored by the hardware and interrupt handler at the base of the interrupt stack, describing the state of the user-level execution context. Typically, a pointer to the trapframe is passed as an argument to the handler, e.g., to allow system calls to access arguments passed in registers. 
+<P></P>
+<P></P>
+<P>How large is the 32-bit x86 trapframe in the example given above? </P>
+<P><B>ANSWER: </B>The hardware saves six registers; the interrupt handler saves another eight general-purpose registers. In all, <B>56 bytes</B> are saved in the trapframe. &#9633;</P>
+<P><SPAN class=extract>&#20174;&#24635;&#20307;&#19978;&#30475;&#65292;&#30828;&#20214;&#20445;&#23384;&#20102;&#20845;&#20010;&#23492;&#23384;&#22120;&#65306;&#26632;&#27573;&#23492;&#23384;&#22120;&#21644;&#26632;&#25351;&#38024;&#23492;&#23384;&#22120;&#12289;&#20195;&#30721;&#27573;&#23492;&#23384;&#22120;&#21644;&#20195;&#30721;&#25351;&#38024;&#23492;&#23384;&#22120;&#12289;&#38169;&#35823;&#20195;&#30721;&#23492;&#23384;&#22120;&#12289;&#25191;&#34892;&#26631;&#24535;&#23492;&#23384;&#22120;&#65288;EFLAGS&#65289;&#65292;&#32780;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#21017;&#20445;&#23384;&#20102;&#20843;&#20010;&#36890;&#29992;&#23492;&#23384;&#22120;</SPAN>

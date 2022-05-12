@@ -1,0 +1,69 @@
+<STRONG><FONT color=blue>: </FONT></STRONG>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.5 Putting It All Together: x86 Mode Transfer</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">The high level steps needed to handle an interrupt, processor exception, or system call are simple, but the details require some care. </FONT>
+<P>To give a concrete example of how such &#8220;carefully crafted&#8221; code works, we now describe one way to implement an interrupt-triggered mode switch on the x86 architecture. Different operating systems on the x86 follow this basic approach, though details differ. Similarly, different architectures handle the same types of issues, but they may do so with different hardware support. </P>
+<P><SPAN class=extract>First, we provide some background on the x86 architecture. <SPAN class=extract>The x86 is segmented, so pointers come in two parts: (i) a segment, a region of memory such as code, data, or stack, and (ii) an offset within that segment</SPAN>. <SPAN class=extract>The current user-level instruction is a combination of the code segment (cs register) plus the instruction pointer (eip register). </SPAN><SPAN class=extract>Likewise, the current stack position is the combination of the stack segment (ss) and the stack pointer within the stack segment (esp).&nbsp;</SPAN>The current privilege level is stored as the low-order bits of the cs register rather than in the processor status word (eflags register). The eflags register has condition codes that are modified as a by-product of executing instructions; the eflags register also has other flags that control the processor&#8217;s behavior, such as whether interrupts are masked or not.</SPAN> <A id=x1-4600110 name=x1-4600110></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00198.gif" data-calibre-src="OEBPS/Images/image00198.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.10: </B>State of the system before an interrupt handler is invoked on the x86 architecture. SS is the stack segment, ESP is the stack pointer, CS is the code segment, and EIP is the program counter. The program counter and stack pointer refer to locations in the user process, and the interrupt stack is empty.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><SPAN class=extract>&nbsp;</P>
+<P>When a user-level process is running, the current state of the processor, stack, kernel interrupt vector table, and kernel stack is illustrated in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4600110"}'>2.10</A>. When a processor exception or system call trap occurs, the hardware carefully saves a small amount of the interrupted thread state, leaving the system as shown in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4600211"}'>2.11</A>: <A id=x1-4600211 name=x1-4600211></A></P>
+<HR>
+
+<P>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.11: </B>State of the system after the x86 hardware has jumped to the interrupt handler. The hardware saves the user context on the kernel interrupt stack and changes the program counter/stack to locations in kernel memory.</P></TD></TR></TBODY></TABLE></P>
+<HR>
+
+<P>&nbsp;</P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-46004x1 name=x1-46004x1></A>
+<P><B>Mask interrupts.</B> The hardware starts by preventing any interrupts from occurring while the processor is in the middle of switching from user mode to kernel mode. </P>
+<LI class=enumerate><A id=x1-46006x2 name=x1-46006x2></A>
+<P><B>Save three key values.</B> The hardware saves the values of the stack pointer (the x86 esp and ss registers), the execution flags (the x86 eflags register), and the instruction pointer (the x86 eip and cs registers) to internal, temporary hardware registers. </P>
+<LI class=enumerate><A id=x1-46008x3 name=x1-46008x3></A>
+<P><B>Switch onto the kernel interrupt stack.</B> The hardware then switches the stack segment/stack pointer to the base of the kernel interrupt stack, as specified in a special hardware register. </P>
+<LI class=enumerate><A id=x1-46010x4 name=x1-46010x4></A>
+<P><B>Push the three key values onto the new stack.</B> Next, the hardware stores the internally saved values onto the stack. </P>
+<LI class=enumerate><A id=x1-46012x5 name=x1-46012x5></A>
+<P><B>Optionally save an error code.</B> Certain types of exceptions, such as page faults, generate an error code to provide more information about the event; for these exceptions, the hardware pushes this code, making it the top item on the stack. For other types of events, the software interrupt handler pushes a dummy value onto the stack so that the stack format is identical in both cases. </P>
+<LI class=enumerate><A id=x1-46014x6 name=x1-46014x6></A>
+<P><B>Invoke the interrupt handler.</B> Finally, the hardware changes the code segment/program counter to the address of the interrupt handler procedure. A special register in the processor contains the location of the interrupt vector table in kernel memory. This register can only be modified by the kernel. The type of interrupt is mapped to an index in this array, and the code segment/program counter is set to the value at this index. </P></LI></OL></SPAN><SPAN class=extract>
+<P>This starts the handler software. </P>
+<P>The handler must first save the rest of the interrupted process&#8217;s state &#8212; it needs to save the other registers before it changes them! The handler pushes the rest of the registers, including the current stack pointer, onto the stack using the x86 pushad instruction. <A id=x1-4601512 name=x1-4601512></A></P>
+<HR>
+
+<P>&nbsp;</P>
+<CENTER>&nbsp;</CENTER>
+<P>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.12: </B>State of the system after the interrupt handler has started executing on the x86 architecture. The handler first saves the current state of the processor registers, since it may overwrite them. Note that this saves the stack pointer twice: first, the user stack pointer then the kernel stack pointer.</P></TD></TR></TBODY></TABLE></P>
+<HR>
+
+<P>&nbsp;</P>
+<P>As Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4601512"}'>2.12</A> shows, at this point the kernel&#8217;s interrupt stack holds (1) the stack pointer, execution flags, and program counter saved by the hardware, (2) an error code or dummy value, and (3) a copy of all of the general registers (including the stack pointer but not the instruction pointer or eflags register).</P>
+<P></SPAN>&nbsp;</P>
+<P><SPAN class=extract>Once the handler has saved the interrupted thread&#8217;s state to the stack, it can use the registers as it pleases, and it can push additional items onto the stack. So, the handler can now do whatever work it needs to do</SPAN>. </P><SPAN class=extract>
+<P>When the handler completes, it can resume the interrupted process. To do this, the handler pops the registers it saved on the stack. This restores all registers except the execution flags, program counter, and stack pointer. For the x86 instruction set, the popad instruction is commonly used. The handler also pops the error value off the stack. </P>
+<P>Finally, the handler executes the x86 iret instruction to restore the code segment, program counter, execution flags, stack segment, and stack pointer from the kernel&#8217;s interrupt stack</P>
+<P></SPAN>. </P>
+<P>This restores the process state to exactly what it was before the interrupt. The process continues execution as if nothing happened.</P><SPAN class=extract>
+<P>A small but important detail occurs when the hardware takes an exception to emulate an instruction in the kernel, e.g., for missing floating point hardware. If the handler returns back to the instruction that caused the exception, another exception would instantly recur! To prevent an infinite loop, the exception handler modifies the program counter stored at the base on the stack to point to the instruction immediately after the one causing the mode switch. The iret instruction can then return to the user process at the correct location. </P>
+<P>For a system call trap, the Intel x86 hardware does the increment when it saves the user-level state. The program counter for the instruction after the trap is saved on the kernel&#8217;s interrupt stack. </P>
+<P></SPAN><B><SPAN class=extract>&nbsp;</P>
+<P><B>EXAMPLE: </B>A trapframe is the data stored by the hardware and interrupt handler at the base of the interrupt stack, describing the state of the user-level execution context. Typically, a pointer to the trapframe is passed as an argument to the handler, e.g., to allow system calls to access arguments passed in registers. </P>
+<P>How large is the 32-bit x86 trapframe in the example given above? </P>
+<P><B>ANSWER: </B>The hardware saves six registers; the interrupt handler saves another eight general-purpose registers. In all, <B>56 bytes</B> are saved in the trapframe. &#9633;</P>
+<P></SPAN></B>&nbsp;<A id=x1-46016r72 name=x1-46016r72></A></P><A id=x1-470006 name=x1-470006></A>

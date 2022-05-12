@@ -1,0 +1,55 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>5.2 Structuring Shared Objects</H3></A><A id=x1-460011 name=x1-460011></A>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00400.gif" data-calibre-src="OEBPS/Images/image00400.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.1: </B>In a multi-threaded program, threads are separate from and operate concurrently on shared objects. Shared objects contain both shared state and synchronization variables, used for controlling concurrent access to shared state.</P></TD></TR></TBODY></TABLE>
+<HR>
+Decades of work have developed a much simpler approach to writing multi-threaded programs than using just atomic loads and stores. This approach extends the modularity of object-oriented programming to multi-threaded programs. As Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-460011"}'>5.1</A> illustrates, a multi-threaded program is built using <EM>shared objects</EM> and a set of threads that operate on them. 
+<P><EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:shared object"}'>Shared objects</A></EM> are objects that can be accessed safely by multiple threads. All shared state in a program &#8212; including variables allocated on the heap (e.g., objects allocated with malloc or new) and static, global variables &#8212; should be encapsulated in one or more shared objects. </P>
+<P>Programming with shared objects extends traditional object-oriented programming, in which objects hide their implementation details behind a clean interface. In the same way, shared objects hide the details of synchronizing the actions of multiple threads behind a clean interface. The threads using shared objects need only understand the interface; they do not need to know how the shared object internally handles synchronization. </P>
+<P>Like regular objects, programmers can design shared objects for whatever modules, interfaces, and semantics an application needs. Each shared object&#8217;s class defines a set of public methods on which threads operate. To assemble the overall program from these shared objects, each thread executes a &#8220;main loop&#8221; written in terms of actions on public methods of shared objects. </P>
+<P>Since shared objects encapsulate the program&#8217;s shared state, the main loop code that defines a thread&#8217;s high-level actions need not concern itself with synchronization details. The programming model thus looks very similar to that for single-threaded code. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Shared objects, monitors, and syntactic sugar</I></B></SPAN> </P>
+<P>We focus on <EM>shared objects</EM> because object-oriented programming provides a good way to think about shared state: hide shared state behind public methods that provide a clean interface to threads and that handle the details of synchronization. </P>
+<P>Although we use object-oriented terminology in our discussion, the ideas are equally applicable to non-object-oriented languages. For example, where a C++ program might define a class of shared objects with public methods, a C program might define a struct with synchronization variables and state variables as fields. Rather than scattering the code that accesses the struct&#8217;s fields, a well-designed C program will have a fixed set of functions that operate on the struct&#8217;s fields. </P>
+<P>Conversely, some programming languages build in even more support for shared objects than we describe here. When a programming language includes support for shared objects, a shared object is often called a <EM>monitor</EM>. Early languages with monitors include Brinch Hansen&#8217;s Concurrent Pascal and Xerox PARC&#8217;s Mesa; today, Java supports monitors via the synchronized keyword. </P>
+<P>We regard the distinctions between procedural languages, object-oriented languages, and languages with built-in support for monitors as relatively unimportant syntactic sugar &#8212; they are just a different way of writing the same thing. We use the terms &#8220;shared objects&#8221; or &#8220;monitors&#8221; broadly to refer to a conceptual approach that can and should be used to manage concurrency regardless of the particular programming language. </P>
+<P>In this book, our code and pseudo-code are based on C++&#8217;s syntax. We believe provides the right level of detail for teaching the shared objects or monitors approach. We prefer teaching with C++ to Java because we want to explicitly show where locks and condition variables are allocated and accessed rather than relying on operations hidden by a language&#8217;s built in monitor syntax. Conversely, we prefer C++ to C because we think C++&#8217;s support for object-oriented programming may help you internalize the underlying philosophy of the shared object approach. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-46002r76 name=x1-46002r76></A>
+<H4 class=subsectionHead>5.2.1 <A id=x1-470001 name=x1-470001></A>Implementing Shared Objects</H4>Of course, internally the shared objects must handle the details of synchronization. As Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-470012"}'>5.2</A> shows, shared objects are implemented in layers. <A id=x1-470012 name=x1-470012></A>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00401.gif" data-calibre-src="OEBPS/Images/image00401.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.2: </B>Multi-threaded programs are built with shared objects. Shared objects are built using synchronization variables and state variables. Synchronization variables are implemented using specialized processor instructions to manage interrupt delivery and to atomically read-modify-write memory locations.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Shared object layer.</B> As in standard object-oriented programming, shared objects define application-specific logic and hide internal implementation details. Externally, they appear to have the same interface as you would define for a single-threaded program. </P>
+<LI class=itemize>
+<P><B>Synchronization variable layer.</B> Rather than implementing shared objects directly with carefully interleaved atomic loads and stores, shared objects include <EM>synchronization variables</EM> as member variables. Synchronization variables, stored in memory just like any other object, can be included in any data structure. </P>
+<P>A <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:synchronization variable"}'>synchronization variable</A></EM> is a data structure used for coordinating concurrent access to shared state. Both the interface and the implementation of synchronization variables must be carefully designed. In particular, we build shared objects using two types of synchronization variables: <EM>locks</EM> and <EM>condition variables.</EM> We define these and describe how to construct them in Sections&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-490003"}'>5.3</A> and <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540004"}'>5.4</A>. </P>
+<P>Synchronization variables coordinate access to <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:state variable"}'>state variables</A></EM>, which are just the normal member variables of an object that you are familiar with from single-threaded programming (e.g., integers, strings, arrays, and pointers). </P>
+<P>Using synchronization variables simplifies implementing shared objects. In fact, not only do shared objects externally resemble traditional single-threaded objects, but, by implementing them with synchronization variables, their internal implementations are quite similar to those of single-threaded programs. </P>
+<LI class=itemize>
+<P><B>Atomic instruction layer.</B> Although the layers above benefit from a simpler programming model, it is not turtles all the way down. Internally, synchronization variables must manage the interleavings of different threads&#8217; actions. </P>
+<P>Rather than implementing synchronization variables, such as locks and condition variables, using atomic loads and stores as we tried to do for the Too Much Milk problem, modern implementations build synchronization variables using <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:atomic read-modify-write instruction"}'>atomic read-modify-write instructions</A></EM>. These processor-specific instructions let one thread have temporarily exclusive and atomic access to a memory location while the instruction executes. Typically, the instruction atomically reads a memory location, does some simple arithmetic operation to the value, and stores the result. The hardware guarantees that any other thread&#8217;s instructions accessing the same memory location will occur either entirely before, or entirely after, the atomic read-modify-write instruction. </P></LI></UL><A id=x1-47002r79 name=x1-47002r79></A>
+<H4 class=subsectionHead>5.2.2 <A id=x1-480002 name=x1-480002></A>Scope and Roadmap</H4>As Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-470012"}'>5.2</A> indicates, concurrent programs are built on top of shared objects. The rest of this chapter focuses on the middle layers of the figure &#8212; how to build shared objects using synchronization objects and how to build synchronization objects out of atomic read-modify-write instructions. Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-780006"}'>6</A> discusses issues that arise when composing multiple shared objects into a larger program. <A id=x1-48001r77 name=x1-48001r77></A><A id=x1-490003 name=x1-490003>

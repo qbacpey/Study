@@ -1,0 +1,86 @@
+<strong><font color="blue"> : </font></strong><h3 class=likesectionHead>Exercises</H3></A>
+<P></P>
+<OL class=problems>
+<P></P>
+<LI>Can UNIX fork return an error? Why or why not?<BR><B>Note:</B> You can answer this question by looking at the manual page for fork, but before you do that, think about what the fork system call does. If you were designing this call, would you need to allow fork to return an error? 
+<P></P></LI>
+<P></P>
+<LI>Can UNIX exec return an error? Why or why not?<BR><B>Note:</B> You can answer this question by looking at the manual page for exec, but before you do that, think about what the exec system call does. If you were designing this call, would you need to allow it to return an error? 
+<P></P></LI>
+<P></P>
+<LI>What happens if we run the following program on UNIX?
+<P><BR></P><PRE class=code>   &nbsp;main()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(fork()&nbsp;&gt;=&nbsp;0)
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+   &nbsp;}</PRE><BR></LI>
+<P></P>
+<LI>Explain what must happen for UNIX wait to return immediately (and successfully). </LI>
+<P></P>
+<LI>Suppose you were the instructor of a very large introductory programming class. Explain (in English) how you would use UNIX system calls to automate testing of submitted homework assignments. </LI>
+<P></P>
+<LI>What happens if you run &#8220;exec csh&#8221; in a UNIX shell? Why? 
+<P></P></LI>
+<P></P>
+<LI>What happens if you run &#8220;exec ls&#8221; in a UNIX shell? Why? </LI>
+<P></P>
+<LI>How many processes are created if the following program is run? <BR><PRE class=code>   &nbsp;main(int&nbsp;argc,&nbsp;char&nbsp;**&nbsp;argv)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forkthem(5)
+   &nbsp;}
+   &nbsp;void&nbsp;forkthem(int&nbsp;n)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(n&nbsp;&gt;&nbsp;0)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fork();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forkthem(n-1);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;}</PRE><BR></LI>
+<P></P>
+<LI>Consider the following program:
+<P><BR></P><PRE class=code>   &nbsp;main&nbsp;(int&nbsp;argc,&nbsp;char&nbsp;**&nbsp;argv)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;child&nbsp;=&nbsp;fork();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;x&nbsp;=&nbsp;5;
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(child&nbsp;==&nbsp;0)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;+=&nbsp;5;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;child&nbsp;=&nbsp;fork();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;+=&nbsp;10;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(child)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;+=&nbsp;5;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;}</PRE><BR>
+<P>How many different copies of the variable x are there? What are their values when their process finishes? </P>
+<P></P></LI>
+<P></P>
+<LI>
+<P>What is the output of the following programs? (Please try to solve the problem without compiling and running the programs.) </P>
+<P></P><PRE class=code>   &nbsp;//&nbsp;Program&nbsp;1
+   &nbsp;main()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;val&nbsp;=&nbsp;5;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;pid;
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(pid&nbsp;=&nbsp;fork())
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wait(pid);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;val++;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("%d\n",&nbsp;val);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;val;
+   &nbsp;}</PRE><PRE class=code>   &nbsp;//&nbsp;Program&nbsp;2:
+   &nbsp;main()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;val&nbsp;=&nbsp;5;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;pid;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(pid&nbsp;=&nbsp;fork())
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wait(pid);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit(val);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;val++;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("%d\n",&nbsp;val);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;val;
+   &nbsp;}</PRE></LI>
+<P></P>
+<LI>Implement a simple Linux shell in C capable of executing a sequence of programs that communicate through a pipe. For example, if the user types ls | wc, your program should fork off the two programs, which together will calculate the number of files in the directory. For this, you will need to use several of the Linux system calls described in this chapter: fork, exec, open, close, pipe, dup2, and wait. <B>Note:</B> You will to replace stdin and stdout in the child process with the pipe file descriptors; that is the role of dup2. </LI>
+<P></P>
+<LI>Extend the shell implemented above to support foreground and background tasks, as well as job control: suspend, resume, and kill. </LI></OL><A id=Q1-1-126 name=Q1-1-126></A><A id=Q1-1-127 name=Q1-1-127></A><A id=Q1-1-128 name=Q1-1-128></A><A id=Q1-1-129 name=Q1-1-129></A><A id=Q1-1-130 name=Q1-1-130></A><A id=Q1-1-131 name=Q1-1-131></A><A id=Q1-1-132 name=Q1-1-132></A><A id=Q1-1-133 name=Q1-1-133></A><A id=Q1-1-134 name=Q1-1-134></A><A id=Q1-1-135 name=Q1-1-135></A><A id=Q1-1-136 name=Q1-1-136></A><A id=Q1-1-137 name=Q1-1-137></A><A id=Q1-1-138 name=Q1-1-138></A><A id=Q1-1-139 name=Q1-1-139></A>
+<P></P>
+<P></P>
+<P>
+<DIV style="break-after: always; -webkit-column-break-after: always"></DIV><BR><BR><BR>
+<P></P><A id=x1-720006 name=x1-720006>

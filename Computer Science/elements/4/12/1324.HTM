@@ -1,0 +1,25 @@
+<STRONG><FONT color=blue>: </FONT></STRONG>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.7 Starting a New Process</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Thus far, we have described how to transfer control from a user-level process to the kernel on an interrupt, processor exception, or system call and how the kernel resumes execution at user level when done. </FONT>
+<P><SPAN class=extract>We now examine how to start running at user level in the first place. The kernel must</SPAN>: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Allocate and initialize the process control block. </P>
+<LI class=itemize>
+<P>Allocate memory for the process. </P>
+<LI class=itemize>
+<P>Copy the program from disk into the newly allocated memory. </P>
+<LI class=itemize>
+<P>Allocate a user-level stack for user-level execution. </P>
+<LI class=itemize>
+<P>Allocate a kernel-level stack for handling system calls, interrupts and processor exceptions.</P></LI></UL>
+<P class=itemize><SPAN class=extract>To start running the program, the kernel must also</SPAN>: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Copy arguments into user memory. </STRONG>When starting a program, the user may give it arguments, much like calling a procedure.</SPAN> For example, when you click on a file icon in MacOS or Windows, the window manager asks the kernel to start the application associated with the file, passing it the file name to open. The kernel copies the file name from the memory of the window manager process to a special region of memory in the new process. <SPAN class=extract>By convention, arguments to a process are copied to the base of the user-level stack, and the user&#8217;s stack pointer is incremented so those addresses are not overwritten when the program starts running</SPAN>. </P>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Transfer control to user mode. </STRONG>When a new process starts, there is no saved state to restore. While it would be possible to write special code for this case, most operating systems re-use the same code to exit the kernel for starting a new process and for returning from a system call. When we create the new process, we allocate a kernel stack to it, and we reserve room at the bottom of the kernel stack for the initial values of its user-space registers, program counter, stack pointer, and processor status word. To start the new program, we can then switch to the new stack and jump to the end of the interrupt handler. When the handler executes popad and iret, the processor &#8220;returns&#8221; to the start of the user program</SPAN>. </P></LI></UL>
+<P><SPAN class=extract>Finally, although you can think of a user program as starting with a call to main, in fact the compiler inserts one level of indirection</SPAN>. <SPAN class=extract>It puts a stub at the location in the process&#8217;s memory where the kernel will jump when the process starts. The stub&#8217;s job is to call main and then, if main returns, to call exit &#8212; the system call to terminate the process</SPAN>. <SPAN class=extract>Without the stub, a user program that returned from main would try to pop the return program counter, and since there is no such address on the stack, the processor would start executing random code</SPAN>. </P>
+<P><BR></P><PRE class=code>   &nbsp;start(arg1,&nbsp;arg2)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;main(arg1,&nbsp;arg2);&nbsp;&nbsp;//&nbsp;Call&nbsp;program&nbsp;main.
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;If&nbsp;main&nbsp;returns,&nbsp;call&nbsp;exit.
+   &nbsp;}</PRE><BR><A id=x1-48001r80 name=x1-48001r80></A><A id=x1-490008 name=x1-490008></A>

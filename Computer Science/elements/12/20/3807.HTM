@@ -1,0 +1,921 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : </FONT></STRONG>
+<H2 class=chapter_name><I><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Operating Systems: Principles and Practice (Second Edition) Volume II : Glossary</SPAN></FONT></I></H2></A>
+<DL class=description>
+<DT class=description><A id="glo:absolute path" name="glo:absolute path"></A><B>absolute path</B> 
+<DD class=description>A file path name interpreted relative to the root directory. 
+<DT class=description><A id="glo:abstract virtual machine" name="glo:abstract virtual machine"></A><B>abstract virtual machine</B> 
+<DD class=description>The interface provided by an operating system to its applications, including the system call interface, the memory abstraction, exceptions, and signals. 
+<DT class=description><A id="glo:ACID properties" name="glo:ACID properties"></A><B>ACID properties</B> 
+<DD class=description>A mnemonic for the properties of a transaction: atomicity, consistency, isolation, and durability. 
+<DT class=description><A id=glo:acquire-all/release-all name=glo:acquire-all/release-all></A><B>acquire-all/release-all</B> 
+<DD class=description>A design pattern to provide atomicity of a request consisting of multiple operations. A thread acquires all of the locks it might need before starting to process a request; it releases the locks once the request is done. 
+<DT class=description><A id="glo:address translation" name="glo:address translation"></A><B>address translation</B> 
+<DD class=description>The conversion from the memory address the program thinks it is referencing to the physical location of the memory. 
+<DT class=description><A id="glo:affinity scheduling" name="glo:affinity scheduling"></A><B>affinity scheduling</B> 
+<DD class=description>A scheduling policy where tasks are preferentially scheduled onto the same processor they had previously been assigned, to improve cache reuse. 
+<DT class=description><A id="glo:annual disk failure rate" name="glo:annual disk failure rate"></A><B>annual disk failure rate</B> 
+<DD class=description>The fraction of disks expected to failure each year. 
+<DT class=description><A id=glo:API name=glo:API></A><B>API</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:application programming interface"}'>application programming interface</A></EM>. 
+<DT class=description><A id="glo:application programming interface" name="glo:application programming interface"></A><B>application programming interface</B> 
+<DD class=description>The system call interface provided by an operating system to applications. 
+<DT class=description><A id=glo:arm name=glo:arm></A><B>arm</B> 
+<DD class=description>An attachment allowing the motion of the disk head across a disk surface. 
+<DT class=description><A id="glo:arm assembly" name="glo:arm assembly"></A><B>arm assembly</B> 
+<DD class=description>A motor plus the set of disk arms needed to position a disk head to read or write each surface of the disk. 
+<DT class=description><A id="glo:arrival rate" name="glo:arrival rate"></A><B>arrival rate</B> 
+<DD class=description>The rate at which tasks arrive for service. 
+<DT class=description><A id="glo:asynchronous I/O" name="glo:asynchronous I/O"></A><B>asynchronous I/O</B> 
+<DD class=description>A design pattern for system calls to allow a single-threaded process to make multiple concurrent I/O requests. When the process issues an I/O request, the system call returns immediately. The process later on receives a notification when the I/O completes. 
+<DT class=description><A id="glo:asynchronous procedure call" name="glo:asynchronous procedure call"></A><B>asynchronous procedure call</B> 
+<DD class=description>A procedure call where the caller starts the function, continues execution concurrently with the called function, and later waits for the function to complete. 
+<DT class=description><A id="glo:atomic commit" name="glo:atomic commit"></A><B>atomic commit</B> 
+<DD class=description>The moment when a transaction commits to apply all of its updates. 
+<DT class=description><A id="glo:atomic memory" name="glo:atomic memory"></A><B>atomic memory</B> 
+<DD class=description>The value stored in memory is the last value stored by one of the processors, not a mixture of the updates of different processors. 
+<DT class=description><A id="glo:atomic operations" name="glo:atomic operations"></A><B>atomic operations</B> 
+<DD class=description>Indivisible operations that cannot be interleaved with or split by other operations. 
+<DT class=description><A id="glo:atomic read-modify-write instruction" name="glo:atomic read-modify-write instruction"></A><B>atomic read-modify-write instruction</B> 
+<DD class=description>A processor-specific instruction that lets one thread temporarily have exclusive and atomic access to a memory location while the instruction executes. Typically, the instruction (atomically) reads a memory location, does some simple arithmetic operation to the value, and stores the result. 
+<DT class=description><A id="glo:attribute record" name="glo:attribute record"></A><B>attribute record</B> 
+<DD class=description>In NTFS, a variable-size data structure containing either file data or file metadata. 
+<DT class=description><A id=glo:availability name=glo:availability></A><B>availability</B> 
+<DD class=description>The percentage of time that a system is usable. 
+<DT class=description><A id="glo:average seek time" name="glo:average seek time"></A><B>average seek time</B> 
+<DD class=description>The average time across seeks between each possible pair of tracks on a disk. 
+<DT class=description><A id=glo:AVM name=glo:AVM></A><B>AVM</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:abstract virtual machine"}'>abstract virtual machine</A></EM>. 
+<DT class=description><A id=glo:backup name=glo:backup></A><B>backup</B> 
+<DD class=description>A logically or physically separate copy of a system&#8217;s main storage. 
+<DT class=description><A id="glo:base and bound memory protection" name="glo:base and bound memory protection"></A><B>base and bound memory protection</B> 
+<DD class=description>An early system for memory protection where each process is limited to a specific range of physical memory. 
+<DT class=description><A id="glo:batch operating system" name="glo:batch operating system"></A><B>batch operating system</B> 
+<DD class=description>An early type of operating system that efficiently ran a queue of tasks. While one program was running, another was being loaded into memory. 
+<DT class=description><A id="glo:bathtub model" name="glo:bathtub model"></A><B>bathtub model</B> 
+<DD class=description>A model of disk device failure combining device infant mortality and wear out. 
+<DT class=description><A id="glo:Belady's anomaly" name="glo:Belady's anomaly"></A><B>Belady&#8217;s anomaly</B> 
+<DD class=description>For some cache replacement policies and some reference patterns, adding space to a cache can hurt the cache hit rate. 
+<DT class=description><A id="glo:best fit" name="glo:best fit"></A><B>best fit</B> 
+<DD class=description>A storage allocation policy that attempts to place a newly allocated file in the smallest free region that is large enough to hold it. 
+<DT class=description><A id=glo:BIOS name=glo:BIOS></A><B>BIOS</B> 
+<DD class=description>The initial code run when an Intel x86 computer boots; acronym for Basic Input/Output System. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:Boot ROM"}'>Boot ROM</A></EM>. 
+<DT class=description><A id="glo:bit error rate" name="glo:bit error rate"></A><B>bit error rate</B> 
+<DD class=description>The non-recoverable read error rate. 
+<DT class=description><A id=glo:bitmap name=glo:bitmap></A><B>bitmap</B> 
+<DD class=description>A data structure for block allocation where each block is represented by one bit. 
+<DT class=description><A id="glo:block device" name="glo:block device"></A><B>block device</B> 
+<DD class=description>An I/O device that allows data to be read or written in fixed-sized blocks. 
+<DT class=description><A id="glo:block group" name="glo:block group"></A><B>block group</B> 
+<DD class=description>A set of nearby disk tracks. 
+<DT class=description><A id="glo:block integrity metadata" name="glo:block integrity metadata"></A><B>block integrity metadata</B> 
+<DD class=description>Additional data stored with a block to allow the software to validate that the block has not been corrupted. 
+<DT class=description><A id="glo:blocking bounded queue" name="glo:blocking bounded queue"></A><B>blocking bounded queue</B> 
+<DD class=description>A bounded queue where a thread trying to remove an item from an empty queue will wait until an item is available, and a thread trying to put an item into a full queue will wait until there is room. 
+<DT class=description><A id=glo:Bohrbugs name=glo:Bohrbugs></A><B>Bohrbugs</B> 
+<DD class=description>Bugs that are deterministic and reproducible, given the same program input. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:Heisenbugs"}'>Heisenbugs</A></EM>. 
+<DT class=description><A id="glo:Boot ROM" name="glo:Boot ROM"></A><B>Boot ROM</B> 
+<DD class=description>Special read-only memory containing the initial instructions for booting a computer. 
+<DT class=description><A id=glo:bootloader name=glo:bootloader></A><B>bootloader</B> 
+<DD class=description>Program stored at a fixed position on disk (or flash RAM) to load the operating system into memory and start it executing. 
+<DT class=description><A id="glo:bounded queue" name="glo:bounded queue"></A><B>bounded queue</B> 
+<DD class=description>A queue with a fixed size limit on the number of items stored in the queue. 
+<DT class=description><A id="glo:bounded resources" name="glo:bounded resources"></A><B>bounded resources</B> 
+<DD class=description>A necessary condition for deadlock: there are a finite number of resources that threads can simultaneously use. 
+<DT class=description><A id="glo:buffer overflow attack" name="glo:buffer overflow attack"></A><B>buffer overflow attack</B> 
+<DD class=description>An attack that exploits a bug where input can overflow the buffer allocated to hold it, overwriting other important program data structures with data provided by the attacker. One common variation overflows a buffer allocated on the stack (e.g., a local, automatic variable) and replaces the function&#8217;s return address with a return address specified by the attacker, possibly to code &#8220;pushed&#8221; onto the stack with the overflowing input. 
+<DT class=description><A id="glo:bulk synchronous" name="glo:bulk synchronous"></A><B>bulk synchronous</B> 
+<DD class=description>A type of parallel application where work is split into independent tasks and where each task completes before the results of any of the tasks can be used. 
+<DT class=description><A id="glo:bulk synchronous parallel programming" name="glo:bulk synchronous parallel programming"></A><B>bulk synchronous parallel programming</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:data parallel programming"}'>data parallel programming</A></EM>. 
+<DT class=description><A id="glo:bursty distribution" name="glo:bursty distribution"></A><B>bursty distribution</B> 
+<DD class=description>A probability distribution that is less evenly distributed around the mean value than an exponential distribution. See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:exponential distribution"}'>exponential distribution</A></EM>. Compare: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:heavy-tailed distribution"}'>heavy-tailed distribution</A></EM>. 
+<DT class=description><A id=glo:busy-waiting name=glo:busy-waiting></A><B>busy-waiting</B> 
+<DD class=description>A thread spins in a loop waiting for a concurrent event to occur, consuming CPU cycles while it is waiting. 
+<DT class=description><A id=glo:cache name=glo:cache></A><B>cache</B> 
+<DD class=description>A copy of data that can be accessed more quickly than the original. 
+<DT class=description><A id="glo:cache hit" name="glo:cache hit"></A><B>cache hit</B> 
+<DD class=description>The cache contains the requested item. 
+<DT class=description><A id="glo:cache miss" name="glo:cache miss"></A><B>cache miss</B> 
+<DD class=description>The cache does not contain the requested item. 
+<DT class=description><A id=glo:checkpoint name=glo:checkpoint></A><B>checkpoint</B> 
+<DD class=description>A consistent snapshot of the entire state of a process, including the contents of memory and processor registers. 
+<DT class=description><A id="glo:child process" name="glo:child process"></A><B>child process</B> 
+<DD class=description>A process created by another process. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:parent process"}'>parent process</A></EM>. 
+<DT class=description><A id="glo:Circular SCAN" name="glo:Circular SCAN"></A><B>Circular SCAN</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:CSCAN"}'>CSCAN</A></EM>. 
+<DT class=description><A id="glo:circular waiting" name="glo:circular waiting"></A><B>circular waiting</B> 
+<DD class=description>A necessary condition for deadlock to occur: there is a set of threads such that each thread is waiting for a resource held by another. 
+<DT class=description><A id="glo:client-server communication" name="glo:client-server communication"></A><B>client-server communication</B> 
+<DD class=description>Two-way communication between processes, where the client sends a request to the server to do some task, and when the operation is complete, the server replies back to the client. 
+<DT class=description><A id="glo:clock algorithm" name="glo:clock algorithm"></A><B>clock algorithm</B> 
+<DD class=description>A method for identifying a not recently used page to evict. The algorithm sweeps through each page frame: if the page use bit is set, it is cleared; if the use bit is not set, the page is reclaimed. 
+<DT class=description><A id="glo:cloud computing" name="glo:cloud computing"></A><B>cloud computing</B> 
+<DD class=description>A model of computing where large-scale applications run on shared computing and storage infrastructure in data centers instead of on the user&#8217;s own computer. 
+<DT class=description><A id=glo:commit name=glo:commit></A><B>commit</B> 
+<DD class=description>The outcome of a transaction where all of its updates occur. 
+<DT class=description><A id=glo:compare-and-swap name=glo:compare-and-swap></A><B>compare-and-swap</B> 
+<DD class=description>An atomic read-modify-write instruction that first tests the value of a memory location, and if the value has not been changed, sets it to a new value. 
+<DT class=description><A id="glo:compute-bound task" name="glo:compute-bound task"></A><B>compute-bound task</B> 
+<DD class=description>A task that primarily uses the processor and does little I/O. 
+<DT class=description><A id="glo:computer virus" name="glo:computer virus"></A><B>computer virus</B> 
+<DD class=description>A computer program that modifies an operating system or application to copy itself from computer to computer without the computer owner&#8217;s permission or knowledge. Once installed on a computer, a virus often provides the attacker control over the system&#8217;s resources or data. 
+<DT class=description><A id=glo:concurrency name=glo:concurrency></A><B>concurrency</B> 
+<DD class=description>Multiple activities that can happen at the same time. 
+<DT class=description><A id="glo:condition variable" name="glo:condition variable"></A><B>condition variable</B> 
+<DD class=description>A synchronization variable that enables a thread to efficiently wait for a change to shared state protected by a lock. 
+<DT class=description><A id=glo:continuation name=glo:continuation></A><B>continuation</B> 
+<DD class=description>A data structure used in event-driven programming that keeps track of a task&#8217;s current state and its next step. 
+<DT class=description><A id="glo:cooperating threads" name="glo:cooperating threads"></A><B>cooperating threads</B> 
+<DD class=description>Threads that read and write shared state. 
+<DT class=description><A id="glo:cooperative caching" name="glo:cooperative caching"></A><B>cooperative caching</B> 
+<DD class=description>Using the memory of nearby nodes over a network as a cache to avoid the latency of going to disk. 
+<DT class=description><A id="glo:cooperative multi-threading" name="glo:cooperative multi-threading"></A><B>cooperative multi-threading</B> 
+<DD class=description>Each thread runs without interruption until it explicitly relinquishes control of the processor, e.g., by exiting or calling thread_yield. 
+<DT class=description><A id=glo:copy-on-write name=glo:copy-on-write></A><B>copy-on-write</B> 
+<DD class=description>A method of sharing physical memory between two logically distinct copies (e.g., in different processes). Each shared page is marked as read-only so that the operating system kernel is invoked and can make a copy of the page if either process tries to write it. The process can then modify the copy and resume normal execution. 
+<DT class=description><A id="glo:copy-on-write file system" name="glo:copy-on-write file system"></A><B>copy-on-write file system</B> 
+<DD class=description>A file system where an update to the file system is made by writing new versions of modified data and metadata blocks to free disk blocks. The new blocks can point to unchanged blocks in the previous version of the file system. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:COW file system"}'>COW file system</A></EM>. 
+<DT class=description><A id="glo:core map" name="glo:core map"></A><B>core map</B> 
+<DD class=description>A data structure used by the memory management system to keep track of the state of physical page frames, such as which processes reference the page frame. 
+<DT class=description><A id="glo:COW file system" name="glo:COW file system"></A><B>COW file system</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:copy-on-write file system"}'>copy-on-write file system</A></EM>. 
+<DT class=description><A id="glo:critical path" name="glo:critical path"></A><B>critical path</B> 
+<DD class=description>The minimum sequence of steps for a parallel application to compute its result, even with infinite resources. 
+<DT class=description><A id="glo:critical section" name="glo:critical section"></A><B>critical section</B> 
+<DD class=description>A sequence of code that operates on shared state. 
+<DT class=description><A id="glo:cross-site scripting" name="glo:cross-site scripting"></A><B>cross-site scripting</B> 
+<DD class=description>An attack against a client computer that works by compromising a server visited by the client. The compromised server then provides scripting code to the client that accesses and downloads the client&#8217;s sensitive data. 
+<DT class=description><A id="glo:cryptographic signature" name="glo:cryptographic signature"></A><B>cryptographic signature</B> 
+<DD class=description>A specially designed function of a data block and a private cryptographic key that allows someone with the corresponding public key to verify that an authorized entity produced the data block. It is computationally intractable for an attacker without the private key to create a different data block with a valid signature. 
+<DT class=description><A id=glo:CSCAN name=glo:CSCAN></A><B>CSCAN</B> 
+<DD class=description>A variation of the SCAN disk scheduling policy in which the disk only services requests when the head is traveling in one direction. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:Circular SCAN"}'>Circular SCAN</A></EM>. 
+<DT class=description><A id="glo:current working directory" name="glo:current working directory"></A><B>current working directory</B> 
+<DD class=description>The current directory of the process, used for interpreting relative path names. 
+<DT class=description><A id="glo:data breakpoint" name="glo:data breakpoint"></A><B>data breakpoint</B> 
+<DD class=description>A request to stop the execution of a program when it references or modifies a particular memory location. 
+<DT class=description><A id="glo:data parallel programming" name="glo:data parallel programming"></A><B>data parallel programming</B> 
+<DD class=description>A programming model where the computation is performed in parallel across all items in a data set. 
+<DT class=description><A id=glo:deadlock name=glo:deadlock></A><B>deadlock</B> 
+<DD class=description>A cycle of waiting among a set of threads, where each thread waits for some other thread in the cycle to take some action. 
+<DT class=description><A id="glo:deadlocked state" name="glo:deadlocked state"></A><B>deadlocked state</B> 
+<DD class=description>The system has at least one deadlock. 
+<DT class=description><A id=glo:declustering name=glo:declustering></A><B>declustering</B> 
+<DD class=description>A technique for reducing the recovery time after a disk failure in a RAID system by spreading redundant disk blocks across many disks. 
+<DT class=description><A id="glo:defense in depth" name="glo:defense in depth"></A><B>defense in depth</B> 
+<DD class=description>Improving security through multiple layers of protection. 
+<DT class=description><A id=glo:defragment name=glo:defragment></A><B>defragment</B> 
+<DD class=description>Coalesce scattered disk blocks to improve spatial locality, by reading data from its present storage location and rewriting it to a new, more compact, location. 
+<DT class=description><A id="glo:demand paging" name="glo:demand paging"></A><B>demand paging</B> 
+<DD class=description>Using address translation hardware to run a process without all of its memory physically present. When the process references a missing page, the hardware traps to the kernel, which brings the page into memory from disk. 
+<DT class=description><A id="glo:deterministic debugging" name="glo:deterministic debugging"></A><B>deterministic debugging</B> 
+<DD class=description>The ability to re-execute a concurrent process with the same schedule and sequence of internal and external events. 
+<DT class=description><A id="glo:device driver" name="glo:device driver"></A><B>device driver</B> 
+<DD class=description>Operating system code to initialize and manage a particular I/O device. 
+<DT class=description><A id="glo:direct mapped cache" name="glo:direct mapped cache"></A><B>direct mapped cache</B> 
+<DD class=description>Only one entry in the cache can hold a specific memory location, so on a lookup, the system must check the address against only that entry to determine if there is a cache hit. 
+<DT class=description><A id="glo:direct memory access" name="glo:direct memory access"></A><B>direct memory access</B> 
+<DD class=description>Hardware I/O devices transfer data directly into/out of main memory at a location specified by the operating system. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:DMA"}'>DMA</A></EM>. 
+<DT class=description><A id="glo:dirty bit" name="glo:dirty bit"></A><B>dirty bit</B> 
+<DD class=description>A status bit in a page table entry recording whether the contents of the page have been modified relative to what is stored on disk. 
+<DT class=description><A id="glo:disk buffer memory" name="glo:disk buffer memory"></A><B>disk buffer memory</B> 
+<DD class=description>Memory in the disk controller to buffer data being read or written to the disk. 
+<DT class=description><A id="glo:disk infant mortality" name="glo:disk infant mortality"></A><B>disk infant mortality</B> 
+<DD class=description>The device failure rate is higher than normal during the first few weeks of use. 
+<DT class=description><A id="glo:disk wear out" name="glo:disk wear out"></A><B>disk wear out</B> 
+<DD class=description>The device failure rate rises after the device has been in operation for several years. 
+<DT class=description><A id=glo:DMA name=glo:DMA></A><B>DMA</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:direct memory access"}'>direct memory access</A></EM>. 
+<DT class=description><A id=glo:dnode name=glo:dnode></A><B>dnode</B> 
+<DD class=description>In ZFS, a file is represented by variable-depth tree whose root is a dnode and whose leaves are its data blocks. 
+<DT class=description><A id="glo:double indirect block" name="glo:double indirect block"></A><B>double indirect block</B> 
+<DD class=description>A storage block containing pointers to indirect blocks. 
+<DT class=description><A id="glo:double-checked locking" name="glo:double-checked locking"></A><B>double-checked locking</B> 
+<DD class=description>A pitfall in concurrent code where a data structure is lazily initialized by first, checking without a lock if it has been set, and if not, acquiring a lock and checking again, before calling the initialization function. With instruction re-ordering, double-checked locking can fail unexpectedly. 
+<DT class=description><A id="glo:dual redundancy array" name="glo:dual redundancy array"></A><B>dual redundancy array</B> 
+<DD class=description>A RAID storage algorithm using two redundant disk blocks per array to tolerate two disk failures. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:RAID 6"}'>RAID 6</A></EM>. 
+<DT class=description><A id="glo:dual-mode operation" name="glo:dual-mode operation"></A><B>dual-mode operation</B> 
+<DD class=description>Hardware processor that has (at least) two privilege levels: one for executing the kernel with complete access to the capabilities of the hardware and a second for executing user code with restricted rights. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:kernel-mode operation"}'>kernel-mode operation</A></EM>. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:user-mode operation"}'>user-mode operation</A></EM>. 
+<DT class=description><A id="glo:dynamically loadable device driver" name="glo:dynamically loadable device driver"></A><B>dynamically loadable device driver</B> 
+<DD class=description>Software to manage a specific device, interface, or chipset, added to the operating system kernel after the kernel starts running. 
+<DT class=description><A id="glo:earliest deadline first" name="glo:earliest deadline first"></A><B>earliest deadline first</B> 
+<DD class=description>A scheduling policy that performs the task that needs to be completed first, but only if it can be finished in time. 
+<DT class=description><A id=glo:EDF name=glo:EDF></A><B>EDF</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:earliest deadline first"}'>earliest deadline first</A></EM>. 
+<DT class=description><A id=glo:efficiency name=glo:efficiency></A><B>efficiency</B> 
+<DD class=description>The lack of overhead in implementing an abstraction. 
+<DT class=description><A id="glo:erasure block" name="glo:erasure block"></A><B>erasure block</B> 
+<DD class=description>The unit of erasure in a flash memory device. Before any portion of an erasure block can be over-written, every cell in the entire erasure block must be set to a logical &#8220;1.&#8221; 
+<DT class=description><A id="glo:error correcting code" name="glo:error correcting code"></A><B>error correcting code</B> 
+<DD class=description>A technique for storing data redundantly to allow for the original data to be recovered even though some bits in a disk sector or flash memory page are corrupted. 
+<DT class=description><A id="glo:event-driven programming" name="glo:event-driven programming"></A><B>event-driven programming</B> 
+<DD class=description>A coding design pattern where a thread spins in a loop; each iteration gets and processes the next I/O event. 
+<DT class=description><A id=glo:exception name=glo:exception></A><B>exception</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:processor exception"}'>processor exception</A></EM>. 
+<DT class=description><A id="glo:executable image" name="glo:executable image"></A><B>executable image</B> 
+<DD class=description>File containing a sequence of machine instructions and initial data values for a program. 
+<DT class=description><A id="glo:execution stack" name="glo:execution stack"></A><B>execution stack</B> 
+<DD class=description>Space to store the state of local variables during procedure calls. 
+<DT class=description><A id="glo:exponential distribution" name="glo:exponential distribution"></A><B>exponential distribution</B> 
+<DD class=description>A convenient probability distribution for use in queueing theory because it has the property of being memoryless. For a continuous random variable with a mean of 1&#8725;&#955;, the probability density function is f(x) = &#955; times e raised to the -&#955;x. 
+<DT class=description><A id=glo:extent name=glo:extent></A><B>extent</B> 
+<DD class=description>A variable-sized region of a file that is stored in a contiguous region on the storage device. 
+<DT class=description><A id="glo:external fragmentation" name="glo:external fragmentation"></A><B>external fragmentation</B> 
+<DD class=description>In a system that allocates memory in contiguous regions, the unusable memory between valid contiguous allocations. A new request for memory may find no single free region that is both contiguous and large enough, even though there is enough free memory in aggregate. 
+<DT class=description><A id=glo:fairness name=glo:fairness></A><B>fairness</B> 
+<DD class=description>Partitioning of shared resources between users or applications either equally or balanced according to some desired priorities. 
+<DT class=description><A id="glo:false sharing" name="glo:false sharing"></A><B>false sharing</B> 
+<DD class=description>Extra inter-processor communication required because a single cache entry contains portions of two different data structures with different sharing patterns. 
+<DT class=description><A id="glo:fate sharing" name="glo:fate sharing"></A><B>fate sharing</B> 
+<DD class=description>When a crash in one module implies a crash in another. For example, a library shares fate with the application it is linked with; if either crashes, the process exits. 
+<DT class=description><A id="glo:fault isolation" name="glo:fault isolation"></A><B>fault isolation</B> 
+<DD class=description>An error in one application should not disrupt other applications, or even the operating system itself. 
+<DT class=description><A id=glo:file name=glo:file></A><B>file</B> 
+<DD class=description>A named collection of data in a file system. 
+<DT class=description><A id="glo:file allocation table" name="glo:file allocation table"></A><B>file allocation table</B> 
+<DD class=description>An array of entries in the FAT file system stored in a reserved area of the volume, where each entry corresponds to one file data block, and points to the next block in the file. 
+<DT class=description><A id="glo:file data" name="glo:file data"></A><B>file data</B> 
+<DD class=description>Contents of a file. 
+<DT class=description><A id="glo:file descriptor" name="glo:file descriptor"></A><B>file descriptor</B> 
+<DD class=description>A handle to an open file, device, or channel. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:file handle"}'>file handle</A></EM>. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:file stream"}'>file stream</A></EM>. 
+<DT class=description><A id="glo:file directory" name="glo:file directory"></A><B>file directory</B> 
+<DD class=description>A list of human-readable names plus a mapping from each name to a specific file or sub-directory. 
+<DT class=description><A id="glo:file handle" name="glo:file handle"></A><B>file handle</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:file descriptor"}'>file descriptor</A></EM>. 
+<DT class=description><A id="glo:file index structure" name="glo:file index structure"></A><B>file index structure</B> 
+<DD class=description>A persistently stored data structure used to locate the blocks of the file. 
+<DT class=description><A id="glo:file metadata" name="glo:file metadata"></A><B>file metadata</B> 
+<DD class=description>Information about a file that is managed by the operating system, but not including the file contents. 
+<DT class=description><A id="glo:file stream" name="glo:file stream"></A><B>file stream</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:file descriptor"}'>file descriptor</A></EM>. 
+<DT class=description><A id="glo:file system" name="glo:file system"></A><B>file system</B> 
+<DD class=description>An operating system abstraction that provides persistent, named data. 
+<DT class=description><A id="glo:file system fingerprint" name="glo:file system fingerprint"></A><B>file system fingerprint</B> 
+<DD class=description>A checksum across the entire file system. 
+<DT class=description><A id=glo:fill-on-demand name=glo:fill-on-demand></A><B>fill-on-demand</B> 
+<DD class=description>A method for starting a process before all of its memory is brought in from disk. If the first access to the missing memory triggers a trap to the kernel, the kernel can fill the memory and then resume. 
+<DT class=description><A id="glo:fine-grained locking" name="glo:fine-grained locking"></A><B>fine-grained locking</B> 
+<DD class=description>A way to increase concurrency by partitioning an object&#8217;s state into different subsets each protected by a different lock. 
+<DT class=description><A id="glo:finished list" name="glo:finished list"></A><B>finished list</B> 
+<DD class=description>The set of threads that are complete but not yet de-allocated, e.g., because a join may read the return value from the thread control block. 
+<DT class=description><A id=glo:first-in-first-out name=glo:first-in-first-out></A><B>first-in-first-out</B> 
+<DD class=description>A scheduling policy that performs each task in the order in which it arrives. 
+<DT class=description><A id="glo:flash page failure" name="glo:flash page failure"></A><B>flash page failure</B> 
+<DD class=description>A flash memory device failure where the data stored on one or more individual pages of flash are lost, but the rest of the flash continues to operate correctly. 
+<DT class=description><A id="glo:flash translation layer" name="glo:flash translation layer"></A><B>flash translation layer</B> 
+<DD class=description>A layer that maps logical flash pages to different physical pages on the flash device. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:FTL"}'>FTL</A></EM>. 
+<DT class=description><A id="glo:flash wear out" name="glo:flash wear out"></A><B>flash wear out</B> 
+<DD class=description>After some number of program-erase cycles, a given flash storage cell may no longer be able to reliably store information. 
+<DT class=description><A id="glo:fork-join parallelism" name="glo:fork-join parallelism"></A><B>fork-join parallelism</B> 
+<DD class=description>A type of parallel programming where threads can be created (forked) to do work in parallel with a parent thread; a parent may asynchronously wait for a child thread to finish (join). 
+<DT class=description><A id="glo:free space map" name="glo:free space map"></A><B>free space map</B> 
+<DD class=description>A file system data structure used to track which storage blocks are free and which are in use. 
+<DT class=description><A id=glo:FTL name=glo:FTL></A><B>FTL</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:flash translation layer"}'>flash translation layer</A></EM>. 
+<DT class=description><A id="glo:full disk failure" name="glo:full disk failure"></A><B>full disk failure</B> 
+<DD class=description>When a disk device stops being able to service reads or writes to all sectors. 
+<DT class=description><A id="glo:full flash drive failure" name="glo:full flash drive failure"></A><B>full flash drive failure</B> 
+<DD class=description>When a flash device stops being able to service reads or writes to all memory pages. 
+<DT class=description><A id="glo:fully associative cache" name="glo:fully associative cache"></A><B>fully associative cache</B> 
+<DD class=description>Any entry in the cache can hold any memory location, so on a lookup, the system must check the address against all of the entries in the cache to determine if there is a cache hit. 
+<DT class=description><A id="glo:gang scheduling" name="glo:gang scheduling"></A><B>gang scheduling</B> 
+<DD class=description>A scheduling policy for multiprocessors that performs all of the runnable tasks for a particular process at the same time. 
+<DT class=description><A id="glo:Global Descriptor Table" name="glo:Global Descriptor Table"></A><B>Global Descriptor Table</B> 
+<DD class=description>The x86 terminology for a segment table for shared segments. A Local Descriptor Table is used for segments that are private to the process. 
+<DT class=description><A id="glo:grace period" name="glo:grace period"></A><B>grace period</B> 
+<DD class=description>For a shared object protected by a read-copy-update lock, the time from when a new version of a shared object is published until the last reader of the old version is guaranteed to be finished. 
+<DT class=description><A id="glo:green threads" name="glo:green threads"></A><B>green threads</B> 
+<DD class=description>A thread system implemented entirely at user-level without any reliance on operating system kernel services, other than those designed for single-threaded processes. 
+<DT class=description><A id="glo:group commit" name="glo:group commit"></A><B>group commit</B> 
+<DD class=description>A technique that batches multiple transaction commits into a single disk operation. 
+<DT class=description><A id="glo:guest operating system" name="glo:guest operating system"></A><B>guest operating system</B> 
+<DD class=description>An operating system running in a virtual machine. 
+<DT class=description><A id="glo:hard link" name="glo:hard link"></A><B>hard link</B> 
+<DD class=description>The mapping between a file name and the underlying file, typically when there are multiple path names for the same underlying file. 
+<DT class=description><A id="glo:hardware abstraction layer" name="glo:hardware abstraction layer"></A><B>hardware abstraction layer</B> 
+<DD class=description>A module in the operating system that hides the specifics of different hardware implementations. Above this layer, the operating system is portable. 
+<DT class=description><A id="glo:hardware timer" name="glo:hardware timer"></A><B>hardware timer</B> 
+<DD class=description>A hardware device that can cause a processor interrupt after some delay, either in time or in instructions executed. 
+<DT class=description><A id=glo:head name=glo:head></A><B>head</B> 
+<DD class=description>The component that writes the data to or reads the data from a spinning disk surface. 
+<DT class=description><A id="glo:head crash" name="glo:head crash"></A><B>head crash</B> 
+<DD class=description>An error where the disk head physically scrapes the magnetic surface of a spinning disk surface. 
+<DT class=description><A id="glo:head switch time" name="glo:head switch time"></A><B>head switch time</B> 
+<DD class=description>The time it takes to re-position the disk arm over the corresponding track on a different surface, before a read or write can begin. 
+<DT class=description><A id=glo:heap name=glo:heap></A><B>heap</B> 
+<DD class=description>Space to store dynamically allocated data structures. 
+<DT class=description><A id="glo:heavy-tailed distribution" name="glo:heavy-tailed distribution"></A><B>heavy-tailed distribution</B> 
+<DD class=description>A probability distribution such that events far from the mean value (in aggregate) occur with significant probability. When used for the distribution of time between events, the remaining time to the next event is positively related to the time already spent waiting &#8212; you expect to wait longer the longer you have already waited. 
+<DT class=description><A id=glo:Heisenbugs name=glo:Heisenbugs></A><B>Heisenbugs</B> 
+<DD class=description>Bugs in concurrent programs that disappear or change behavior when you try to examine them. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:Bohrbugs"}'>Bohrbugs</A></EM>. 
+<DT class=description><A id=glo:hint name=glo:hint></A><B>hint</B> 
+<DD class=description>A result of some computation whose results may no longer be valid, but where using an invalid hint will trigger an exception. 
+<DT class=description><A id="glo:home directory" name="glo:home directory"></A><B>home directory</B> 
+<DD class=description>The sub-directory containing a user&#8217;s files. 
+<DT class=description><A id="glo:host operating system" name="glo:host operating system"></A><B>host operating system</B> 
+<DD class=description>An operating system that provides the abstraction of a virtual machine, to run another operating system as an application. 
+<DT class=description><A id="glo:host transfer time" name="glo:host transfer time"></A><B>host transfer time</B> 
+<DD class=description>The time to transfer data between the host&#8217;s memory and the disk&#8217;s buffer. 
+<DT class=description><A id=glo:hyperthreading name=glo:hyperthreading></A><B>hyperthreading</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:simultaneous multi-threading"}'>simultaneous multi-threading</A></EM>. 
+<DT class=description><A id="glo:I/O-bound task" name="glo:I/O-bound task"></A><B>I/O-bound task</B> 
+<DD class=description>A task that primarily does I/O, and does little processing. 
+<DT class=description><A id=glo:idempotent name=glo:idempotent></A><B>idempotent</B> 
+<DD class=description>An operation that has the same effect whether executed once or many times. 
+<DT class=description><A id="glo:incremental checkpoint" name="glo:incremental checkpoint"></A><B>incremental checkpoint</B> 
+<DD class=description>A consistent snapshot of the portion of process memory that has been modified since the previous checkpoint. 
+<DT class=description><A id="glo:independent threads" name="glo:independent threads"></A><B>independent threads</B> 
+<DD class=description>Threads that operate on completely separate subsets of process memory. 
+<DT class=description><A id="glo:indirect block" name="glo:indirect block"></A><B>indirect block</B> 
+<DD class=description>A storage block containing pointers to file data blocks. 
+<DT class=description><A id=glo:inode name=glo:inode></A><B>inode</B> 
+<DD class=description>In the Unix Fast File System (FFS) and related file systems, an inode stores a file&#8217;s metadata, including an array of pointers that can be used to find all of the file&#8217;s blocks. The term inode is sometimes used more generally to refer to any file system&#8217;s per-file metadata data structure. 
+<DT class=description><A id="glo:inode array" name="glo:inode array"></A><B>inode array</B> 
+<DD class=description>The fixed location on disk containing all of the file system&#8217;s inodes. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:inumber"}'>inumber</A></EM>. 
+<DT class=description><A id=glo:intentions name=glo:intentions></A><B>intentions</B> 
+<DD class=description>The set of writes that a transaction will perform if the transaction commits. 
+<DT class=description><A id="glo:internal fragmentation" name="glo:internal fragmentation"></A><B>internal fragmentation</B> 
+<DD class=description>With paged allocation of memory, the unusable memory at the end of a page because a process can only be allocated memory in page-sized chunks. 
+<DT class=description><A id=glo:interrupt name=glo:interrupt></A><B>interrupt</B> 
+<DD class=description>An asynchronous signal to the processor that some external event has occurred that may require its attention. 
+<DT class=description><A id="glo:interrupt disable" name="glo:interrupt disable"></A><B>interrupt disable</B> 
+<DD class=description>A privileged hardware instruction to temporarily defer any hardware interrupts, to allow the kernel to complete a critical task. 
+<DT class=description><A id="glo:interrupt enable" name="glo:interrupt enable"></A><B>interrupt enable</B> 
+<DD class=description>A privileged hardware instruction to resume hardware interrupts, after a non-interruptible task is completed. 
+<DT class=description><A id="glo:interrupt handler" name="glo:interrupt handler"></A><B>interrupt handler</B> 
+<DD class=description>A kernel procedure invoked when an interrupt occurs. 
+<DT class=description><A id="glo:interrupt stack" name="glo:interrupt stack"></A><B>interrupt stack</B> 
+<DD class=description>A region of memory for holding the stack of the kernel&#8217;s interrupt handler. When an interrupt, processor exception, or system call trap causes a context switch into the kernel, the hardware changes the stack pointer to point to the base of the kernel&#8217;s interrupt stack. 
+<DT class=description><A id="glo:interrupt vector table" name="glo:interrupt vector table"></A><B>interrupt vector table</B> 
+<DD class=description>A table of pointers in the operating system kernel, indexed by the type of interrupt, with each entry pointing to the first instruction of a handler procedure for that interrupt. 
+<DT class=description><A id=glo:inumber name=glo:inumber></A><B>inumber</B> 
+<DD class=description>The index into the inode array for a particular file. 
+<DT class=description><A id="glo:inverted page table" name="glo:inverted page table"></A><B>inverted page table</B> 
+<DD class=description>A hash table used for translation between virtual page numbers and physical page frames. 
+<DT class=description><A id="glo:kernel thread" name="glo:kernel thread"></A><B>kernel thread</B> 
+<DD class=description>A thread that is implemented inside the operating system kernel. 
+<DT class=description><A id="glo:kernel-mode operation" name="glo:kernel-mode operation"></A><B>kernel-mode operation</B> 
+<DD class=description>The processor executes in an unrestricted mode that gives the operating system full control over the hardware. Compare: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:user-mode operation"}'>user-mode operation</A></EM>. 
+<DT class=description><A id=glo:LBA name=glo:LBA></A><B>LBA</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:logical block address"}'>logical block address</A></EM>. 
+<DT class=description><A id="glo:least frequently used" name="glo:least frequently used"></A><B>least frequently used</B> 
+<DD class=description>A cache replacement policy that evicts whichever block has been used the least often, over some period of time. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:LFU"}'>LFU</A></EM>. 
+<DT class=description><A id="glo:least recently used" name="glo:least recently used"></A><B>least recently used</B> 
+<DD class=description>A cache replacement policy that evicts whichever block has not been used for the longest period of time. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:LRU"}'>LRU</A></EM>. 
+<DT class=description><A id=glo:LFU name=glo:LFU></A><B>LFU</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:least frequently used"}'>least frequently used</A></EM>. 
+<DT class=description><A id="glo:Little's Law" name="glo:Little's Law"></A><B>Little&#8217;s Law</B> 
+<DD class=description>In a stable system where the arrival rate matches the departure rate, the number of tasks in the system equals the system&#8217;s throughput multiplied by the average time a task spends in the system: N = XR. 
+<DT class=description><A id="glo:liveness property" name="glo:liveness property"></A><B>liveness property</B> 
+<DD class=description>A constraint on program behavior such that it always produces a result. Compare: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:safety property"}'>safety property</A></EM>. 
+<DT class=description><A id="glo:locality heuristic" name="glo:locality heuristic"></A><B>locality heuristic</B> 
+<DD class=description>A file system block allocation policy that places files in nearby disk sectors if they are likely to be read or written at the same time. 
+<DT class=description><A id=glo:lock name=glo:lock></A><B>lock</B> 
+<DD class=description>A type of synchronization variable used for enforcing atomic, mutually exclusive access to shared data. 
+<DT class=description><A id="glo:lock ordering" name="glo:lock ordering"></A><B>lock ordering</B> 
+<DD class=description>A widely used approach to prevent deadlock, where locks are acquired in a pre-determined order. 
+<DT class=description><A id="glo:lock-free data structures" name="glo:lock-free data structures"></A><B>lock-free data structures</B> 
+<DD class=description>Concurrent data structure that guarantees progress for some thread: some method will finish in a finite number of steps, regardless of the state of other threads executing in the data structure. 
+<DT class=description><A id=glo:log name=glo:log></A><B>log</B> 
+<DD class=description>An ordered sequence of steps saved to persistent storage. 
+<DT class=description><A id="glo:logical block address" name="glo:logical block address"></A><B>logical block address</B> 
+<DD class=description>A unique identifier for each disk sector or flash memory block, typically numbered from 1 to the size of the disk/flash device. The disk interface converts this identifier to the physical location of the sector/block. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:LBA"}'>LBA</A></EM>. 
+<DT class=description><A id="glo:logical separation" name="glo:logical separation"></A><B>logical separation</B> 
+<DD class=description>A backup storage policy where the backup is stored at the same location as the primary storage, but with restricted access, e.g., to prevent updates. 
+<DT class=description><A id=glo:LRU name=glo:LRU></A><B>LRU</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:least recently used"}'>least recently used</A></EM>. 
+<DT class=description><A id="glo:master file table" name="glo:master file table"></A><B>master file table</B> 
+<DD class=description>In NTFS, an array of records storing metadata about each file. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:MFT"}'>MFT</A></EM>. 
+<DT class=description><A id="glo:maximum seek time" name="glo:maximum seek time"></A><B>maximum seek time</B> 
+<DD class=description>The time it takes to move the disk arm from the innermost track to the outermost one or vice versa. 
+<DT class=description><A id="glo:max-min fairness" name="glo:max-min fairness"></A><B>max-min fairness</B> 
+<DD class=description>A scheduling objective to maximize the minimum resource allocation given to each task. 
+<DT class=description><A id="glo:MCS lock" name="glo:MCS lock"></A><B>MCS lock</B> 
+<DD class=description>An efficient spinlock implementation where each waiting thread spins on a separate memory location. 
+<DT class=description><A id="glo:mean time to data loss" name="glo:mean time to data loss"></A><B>mean time to data loss</B> 
+<DD class=description>The expected time until a RAID system suffers an unrecoverable error. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:MTTDL"}'>MTTDL</A></EM>. 
+<DT class=description><A id="glo:mean time to failure" name="glo:mean time to failure"></A><B>mean time to failure</B> 
+<DD class=description>The average time that a system runs without failing. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:MTTF"}'>MTTF</A></EM>. 
+<DT class=description><A id="glo:mean time to repair" name="glo:mean time to repair"></A><B>mean time to repair</B> 
+<DD class=description>The average time that it takes to repair a system once it has failed. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:MTTR"}'>MTTR</A></EM>. 
+<DT class=description><A id="glo:memory address alias" name="glo:memory address alias"></A><B>memory address alias</B> 
+<DD class=description>Two or more virtual addresses that refer to the same physical memory location. 
+<DT class=description><A id="glo:memory barrier" name="glo:memory barrier"></A><B>memory barrier</B> 
+<DD class=description>An instruction that prevents the compiler and hardware from reordering memory accesses across the barrier &#8212; no accesses before the barrier are moved after the barrier and no accesses after the barrier are moved before the barrier. 
+<DT class=description><A id="glo:memory protection" name="glo:memory protection"></A><B>memory protection</B> 
+<DD class=description>Hardware or software-enforced limits so that each application process can read and write only its own memory and not the memory of the operating system or any other process. 
+<DT class=description><A id="glo:memoryless property" name="glo:memoryless property"></A><B>memoryless property</B> 
+<DD class=description>For a probability distribution for the time between events, the remaining time to the next event does not depend on the amount of time already spent waiting. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:exponential distribution"}'>exponential distribution</A></EM>. 
+<DT class=description><A id="glo:memory-mapped file" name="glo:memory-mapped file"></A><B>memory-mapped file</B> 
+<DD class=description>A file whose contents appear to be a memory segment in a process&#8217;s virtual address space. 
+<DT class=description><A id="glo:memory-mapped I/O" name="glo:memory-mapped I/O"></A><B>memory-mapped I/O</B> 
+<DD class=description>Each I/O device&#8217;s control registers are mapped to a range of physical addresses on the memory bus. 
+<DT class=description><A id=glo:memristor name=glo:memristor></A><B>memristor</B> 
+<DD class=description>A type of solid-state persistent storage using a circuit element whose resistance depends on the amounts and directions of currents that have flowed through it in the past. 
+<DT class=description><A id=glo:MFQ name=glo:MFQ></A><B>MFQ</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:multi-level feedback queue"}'>multi-level feedback queue</A></EM>. 
+<DT class=description><A id=glo:MFT name=glo:MFT></A><B>MFT</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:master file table"}'>master file table</A></EM>. 
+<DT class=description><A id=glo:microkernel name=glo:microkernel></A><B>microkernel</B> 
+<DD class=description>An operating system design where the kernel itself is kept small, and instead most of the functionality of a traditional operating system kernel is put into a set of user-level processes, or servers, accessed from user applications via interprocess communication. 
+<DT class=description><A id="glo:MIN cache replacement" name="glo:MIN cache replacement"></A><B>MIN cache replacement</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:optimal cache replacement"}'>optimal cache replacement</A></EM>. 
+<DT class=description><A id="glo:minimum seek time" name="glo:minimum seek time"></A><B>minimum seek time</B> 
+<DD class=description>The time to move the disk arm to the next adjacent track. 
+<DT class=description><A id=glo:MIPS name=glo:MIPS></A><B>MIPS</B> 
+<DD class=description>An early measure of processor performance: millions of instructions per second. 
+<DT class=description><A id=glo:mirroring name=glo:mirroring></A><B>mirroring</B> 
+<DD class=description>A system for redundantly storing data on disk where each block of data is stored on two disks and can be read from either. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:RAID 1"}'>RAID 1</A></EM>. 
+<DT class=description><A id=glo:model name=glo:model></A><B>model</B> 
+<DD class=description>A simplification that tries to capture the most important aspects of a more complex system&#8217;s behavior. 
+<DT class=description><A id="glo:monolithic kernel" name="glo:monolithic kernel"></A><B>monolithic kernel</B> 
+<DD class=description>An operating system design where most of the operating system functionality is linked together inside the kernel. 
+<DT class=description><A id="glo:Moore's Law" name="glo:Moore's Law"></A><B>Moore&#8217;s Law</B> 
+<DD class=description>Transistor density increases exponentially over time. Similar exponential improvements have occurred in many other component technologies; in the popular press, these often go by the same term. 
+<DT class=description><A id=glo:mount name=glo:mount></A><B>mount</B> 
+<DD class=description>A mapping of a path in the existing file system to the root directory of another file system volume. 
+<DT class=description><A id=glo:MTTDL name=glo:MTTDL></A><B>MTTDL</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:mean time to data loss"}'>mean time to data loss</A></EM>. 
+<DT class=description><A id=glo:MTTF name=glo:MTTF></A><B>MTTF</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:mean time to failure"}'>mean time to failure</A></EM>. 
+<DT class=description><A id=glo:MTTR name=glo:MTTR></A><B>MTTR</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:mean time to repair"}'>mean time to repair</A></EM>. 
+<DT class=description><A id="glo:multi-level feedback queue" name="glo:multi-level feedback queue"></A><B>multi-level feedback queue</B> 
+<DD class=description>A scheduling algorithm with multiple priority levels managed using round robin queues, where a task is moved between priority levels based on how much processing time it has used. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:MFQ"}'>MFQ</A></EM>. 
+<DT class=description><A id="glo:multi-level index" name="glo:multi-level index"></A><B>multi-level index</B> 
+<DD class=description>A tree data structure to keep track of the disk location of each data block in a file. 
+<DT class=description><A id="glo:multi-level paged segmentation" name="glo:multi-level paged segmentation"></A><B>multi-level paged segmentation</B> 
+<DD class=description>A virtual memory mechanism where physical memory is allocated in page frames, virtual addresses are segmented, and each segment is translated to physical addresses through multiple levels of page tables. 
+<DT class=description><A id="glo:multi-level paging" name="glo:multi-level paging"></A><B>multi-level paging</B> 
+<DD class=description>A virtual memory mechanism where physical memory is allocated in page frames, and virtual addresses are translated to physical addresses through multiple levels of page tables. 
+<DT class=description><A id="glo:multiple independent requests" name="glo:multiple independent requests"></A><B>multiple independent requests</B> 
+<DD class=description>A necessary condition for deadlock to occur: a thread first acquires one resource and then tries to acquire another. 
+<DT class=description><A id="glo:multiprocessor scheduling policy" name="glo:multiprocessor scheduling policy"></A><B>multiprocessor scheduling policy</B> 
+<DD class=description>A policy to determine how many processors to assign each process. 
+<DT class=description><A id=glo:multiprogramming name=glo:multiprogramming></A><B>multiprogramming</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:multitasking"}'>multitasking</A></EM>. 
+<DT class=description><A id=glo:multitasking name=glo:multitasking></A><B>multitasking</B> 
+<DD class=description>The ability of an operating system to run multiple applications at the same time, also called multiprogramming. 
+<DT class=description><A id="glo:multi-threaded process" name="glo:multi-threaded process"></A><B>multi-threaded process</B> 
+<DD class=description>A process with multiple threads. 
+<DT class=description><A id="glo:multi-threaded program" name="glo:multi-threaded program"></A><B>multi-threaded program</B> 
+<DD class=description>A generalization of a single-threaded program. Instead of only one logical sequence of steps, the program has multiple sequences, or threads, executing at the same time. 
+<DT class=description><A id="glo:mutual exclusion" name="glo:mutual exclusion"></A><B>mutual exclusion</B> 
+<DD class=description>When one thread uses a lock to prevent concurrent access to a shared data structure. 
+<DT class=description><A id="glo:mutually recursive locking" name="glo:mutually recursive locking"></A><B>mutually recursive locking</B> 
+<DD class=description>A deadlock condition where two shared objects call into each other while still holding their locks. Deadlock occurs if one thread holds the lock on the first object and calls into the second, while the other thread holds the lock on the second object and calls into the first. 
+<DT class=description><A id="glo:named data" name="glo:named data"></A><B>named data</B> 
+<DD class=description>Data that can be accessed by a human-readable identifier, such as a file name. 
+<DT class=description><A id="glo:native command queueing" name="glo:native command queueing"></A><B>native command queueing</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:tagged command queueing"}'>tagged command queueing</A></EM>. 
+<DT class=description><A id=glo:NCQ name=glo:NCQ></A><B>NCQ</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:native command queueing"}'>native command queueing</A></EM>. 
+<DT class=description><A id="glo:nested waiting" name="glo:nested waiting"></A><B>nested waiting</B> 
+<DD class=description>A deadlock condition where one shared object calls into another shared object while holding the first object&#8217;s lock, and then waits on a condition variable. Deadlock results if the thread that can signal the condition variable needs the first lock to make progress. 
+<DT class=description><A id="glo:network effect" name="glo:network effect"></A><B>network effect</B> 
+<DD class=description>The increase in value of a product or service based on the number of other people who have adopted that technology and not just its intrinsic capabilities. 
+<DT class=description><A id="glo:no preemption" name="glo:no preemption"></A><B>no preemption</B> 
+<DD class=description>A necessary condition for deadlock to occur: once a thread acquires a resource, its ownership cannot be revoked until the thread acts to release it. 
+<DT class=description><A id="glo:non-blocking data structure" name="glo:non-blocking data structure"></A><B>non-blocking data structure</B> 
+<DD class=description>Concurrent data structure where a thread is never required to wait for another thread to complete its operation. 
+<DT class=description><A id="glo:non-recoverable read error" name="glo:non-recoverable read error"></A><B>non-recoverable read error</B> 
+<DD class=description>When sufficient bit errors occur within a disk sector or flash memory page, such that the original data cannot be recovered even after error correction. 
+<DT class=description><A id="glo:non-resident attribute" name="glo:non-resident attribute"></A><B>non-resident attribute</B> 
+<DD class=description>In NTFS, an attribute record whose contents are addressed indirectly, through extent pointers in the master file table that point to the contents in those extents. 
+<DT class=description><A id="glo:non-volatile storage" name="glo:non-volatile storage"></A><B>non-volatile storage</B> 
+<DD class=description>Unlike DRAM, memory that is durable and retains its state across crashes and power outages. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:persistent storage"}'>persistent storage</A></EM>. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:stable storage"}'>stable storage</A></EM>. 
+<DT class=description><A id="glo:not recently used" name="glo:not recently used"></A><B>not recently used</B> 
+<DD class=description>A cache replacement policy that evicts some block that has not been referenced recently, rather than the least recently used block. 
+<DT class=description><A id="glo:oblivious scheduling" name="glo:oblivious scheduling"></A><B>oblivious scheduling</B> 
+<DD class=description>A scheduling policy where the operating system assigns threads to processors without knowledge of the intent of the parallel application. 
+<DT class=description><A id="glo:open system" name="glo:open system"></A><B>open system</B> 
+<DD class=description>A system whose source code is available to the public for modification and reuse, or a system whose interfaces are defined by a public standards process. 
+<DT class=description><A id="glo:operating system" name="glo:operating system"></A><B>operating system</B> 
+<DD class=description>A layer of software that manages a computer&#8217;s resources for its users and their applications. 
+<DT class=description><A id="glo:operating system kernel" name="glo:operating system kernel"></A><B>operating system kernel</B> 
+<DD class=description>The kernel is the lowest level of software running on the system, with full access to all of the capabilities of the hardware. 
+<DT class=description><A id="glo:optimal cache replacement" name="glo:optimal cache replacement"></A><B>optimal cache replacement</B> 
+<DD class=description>Replace whichever block is used farthest in the future. 
+<DT class=description><A id=glo:overhead name=glo:overhead></A><B>overhead</B> 
+<DD class=description>The added resource cost of implementing an abstraction versus using the underlying hardware resources directly. 
+<DT class=description><A id="glo:ownership design pattern" name="glo:ownership design pattern"></A><B>ownership design pattern</B> 
+<DD class=description>A technique for managing concurrent access to shared objects in which at most one thread owns an object at any time, and therefore the thread can access the shared data without a lock. 
+<DT class=description><A id="glo:page coloring" name="glo:page coloring"></A><B>page coloring</B> 
+<DD class=description>The assignment of physical page frames to virtual addresses by partitioning frames based on which portions of the cache they will use. 
+<DT class=description><A id="glo:page fault" name="glo:page fault"></A><B>page fault</B> 
+<DD class=description>A hardware trap to the operating system kernel when a process references a virtual address with an invalid page table entry. 
+<DT class=description><A id="glo:page frame" name="glo:page frame"></A><B>page frame</B> 
+<DD class=description>An aligned, fixed-size chunk of physical memory that can hold a virtual page. 
+<DT class=description><A id="glo:paged memory" name="glo:paged memory"></A><B>paged memory</B> 
+<DD class=description>A hardware address translation mechanism where memory is allocated in aligned, fixed-sized chunks, called pages. Any virtual page can be assigned to any physical page frame. 
+<DT class=description><A id="glo:paged segmentation" name="glo:paged segmentation"></A><B>paged segmentation</B> 
+<DD class=description>A hardware mechanism where physical memory is allocated in page frames, but virtual addresses are segmented. 
+<DT class=description><A id="glo:pair of stubs" name="glo:pair of stubs"></A><B>pair of stubs</B> 
+<DD class=description>A pair of short procedures that mediate between two execution contexts. 
+<DT class=description><A id=glo:paravirtualization name=glo:paravirtualization></A><B>paravirtualization</B> 
+<DD class=description>A virtual machine abstraction that allows the guest operating system to make system calls into the host operating system to perform hardware-specific operations, such as changing a page table entry. 
+<DT class=description><A id="glo:parent process" name="glo:parent process"></A><B>parent process</B> 
+<DD class=description>A process that creates another process. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:child process"}'>child process</A></EM>. 
+<DT class=description><A id=glo:path name=glo:path></A><B>path</B> 
+<DD class=description>The string that identifies a file or directory. 
+<DT class=description><A id=glo:PCB name=glo:PCB></A><B>PCB</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:process control block"}'>process control block</A></EM>. 
+<DT class=description><A id=glo:PCM name=glo:PCM></A><B>PCM</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:phase change memory"}'>phase change memory</A></EM>. 
+<DT class=description><A id="glo:performance predictability" name="glo:performance predictability"></A><B>performance predictability</B> 
+<DD class=description>Whether a system&#8217;s response time or other performance metric is consistent over time. 
+<DT class=description><A id="glo:persistent data" name="glo:persistent data"></A><B>persistent data</B> 
+<DD class=description>Data that is stored until it is explicitly deleted, even if the computer storing it crashes or loses power. 
+<DT class=description><A id="glo:persistent storage" name="glo:persistent storage"></A><B>persistent storage</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:non-volatile storage"}'>non-volatile storage</A></EM>. 
+<DT class=description><A id="glo:phase change behavior" name="glo:phase change behavior"></A><B>phase change behavior</B> 
+<DD class=description>Abrupt changes in a program&#8217;s working set, causing bursty cache miss rates: periods of low cache misses interspersed with periods of high cache misses. 
+<DT class=description><A id="glo:phase change memory" name="glo:phase change memory"></A><B>phase change memory</B> 
+<DD class=description>A type of non-volatile memory that uses the phase of a material to represent a data bit. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:PCM"}'>PCM</A></EM>. 
+<DT class=description><A id="glo:physical address" name="glo:physical address"></A><B>physical address</B> 
+<DD class=description>An address in physical memory. 
+<DT class=description><A id="glo:physical separation" name="glo:physical separation"></A><B>physical separation</B> 
+<DD class=description>A backup storage policy where the backup is stored at a different location than the primary storage. 
+<DT class=description><A id="glo:physically addressed cache" name="glo:physically addressed cache"></A><B>physically addressed cache</B> 
+<DD class=description>A processor cache that is accessed using physical memory addresses. 
+<DT class=description><A id=glo:pin name=glo:pin></A><B>pin</B> 
+<DD class=description>To bind a virtual resource to a physical resource, such as a thread to a processor or a virtual page to a physical page. 
+<DT class=description><A id=glo:platter name=glo:platter></A><B>platter</B> 
+<DD class=description>A single thin round plate that stores information in a magnetic disk, often on both surfaces. 
+<DT class=description><A id="glo:policy-mechanism separation" name="glo:policy-mechanism separation"></A><B>policy-mechanism separation</B> 
+<DD class=description>A system design principle where the implementation of an abstraction is independent of the resource allocation policy of how the abstraction is used. 
+<DT class=description><A id=glo:polling name=glo:polling></A><B>polling</B> 
+<DD class=description>An alternative to hardware interrupts, where the processor waits for an asynchronous event to occur, by looping, or busy-waiting, until the event occurs. 
+<DT class=description><A id=glo:portability name=glo:portability></A><B>portability</B> 
+<DD class=description>The ability of software to work across multiple hardware platforms. 
+<DT class=description><A id="glo:precise interrupts" name="glo:precise interrupts"></A><B>precise interrupts</B> 
+<DD class=description>All instructions that occur before the interrupt or exception, according to the program execution, are completed by the hardware before the interrupt handler is invoked. 
+<DT class=description><A id=glo:preemption name=glo:preemption></A><B>preemption</B> 
+<DD class=description>When a scheduler takes the processor away from one task and gives it to another. 
+<DT class=description><A id="glo:preemptive multi-threading" name="glo:preemptive multi-threading"></A><B>preemptive multi-threading</B> 
+<DD class=description>The operating system scheduler may switch out a running thread, e.g., on a timer interrupt, without any explicit action by the thread to relinquish control at that point. 
+<DT class=description><A id=glo:prefetch name=glo:prefetch></A><B>prefetch</B> 
+<DD class=description>To bring data into a cache before it is needed. 
+<DT class=description><A id="glo:principle of least privilege" name="glo:principle of least privilege"></A><B>principle of least privilege</B> 
+<DD class=description>System security and reliability are enhanced if each part of the system has exactly the privileges it needs to do its job and no more. 
+<DT class=description><A id="glo:priority donation" name="glo:priority donation"></A><B>priority donation</B> 
+<DD class=description>A solution to priority inversion: when a thread waits for a lock held by a lower priority thread, the lock holder is temporarily increased to the waiter&#8217;s priority until the lock is released. 
+<DT class=description><A id="glo:priority inversion" name="glo:priority inversion"></A><B>priority inversion</B> 
+<DD class=description>A scheduling anomaly that occurs when a high priority task waits indefinitely for a resource (such as a lock) held by a low priority task, because the low priority task is waiting in turn for a resource (such as the processor) held by a medium priority task. 
+<DT class=description><A id=glo:privacy name=glo:privacy></A><B>privacy</B> 
+<DD class=description>Data stored on a computer is only accessible to authorized users. 
+<DT class=description><A id="glo:privileged instruction" name="glo:privileged instruction"></A><B>privileged instruction</B> 
+<DD class=description>Instruction available in kernel mode but not in user mode. 
+<DT class=description><A id=glo:process name=glo:process></A><B>process</B> 
+<DD class=description>The execution of an application program with restricted rights &#8212; the abstraction for protection provided by the operating system kernel. 
+<DT class=description><A id="glo:process control block" name="glo:process control block"></A><B>process control block</B> 
+<DD class=description>A data structure that stores all the information the operating system needs about a particular process: e.g., where it is stored in memory, where its executable image is on disk, which user asked it to start executing, and what privileges the process has. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:PCB"}'>PCB</A></EM>. 
+<DT class=description><A id="glo:process migration" name="glo:process migration"></A><B>process migration</B> 
+<DD class=description>The ability to take a running program on one system, stop its execution, and resume it on a different machine. 
+<DT class=description><A id="glo:processor exception" name="glo:processor exception"></A><B>processor exception</B> 
+<DD class=description>A hardware event caused by user program behavior that causes a transfer of control to a kernel handler. For example, attempting to divide by zero causes a processor exception in many architectures. 
+<DT class=description><A id="glo:processor scheduling policy" name="glo:processor scheduling policy"></A><B>processor scheduling policy</B> 
+<DD class=description>When there are more runnable threads than processors, the policy that determines which threads to run first. 
+<DT class=description><A id="glo:processor status register" name="glo:processor status register"></A><B>processor status register</B> 
+<DD class=description>A hardware register containing flags that control the operation of the processor, including the privilege level. 
+<DT class=description><A id="glo:producer-consumer communication" name="glo:producer-consumer communication"></A><B>producer-consumer communication</B> 
+<DD class=description>Interprocess communication where the output of one process is the input of another. 
+<DT class=description><A id="glo:proprietary system" name="glo:proprietary system"></A><B>proprietary system</B> 
+<DD class=description>A system that is under the control of a single company; it can be changed at any time by its provider to meet the needs of its customers. 
+<DT class=description><A id=glo:protection name=glo:protection></A><B>protection</B> 
+<DD class=description>The isolation of potentially misbehaving applications and users so that they do not corrupt other applications or the operating system itself. 
+<DT class=description><A id=glo:publish name=glo:publish></A><B>publish</B> 
+<DD class=description>For a read-copy-update lock, a single, atomic memory write that updates a shared object protected by the lock. The write allows new reader threads to observe the new version of the object. 
+<DT class=description><A id="glo:queueing delay" name="glo:queueing delay"></A><B>queueing delay</B> 
+<DD class=description>The time a task waits in line without receiving service. 
+<DT class=description><A id=glo:quiescent name=glo:quiescent></A><B>quiescent</B> 
+<DD class=description>For a read-copy-update lock, no reader thread that was active at the time of the last modification is still active. 
+<DT class=description><A id="glo:race condition" name="glo:race condition"></A><B>race condition</B> 
+<DD class=description>When the behavior of a program relies on the interleaving of operations of different threads. 
+<DT class=description><A id=glo:RAID name=glo:RAID></A><B>RAID</B> 
+<DD class=description>A Redundant Array of Inexpensive Disks (RAID) is a system that spreads data redundantly across multiple disks in order to tolerate individual disk failures. 
+<DT class=description><A id="glo:RAID 1" name="glo:RAID 1"></A><B>RAID 1</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:mirroring"}'>mirroring</A></EM>. 
+<DT class=description><A id="glo:RAID 5" name="glo:RAID 5"></A><B>RAID 5</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:rotating parity"}'>rotating parity</A></EM>. 
+<DT class=description><A id="glo:RAID 6" name="glo:RAID 6"></A><B>RAID 6</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:dual redundancy array"}'>dual redundancy array</A></EM>. 
+<DT class=description><A id="glo:RAID strip" name="glo:RAID strip"></A><B>RAID strip</B> 
+<DD class=description>A set of several sequential blocks placed on one disk by a RAID block placement algorithm. 
+<DT class=description><A id="glo:RAID stripe" name="glo:RAID stripe"></A><B>RAID stripe</B> 
+<DD class=description>A set of RAID strips and their parity strip. 
+<DT class=description><A id=glo:R-CSCAN name=glo:R-CSCAN></A><B>R-CSCAN</B> 
+<DD class=description>A variation of the CSCAN disk scheduling policy in which the disk takes into account rotation time. 
+<DT class=description><A id=glo:RCU name=glo:RCU></A><B>RCU</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:read-copy-update"}'>read-copy-update</A></EM>. 
+<DT class=description><A id="glo:read disturb error" name="glo:read disturb error"></A><B>read disturb error</B> 
+<DD class=description>Reading a flash memory cell a large number of times can cause the data in surrounding cells to become corrupted. 
+<DT class=description><A id=glo:read-copy-update name=glo:read-copy-update></A><B>read-copy-update</B> 
+<DD class=description>A synchronization abstraction that allows concurrent access to a data structure by multiple readers and a single writer at a time. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:RCU"}'>RCU</A></EM>. 
+<DT class=description><A id="glo:readers/writers lock" name="glo:readers/writers lock"></A><B>readers/writers lock</B> 
+<DD class=description>A lock which allows multiple &#8220;reader&#8221; threads to access shared data concurrently provided they never modify the shared data, but still provides mutual exclusion whenever a &#8220;writer&#8221; thread is reading or modifying the shared data. 
+<DT class=description><A id="glo:ready list" name="glo:ready list"></A><B>ready list</B> 
+<DD class=description>The set of threads that are ready to be run but which are not currently running. 
+<DT class=description><A id="glo:real-time constraint" name="glo:real-time constraint"></A><B>real-time constraint</B> 
+<DD class=description>The computation must be completed by a deadline if it is to have value. 
+<DT class=description><A id="glo:recoverable virtual memory" name="glo:recoverable virtual memory"></A><B>recoverable virtual memory</B> 
+<DD class=description>The abstraction of persistent memory, so that the contents of a memory segment can be restored after a failure. 
+<DT class=description><A id="glo:redo logging" name="glo:redo logging"></A><B>redo logging</B> 
+<DD class=description>A way of implementing a transaction by recording in a log the set of writes to be executed when the transaction commits. 
+<DT class=description><A id="glo:relative path" name="glo:relative path"></A><B>relative path</B> 
+<DD class=description>A file path name interpreted as beginning with the process&#8217;s current working directory. 
+<DT class=description><A id=glo:reliability name=glo:reliability></A><B>reliability</B> 
+<DD class=description>A property of a system that does exactly what it is designed to do. 
+<DT class=description><A id="glo:request parallelism" name="glo:request parallelism"></A><B>request parallelism</B> 
+<DD class=description>Parallel execution on a server that arises from multiple concurrent requests. 
+<DT class=description><A id="glo:resident attribute" name="glo:resident attribute"></A><B>resident attribute</B> 
+<DD class=description>In NTFS, an attribute record whose contents are stored directly in the master file table. 
+<DT class=description><A id="glo:response time" name="glo:response time"></A><B>response time</B> 
+<DD class=description>The time for a task to complete, from when it starts until it is done. 
+<DT class=description><A id=glo:restart name=glo:restart></A><B>restart</B> 
+<DD class=description>The resumption of a process from a checkpoint, e.g., after a failure or for debugging. 
+<DT class=description><A id="glo:roll back" name="glo:roll back"></A><B>roll back</B> 
+<DD class=description>The outcome of a transaction where none of its updates occur. 
+<DT class=description><A id="glo:root directory" name="glo:root directory"></A><B>root directory</B> 
+<DD class=description>The top-level directory in a file system. 
+<DT class=description><A id="glo:root inode" name="glo:root inode"></A><B>root inode</B> 
+<DD class=description>In a copy-on-write file system, the inode table&#8217;s inode: the disk block containing the metadata needed to find the inode table. 
+<DT class=description><A id="glo:rotating parity" name="glo:rotating parity"></A><B>rotating parity</B> 
+<DD class=description>A system for redundantly storing data on disk where the system writes several blocks of data across several disks, protecting those blocks with one redundant block stored on yet another disk. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:RAID 5"}'>RAID 5</A></EM>. 
+<DT class=description><A id="glo:rotational latency" name="glo:rotational latency"></A><B>rotational latency</B> 
+<DD class=description>Once the disk head has settled on the right track, it must wait for the target sector to rotate under it. 
+<DT class=description><A id="glo:round robin" name="glo:round robin"></A><B>round robin</B> 
+<DD class=description>A scheduling policy that takes turns running each ready task for a limited period before switching to the next task. 
+<DT class=description><A id=glo:R-SCAN name=glo:R-SCAN></A><B>R-SCAN</B> 
+<DD class=description>A variation of the SCAN disk scheduling policy in which the disk takes into account rotation time. 
+<DT class=description><A id="glo:safe state" name="glo:safe state"></A><B>safe state</B> 
+<DD class=description>In the context of deadlock, a state of an execution such that regardless of the sequence of future resource requests, there is at least one safe sequence of decisions as to when to satisfy requests such that all pending and future requests are met. 
+<DT class=description><A id="glo:safety property" name="glo:safety property"></A><B>safety property</B> 
+<DD class=description>A constraint on program behavior such that it never computes the wrong result. Compare: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:liveness property"}'>liveness property</A></EM>. 
+<DT class=description><A id="glo:sample bias" name="glo:sample bias"></A><B>sample bias</B> 
+<DD class=description>A measurement error that occurs when some members of a group are less likely to be included than others, and where those members differ in the property being measured. 
+<DT class=description><A id=glo:sandbox name=glo:sandbox></A><B>sandbox</B> 
+<DD class=description>A context for executing untrusted code, where protection for the rest of the system is provided in software. 
+<DT class=description><A id=glo:SCAN name=glo:SCAN></A><B>SCAN</B> 
+<DD class=description>A disk scheduling policy where the disk arm repeatedly sweeps from the inner to the outer tracks and back again, servicing each pending request whenever the disk head passes that track. 
+<DT class=description><A id="glo:scheduler activations" name="glo:scheduler activations"></A><B>scheduler activations</B> 
+<DD class=description>A multiprocessor scheduling policy where each application is informed of how many processors it has been assigned and whenever the assignment changes. 
+<DT class=description><A id=glo:scrubbing name=glo:scrubbing></A><B>scrubbing</B> 
+<DD class=description>A technique for reducing non-recoverable RAID errors by periodically scanning for corrupted disk blocks and reconstructing them from the parity block. 
+<DT class=description><A id="glo:secondary bottleneck" name="glo:secondary bottleneck"></A><B>secondary bottleneck</B> 
+<DD class=description>A resource with relatively low contention, due to a large amount of queueing at the primary bottleneck. If the primary bottleneck is improved, the secondary bottleneck will have much higher queueing delay. 
+<DT class=description><A id=glo:sector name=glo:sector></A><B>sector</B> 
+<DD class=description>The minimum amount of a disk that can be independently read or written. 
+<DT class=description><A id="glo:sector failure" name="glo:sector failure"></A><B>sector failure</B> 
+<DD class=description>A magnetic disk error where data on one or more individual sectors of a disk are lost, but the rest of the disk continues to operate correctly. 
+<DT class=description><A id="glo:sector sparing" name="glo:sector sparing"></A><B>sector sparing</B> 
+<DD class=description>Transparently hiding a faulty disk sector by remapping it to a nearby spare sector. 
+<DT class=description><A id=glo:security name=glo:security></A><B>security</B> 
+<DD class=description>A computer&#8217;s operation cannot be compromised by a malicious attacker. 
+<DT class=description><A id="glo:security enforcement" name="glo:security enforcement"></A><B>security enforcement</B> 
+<DD class=description>The mechanism the operating system uses to ensure that only permitted actions are allowed. 
+<DT class=description><A id="glo:security policy" name="glo:security policy"></A><B>security policy</B> 
+<DD class=description>What operations are permitted &#8212; who is allowed to access what data, and who can perform what operations. 
+<DT class=description><A id=glo:seek name=glo:seek></A><B>seek</B> 
+<DD class=description>The movement of the disk arm to re-position it over a specific track to prepare for a read or write. 
+<DT class=description><A id=glo:segmentation name=glo:segmentation></A><B>segmentation</B> 
+<DD class=description>A virtual memory mechanism where addresses are translated by table lookup, where each entry in the table is to a variable-size memory region. 
+<DT class=description><A id="glo:segmentation fault" name="glo:segmentation fault"></A><B>segmentation fault</B> 
+<DD class=description>An error caused when a process attempts to access memory outside of one of its valid memory regions. 
+<DT class=description><A id="glo:segment-local address" name="glo:segment-local address"></A><B>segment-local address</B> 
+<DD class=description>An address that is relative to the current memory segment. 
+<DT class=description><A id=glo:self-paging name=glo:self-paging></A><B>self-paging</B> 
+<DD class=description>A resource allocation policy for allocating page frames among processes; each page replacement is taken from a page frame already assigned to the process causing the page fault. 
+<DT class=description><A id=glo:semaphore name=glo:semaphore></A><B>semaphore</B> 
+<DD class=description>A type of synchronization variable with only two atomic operations, P() and V(). P waits for the value of the semaphore to be positive, and then atomically decrements it. V atomically increments the value, and if any threads are waiting in P, triggers the completion of the P operation. 
+<DT class=description><A id=glo:serializability name=glo:serializability></A><B>serializability</B> 
+<DD class=description>The result of any program execution is equivalent to an execution in which requests are processed one at a time in some sequential order. 
+<DT class=description><A id="glo:service time" name="glo:service time"></A><B>service time</B> 
+<DD class=description>The time it takes to complete a task at a resource, assuming no waiting. 
+<DT class=description><A id="glo:set associative cache" name="glo:set associative cache"></A><B>set associative cache</B> 
+<DD class=description>The cache is partitioned into sets of entries. Each memory location can only be stored in its assigned set, by it can be stored in any cache entry in that set. On a lookup, the system needs to check the address against all the entries in its set to determine if there is a cache hit. 
+<DT class=description><A id=glo:settle name=glo:settle></A><B>settle</B> 
+<DD class=description>The fine-grained re-positioning of a disk head after moving to a new track before the disk head is ready to read or write a sector of the new track. 
+<DT class=description><A id="glo:shadow page table" name="glo:shadow page table"></A><B>shadow page table</B> 
+<DD class=description>A page table for a process inside a virtual machine, formed by constructing the composition of the page table maintained by the guest operating system and the page table maintained by the host operating system. 
+<DT class=description><A id="glo:shared object" name="glo:shared object"></A><B>shared object</B> 
+<DD class=description>An object (a data structure and its associated code) that can be accessed safely by multiple concurrent threads. 
+<DT class=description><A id=glo:shell name=glo:shell></A><B>shell</B> 
+<DD class=description>A job control system implemented as a user-level process. When a user types a command to the shell, it creates a process to run the command. 
+<DT class=description><A id="glo:shortest job first" name="glo:shortest job first"></A><B>shortest job first</B> 
+<DD class=description>A scheduling policy that performs the task with the least remaining time left to finish. 
+<DT class=description><A id="glo:shortest positioning time first" name="glo:shortest positioning time first"></A><B>shortest positioning time first</B> 
+<DD class=description>A disk scheduling policy that services whichever pending request can be handled in the minimum amount of time. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:SPTF"}'>SPTF</A></EM>. 
+<DT class=description><A id="glo:shortest seek time first" name="glo:shortest seek time first"></A><B>shortest seek time first</B> 
+<DD class=description>A disk scheduling policy that services whichever pending request is on the nearest track. Equivalent to shortest positioning time first if rotational positioning is not considered. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:SSTF"}'>SSTF</A></EM>. 
+<DT class=description><A id="glo:SIMD (single instruction multiple data) programming" name="glo:SIMD (single instruction multiple data) programming"></A><B>SIMD (single instruction multiple data) programming</B> 
+<DD class=description>See data parallel programming 
+<DT class=description><A id="glo:simultaneous multi-threading" name="glo:simultaneous multi-threading"></A><B>simultaneous multi-threading</B> 
+<DD class=description>A hardware technique where each processor simulates two (or more) virtual processors, alternating between them on a cycle-by-cycle basis. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:hyperthreading"}'>hyperthreading</A></EM>. 
+<DT class=description><A id="glo:single-threaded program" name="glo:single-threaded program"></A><B>single-threaded program</B> 
+<DD class=description>A program written in a traditional way, with one logical sequence of steps as each instruction follows the previous one. Compare: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:multi-threaded program"}'>multi-threaded program</A></EM>. 
+<DT class=description><A id="glo:slip sparing" name="glo:slip sparing"></A><B>slip sparing</B> 
+<DD class=description>When remapping a faulty disk sector, remapping the entire sequence of disk sectors between the faulty sector and the spare sector by one slot to preserve sequential access performance. 
+<DT class=description><A id="glo:soft link" name="glo:soft link"></A><B>soft link</B> 
+<DD class=description>A directory entry that maps one file or directory name to another. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:symbolic link"}'>symbolic link</A></EM>. 
+<DT class=description><A id="glo:software transactional memory (STM)" name="glo:software transactional memory (STM)"></A><B>software transactional memory (STM)</B> 
+<DD class=description>A system for general-purpose transactions for in-memory data structures. 
+<DT class=description><A id="glo:software-loaded TLB" name="glo:software-loaded TLB"></A><B>software-loaded TLB</B> 
+<DD class=description>A hardware TLB whose entries are installed by software, rather than hardware, on a TLB miss. 
+<DT class=description><A id="glo:solid state storage" name="glo:solid state storage"></A><B>solid state storage</B> 
+<DD class=description>A persistent storage device with no moving parts; it stores data using electrical circuits. 
+<DT class=description><A id="glo:space sharing" name="glo:space sharing"></A><B>space sharing</B> 
+<DD class=description>A multiprocessor allocation policy that assigns different processors to different tasks. 
+<DT class=description><A id="glo:spatial locality" name="glo:spatial locality"></A><B>spatial locality</B> 
+<DD class=description>Programs tend to reference instructions and data near those that have been recently accessed. 
+<DT class=description><A id=glo:spindle name=glo:spindle></A><B>spindle</B> 
+<DD class=description>The axle of rotation of the spinning disk platters making up a disk. 
+<DT class=description><A id=glo:spinlock name=glo:spinlock></A><B>spinlock</B> 
+<DD class=description>A lock where a thread waiting for a BUSY&nbsp;lock &#8220;spins&#8221; in a tight loop until some other thread makes it FREE. 
+<DT class=description><A id=glo:SPTF name=glo:SPTF></A><B>SPTF</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:shortest positioning time first"}'>shortest positioning time first</A></EM>. 
+<DT class=description><A id=glo:SSTF name=glo:SSTF></A><B>SSTF</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:shortest seek time first"}'>shortest seek time first</A></EM>. 
+<DT class=description><A id="glo:stable property" name="glo:stable property"></A><B>stable property</B> 
+<DD class=description>A property of a program, such that once the property becomes true in some execution of the program, it will stay true for the remainder of the execution. 
+<DT class=description><A id="glo:stable storage" name="glo:stable storage"></A><B>stable storage</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:non-volatile storage"}'>non-volatile storage</A></EM>. 
+<DT class=description><A id="glo:stable system" name="glo:stable system"></A><B>stable system</B> 
+<DD class=description>A queueing system where the arrival rate matches the departure rate. 
+<DT class=description><A id="glo:stack frame" name="glo:stack frame"></A><B>stack frame</B> 
+<DD class=description>A data structure stored on the stack with storage for one invocation of a procedure: the local variables used by the procedure, the parameters the procedure was called with, and the return address to jump to when the procedure completes. 
+<DT class=description><A id="glo:staged architecture" name="glo:staged architecture"></A><B>staged architecture</B> 
+<DD class=description>A staged architecture divides a system into multiple subsystems or stages, where each stage includes some state private to the stage and a set of one or more worker threads that operate on that state. 
+<DT class=description><A id=glo:starvation name=glo:starvation></A><B>starvation</B> 
+<DD class=description>The lack of progress for one task, due to resources given to higher priority tasks. 
+<DT class=description><A id="glo:state variable" name="glo:state variable"></A><B>state variable</B> 
+<DD class=description>Member variable of a shared object. 
+<DT class=description><A id=glo:STM name=glo:STM></A><B>STM</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:software transactional memory (STM)"}'>software transactional memory (STM)</A></EM>. 
+<DT class=description><A id="glo:structured synchronization" name="glo:structured synchronization"></A><B>structured synchronization</B> 
+<DD class=description>A design pattern for writing correct concurrent programs, where concurrent code uses a set of standard synchronization primitives to control access to shared state, and where all routines to access the same shared state are localized to the same logical module. 
+<DT class=description><A id=glo:superpage name=glo:superpage></A><B>superpage</B> 
+<DD class=description>A set of contiguous pages in physical memory that map a contiguous region of virtual memory, where the pages are aligned so that they share the same high-order (superpage) address. 
+<DT class=description><A id=glo:surface name=glo:surface></A><B>surface</B> 
+<DD class=description>One side of a disk platter. 
+<DT class=description><A id="glo:surface transfer time" name="glo:surface transfer time"></A><B>surface transfer time</B> 
+<DD class=description>The time to transfer one or more sequential sectors from (or to) a surface once the disk head begins reading (or writing) the first sector. 
+<DT class=description><A id=glo:swapping name=glo:swapping></A><B>swapping</B> 
+<DD class=description>Evicting an entire process from physical memory. 
+<DT class=description><A id="glo:symbolic link" name="glo:symbolic link"></A><B>symbolic link</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:soft link"}'>soft link</A></EM>. 
+<DT class=description><A id="glo:synchronization barrier" name="glo:synchronization barrier"></A><B>synchronization barrier</B> 
+<DD class=description>A synchronization primitive where n threads operating in parallel check in to the barrier when their work is completed. No thread returns from the barrier until all n check in. 
+<DT class=description><A id="glo:synchronization variable" name="glo:synchronization variable"></A><B>synchronization variable</B> 
+<DD class=description>A data structure used for coordinating concurrent access to shared state. 
+<DT class=description><A id="glo:system availability" name="glo:system availability"></A><B>system availability</B> 
+<DD class=description>The probability that a system will be available at any given time. 
+<DT class=description><A id="glo:system call" name="glo:system call"></A><B>system call</B> 
+<DD class=description>A procedure provided by the kernel that can be called from user level. 
+<DT class=description><A id="glo:system reliability" name="glo:system reliability"></A><B>system reliability</B> 
+<DD class=description>The probability that a system will continue to be reliable for some specified period of time. 
+<DT class=description><A id="glo:tagged command queueing" name="glo:tagged command queueing"></A><B>tagged command queueing</B> 
+<DD class=description>A disk interface that allows the operating system to issue multiple concurrent requests to the disk. Requests are processed and acknowledged out of order. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:native command queueing"}'>native command queueing</A></EM>. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:NCQ"}'>NCQ</A></EM>. 
+<DT class=description><A id="glo:tagged TLB" name="glo:tagged TLB"></A><B>tagged TLB</B> 
+<DD class=description>A translation lookaside buffer whose entries contain a process ID; only entries for the currently running process are used during translation. This allows TLB entries for a process to remain in the TLB when the process is switched out. 
+<DT class=description><A id=glo:task name=glo:task></A><B>task</B> 
+<DD class=description>A user request. 
+<DT class=description><A id=glo:TCB name=glo:TCB></A><B>TCB</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:thread control block"}'>thread control block</A></EM>. 
+<DT class=description><A id=glo:TCQ name=glo:TCQ></A><B>TCQ</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:tagged command queueing"}'>tagged command queueing</A></EM>. 
+<DT class=description><A id="glo:temporal locality" name="glo:temporal locality"></A><B>temporal locality</B> 
+<DD class=description>Programs tend to reference the same instructions and data that they had recently accessed. 
+<DT class=description><A id="glo:test and test-and-set" name="glo:test and test-and-set"></A><B>test and test-and-set</B> 
+<DD class=description>An implementation of a spinlock where the waiting processor waits until the lock is FREE&nbsp;before attempting to acquire it. 
+<DT class=description><A id=glo:thrashing name=glo:thrashing></A><B>thrashing</B> 
+<DD class=description>When a cache is too small to hold its working set. In this case, most references are cache misses, yet those misses evict data that will be used in the near future. 
+<DT class=description><A id=glo:thread name=glo:thread></A><B><SPAN class=extract>&nbsp;
+<DT class=description><B>thread</B> 
+<DD class=description>A single execution sequence that represents a separately schedulable task. </DD></SPAN></B>
+<DT class=description><A id="glo:thread context switch" name="glo:thread context switch"></A><B>thread context switch</B> 
+<DD class=description>Suspend execution of a currently running thread and resume execution of some other thread. 
+<DT class=description><A id="glo:thread control block" name="glo:thread control block"></A><B>thread control block</B> 
+<DD class=description>The operating system data structure containing the current state of a thread. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:TCB"}'>TCB</A></EM>. 
+<DT class=description><A id="glo:thread scheduler" name="glo:thread scheduler"></A><B>thread scheduler</B> 
+<DD class=description>Software that maps threads to processors by switching between running threads and threads that are ready but not running. 
+<DT class=description><A id="glo:thread-safe bounded queue" name="glo:thread-safe bounded queue"></A><B>thread-safe bounded queue</B> 
+<DD class=description>A bounded queue that is safe to call from multiple concurrent threads. 
+<DT class=description><A id=glo:throughput name=glo:throughput></A><B>throughput</B> 
+<DD class=description>The rate at which a group of tasks are completed. 
+<DT class=description><A id="glo:time of check vs. time of use attack" name="glo:time of check vs. time of use attack"></A><B>time of check vs. time of use attack</B> 
+<DD class=description>A security vulnerability arising when an application can modify the user memory holding a system call parameter (such as a file name), <EM>after</EM> the kernel checks the validity of the parameter, but <EM>before</EM> the parameter is used in the actual implementation of the routine. Often abbreviated TOCTOU. 
+<DT class=description><A id="glo:time quantum" name="glo:time quantum"></A><B>time quantum</B> 
+<DD class=description>The length of time that a task is scheduled before being preempted. 
+<DT class=description><A id="glo:timer interrupt" name="glo:timer interrupt"></A><B>timer interrupt</B> 
+<DD class=description>A hardware processor interrupt that signifies a period of elapsed real time. 
+<DT class=description><A id="glo:time-sharing operating system" name="glo:time-sharing operating system"></A><B>time-sharing operating system</B> 
+<DD class=description>An operating system designed to support interactive use of the computer. 
+<DT class=description><A id=glo:TLB name=glo:TLB></A><B>TLB</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:translation lookaside buffer"}'>translation lookaside buffer</A></EM>. 
+<DT class=description><A id="glo:TLB flush" name="glo:TLB flush"></A><B>TLB flush</B> 
+<DD class=description>An operation to remove invalid entries from a TLB, e.g., after a process context switch. 
+<DT class=description><A id="glo:TLB hit" name="glo:TLB hit"></A><B>TLB hit</B> 
+<DD class=description>A TLB lookup that succeeds at finding a valid address translation. 
+<DT class=description><A id="glo:TLB miss" name="glo:TLB miss"></A><B>TLB miss</B> 
+<DD class=description>A TLB lookup that fails because the TLB does not contain a valid translation for that virtual address. 
+<DT class=description><A id="glo:TLB shootdown" name="glo:TLB shootdown"></A><B>TLB shootdown</B> 
+<DD class=description>A request to another processor to remove a newly invalid TLB entry. 
+<DT class=description><A id=glo:TOCTOU name=glo:TOCTOU></A><B>TOCTOU</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:time of check vs. time of use attack"}'>time of check vs. time of use attack</A></EM>. 
+<DT class=description><A id=glo:track name=glo:track></A><B>track</B> 
+<DD class=description>A circle of sectors on a disk surface. 
+<DT class=description><A id="glo:track buffer" name="glo:track buffer"></A><B>track buffer</B> 
+<DD class=description>Memory in the disk controller to buffer the contents of the current track even though those sectors have not yet been requested by the operating system. 
+<DT class=description><A id="glo:track skewing" name="glo:track skewing"></A><B>track skewing</B> 
+<DD class=description>A staggered alignment of disk sectors to allow sequential reading of sectors on adjacent tracks. 
+<DT class=description><A id=glo:transaction name=glo:transaction></A><B>transaction</B> 
+<DD class=description>A group of operations that are applied persistently, atomically as a group or not at all, and independently of other transactions. 
+<DT class=description><A id="glo:translation lookaside buffer" name="glo:translation lookaside buffer"></A><B>translation lookaside buffer</B> 
+<DD class=description>A small hardware table containing the results of recent address translations. See also: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:TLB"}'>TLB</A></EM>. 
+<DT class=description><A id=glo:trap name=glo:trap></A><B>trap</B> 
+<DD class=description>A synchronous transfer of control from a user-level process to a kernel-mode handler. Traps can be caused by processor exceptions, memory protection errors, or system calls. 
+<DT class=description><A id="glo:triple indirect block" name="glo:triple indirect block"></A><B>triple indirect block</B> 
+<DD class=description>A storage block containing pointers to double indirect blocks. 
+<DT class=description><A id="glo:two-phase locking" name="glo:two-phase locking"></A><B>two-phase locking</B> 
+<DD class=description>A strategy for acquiring locks needed by a multi-operation request, where no lock can be released before all required locks have been acquired. 
+<DT class=description><A id=glo:uberblock name=glo:uberblock></A><B>uberblock</B> 
+<DD class=description>In ZFS, the root of the ZFS storage system. 
+<DT class=description><A id="glo:UNIX exec" name="glo:UNIX exec"></A><B>UNIX exec</B> 
+<DD class=description>A system call on UNIX that causes the current process to bring a new executable image into memory and start it running. 
+<DT class=description><A id="glo:UNIX fork" name="glo:UNIX fork"></A><B>UNIX fork</B> 
+<DD class=description>A system call on UNIX that creates a new process as a complete copy of the parent process. 
+<DT class=description><A id="glo:UNIX pipe" name="glo:UNIX pipe"></A><B>UNIX pipe</B> 
+<DD class=description>A two-way byte stream communication channel between UNIX processes. 
+<DT class=description><A id="glo:UNIX signal" name="glo:UNIX signal"></A><B>UNIX signal</B> 
+<DD class=description>An asynchronous notification to a running process. 
+<DT class=description><A id="glo:UNIX stdin" name="glo:UNIX stdin"></A><B>UNIX stdin</B> 
+<DD class=description>A file descriptor set up automatically for a new process to use as its input. 
+<DT class=description><A id="glo:UNIX stdout" name="glo:UNIX stdout"></A><B>UNIX stdout</B> 
+<DD class=description>A file descriptor set up automatically for a new process to use as its output. 
+<DT class=description><A id="glo:UNIX wait" name="glo:UNIX wait"></A><B>UNIX wait</B> 
+<DD class=description>A system call that pauses until a child process finishes. 
+<DT class=description><A id="glo:unsafe state" name="glo:unsafe state"></A><B>unsafe state</B> 
+<DD class=description>In the context of deadlock, a state of an execution such that there is at least one sequence of future resource requests that leads to deadlock no matter what processing order is tried. 
+<DT class=description><A id=glo:upcall name=glo:upcall></A><B>upcall</B> 
+<DD class=description>An event, interrupt, or exception delivered by the kernel to a user-level process. 
+<DT class=description><A id="glo:use bit" name="glo:use bit"></A><B>use bit</B> 
+<DD class=description>A status bit in a page table entry recording whether the page has been recently referenced. 
+<DT class=description><A id="glo:user-level memory management" name="glo:user-level memory management"></A><B>user-level memory management</B> 
+<DD class=description>The kernel assigns each process a set of page frames, but how the process uses its assigned memory is left up to the application. 
+<DT class=description><A id="glo:user-level page handler" name="glo:user-level page handler"></A><B>user-level page handler</B> 
+<DD class=description>An application-specific upcall routine invoked by the kernel on a page fault. 
+<DT class=description><A id="glo:user-level thread" name="glo:user-level thread"></A><B>user-level thread</B> 
+<DD class=description>A type of application thread where the thread is created, runs, and finishes without calls into the operating system kernel. 
+<DT class=description><A id="glo:user-mode operation" name="glo:user-mode operation"></A><B>user-mode operation</B> 
+<DD class=description>The processor operates in a restricted mode that limits the capabilities of the executing process. Compare: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:kernel-mode operation"}'>kernel-mode operation</A></EM>. 
+<DT class=description><A id=glo:utilization name=glo:utilization></A><B>utilization</B> 
+<DD class=description>The fraction of time a resource is busy. 
+<DT class=description><A id="glo:virtual address" name="glo:virtual address"></A><B>virtual address</B> 
+<DD class=description>An address that must be translated to produce an address in physical memory. 
+<DT class=description><A id="glo:virtual machine" name="glo:virtual machine"></A><B>virtual machine</B> 
+<DD class=description>An execution context provided by an operating system that mimics a physical machine, e.g., to run an operating system as an application on top of another operating system. 
+<DT class=description><A id="glo:virtual machine honeypot" name="glo:virtual machine honeypot"></A><B>virtual machine honeypot</B> 
+<DD class=description>A virtual machine constructed for the purpose of executing suspect code in a safe environment. 
+<DT class=description><A id="glo:virtual machine monitor" name="glo:virtual machine monitor"></A><B>virtual machine monitor</B> 
+<DD class=description>See: <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:host operating system"}'>host operating system</A></EM>. 
+<DT class=description><A id="glo:virtual memory" name="glo:virtual memory"></A><B>virtual memory</B> 
+<DD class=description>The illusion of a nearly infinite amount of physical memory, provided by demand paging of virtual addresses. 
+<DT class=description><A id=glo:virtualization name=glo:virtualization></A><B>virtualization</B> 
+<DD class=description>Provide an application with the illusion of resources that are not physically present. 
+<DT class=description><A id="glo:virtually addressed cache" name="glo:virtually addressed cache"></A><B>virtually addressed cache</B> 
+<DD class=description>A processor cache which is accessed using virtual, rather than physical, memory addresses. 
+<DT class=description><A id=glo:volume name=glo:volume></A><B>volume</B> 
+<DD class=description>A collection of physical storage blocks that form a logical storage device (e.g., a logical disk). 
+<DT class=description><A id="glo:wait while holding" name="glo:wait while holding"></A><B>wait while holding</B> 
+<DD class=description>A necessary condition for deadlock to occur: a thread holds one resource while waiting for another. 
+<DT class=description><A id="glo:wait-free data structures" name="glo:wait-free data structures"></A><B>wait-free data structures</B> 
+<DD class=description>Concurrent data structure that guarantees progress for every thread: every method finishes in a finite number of steps, regardless of the state of other threads executing in the data structure. 
+<DT class=description><A id="glo:waiting list" name="glo:waiting list"></A><B>waiting list</B> 
+<DD class=description>The set of threads that are waiting for a synchronization event or timer expiration to occur before becoming eligible to be run. 
+<DT class=description><A id="glo:wear leveling" name="glo:wear leveling"></A><B>wear leveling</B> 
+<DD class=description>A flash memory management policy that moves logical pages around the device to ensure that each physical page is written/erased approximately the same number of times. 
+<DT class=description><A id="glo:web proxy cache" name="glo:web proxy cache"></A><B>web proxy cache</B> 
+<DD class=description>A cache of frequently accessed web pages to speed web access and reduce network traffic. 
+<DT class=description><A id="glo:work-conserving scheduling policy" name="glo:work-conserving scheduling policy"></A><B>work-conserving scheduling policy</B> 
+<DD class=description>A policy that never leaves the processor idle if there is work to do. 
+<DT class=description><A id="glo:working set" name="glo:working set"></A><B>working set</B> 
+<DD class=description>The set of memory locations that a program has referenced in the recent past. 
+<DT class=description><A id=glo:workload name=glo:workload></A><B>workload</B> 
+<DD class=description>A set of tasks for some system to perform, along with when each task arrives and how long each task takes to complete. 
+<DT class=description><A id="glo:wound wait" name="glo:wound wait"></A><B>wound wait</B> 
+<DD class=description>An approach to deadlock recovery that ensures progress by aborting the most recent transaction in any deadlock. 
+<DT class=description><A id="glo:write acceleration" name="glo:write acceleration"></A><B>write acceleration</B> 
+<DD class=description>Data to be stored on disk is first written to the disk&#8217;s buffer memory. The write is then acknowledged and completed in the background. 
+<DT class=description><A id="glo:write-back cache" name="glo:write-back cache"></A><B>write-back cache</B> 
+<DD class=description>A cache where updates can be stored in the cache and only sent to memory when the cache runs out of space. 
+<DT class=description><A id="glo:write-through cache" name="glo:write-through cache"></A><B>write-through cache</B> 
+<DD class=description>A cache where updates are sent immediately to memory. 
+<DT class=description><A id="glo:zero-copy I/O" name="glo:zero-copy I/O"></A><B>zero-copy I/O</B> 
+<DD class=description>A technique for transferring data across the kernel-user boundary without a memory-to-memory copy, e.g., by manipulating page table entries. 
+<DT class=description><A id=glo:zero-on-reference name=glo:zero-on-reference></A><B>zero-on-reference</B> 
+<DD class=description>A method for clearing memory only if the memory is used, rather than in advance. If the first access to memory triggers a trap to the kernel, the kernel can zero the memory and then resume. 
+<DT class=description><A id="glo:Zipf distribution" name="glo:Zipf distribution"></A><B>Zipf distribution</B> 
+<DD class=description>The relative frequency of an event is inversely proportional to its position in a rank order of popularity.</DD></DL>
+<P>
+<DIV style="break-after: always; -webkit-column-break-after: always"></DIV><BR><BR><BR>
+<P></P><A id=x1-1390008 name=x1-1390008>

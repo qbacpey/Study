@@ -1,0 +1,75 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h2 class=chapter_name><I>7. Scheduling</I></H2></A>
+<DIV class=chapterQuote>
+<P>Time is money &#8212;<I>Ben Franklin</I> </P>
+<P>The best performance improvement is the transition from the non-working state to the working state. That&#8217;s infinite speedup. &#8212;<I>John Ousterhout</I> </P>
+<DL>
+<DT>
+<DD></DD></DL>
+<P></P></DIV>
+<HR>
+<BR>
+<P>When there are multiple things to do, how do you choose which one to do first? In the last few chapters, we have described how to create threads, switch between them, and synchronize their access to shared data. At any point in time, some threads are running on the system&#8217;s processor. Others are waiting their turn for a processor. Still other threads are blocked waiting for I/O to complete, a condition variable to be signaled, or for a lock to be released. When there are more runnable threads than processors, the <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:processor scheduling policy"}'>processor scheduling policy</A></EM> determines which threads to run first. </P>
+<P>You might think the answer to this question is easy: just do the work in the order in which it arrives. After all, that seems to be the only fair thing to do. Because it is obviously fair, almost all government services work this way. When you go to your local Department of Motor Vehicles (DMV) to get a driver&#8217;s license, you take a number and wait your turn. Although fair, the DMV often feels slow. There&#8217;s a reason why: as we&#8217;ll see later in this chapter, doing things in order of arrival is sometimes the worst thing you can do in terms of improving user-perceived response time. Advertising that your operating system uses the same scheduling algorithm as the DMV is probably not going to increase your sales! </P>
+<P>You might think that the answer to this question is unimportant. With the million-fold improvement in processor performance over the past thirty years, it might seem that we are a million times less likely to have anything waiting for its turn on a processor. We disagree! Server operating systems in particular are often overloaded. Parallel applications can create more work than processors, and if care is not taken in the design of the scheduling policy, performance can badly degrade. There are subtle relationships between scheduling policy and energy management on battery-powered devices such as smartphones and laptops. Further, scheduling issues apply to any scarce resource, whether the source of contention is the processor, memory, disk, or network. We will revisit the issues covered in this chapter throughout the rest of the book. </P>
+<P>Scheduling policy is not a panacea. Without enough capacity, performance may be poor regardless of which thread we run first. In this chapter, we will also discuss how to predict overload conditions and how to adapt to them. </P>
+<P>Fortunately, you probably have quite a bit of intuition as to impact of different scheduling policies and capacity on issues like response time, fairness, and throughput. Anyone who waits in line probably wonders how we could get the line to go faster. That&#8217;s true whether we&#8217;re waiting in line at the supermarket, a bank, the DMV, or at a popular restaurant. Remarkably, in each of these settings, there is a different approach to how they deal with waiting. We will try to answer why. </P>
+<P>There is no one right answer; rather, any scheduling policy poses a complex set of tradeoffs between various desirable properties. The goal of this chapter is not to enumerate all of the interesting possibilities, explore the full design space, or even to identify specific useful policies. Instead, we describe some of the trade-offs and try to illustrate how a designer can approach the problem of selecting a scheduling policy. </P>
+<P>Consider what happens if you are running the web site for a company trying to become the next Facebook. Based on history, you&#8217;ll be able to guess how much server capacity you need to be able to keep up with demand and still have reasonable response time. What happens if your site appears on Slashdot, and suddenly you have twice as many users as you had an hour ago? If you are not careful, everyone will think your site is terribly slow, and permanently go elsewhere. Google, Amazon, and Yahoo have each estimated that they lose approximately 5-10% of their customers if their response time increases by as little as 100 milliseconds. If faced with overload: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Would quickly implementing a different scheduling policy help, or hurt? </P>
+<LI class=itemize>
+<P>How much worse will your performance be if the number of users doubles again? </P>
+<LI class=itemize>
+<P>Should you turn away some users so that others will get acceptable performance? </P>
+<LI class=itemize>
+<P>Does it matter which users you turn away? </P>
+<LI class=itemize>
+<P>If you run out to the local electronics store and buy a server, how much better will performance get? </P>
+<LI class=itemize>
+<P>Do the answers change if you are under a denial-of-service attack by a competitor?</P></LI></UL>
+<P>In this chapter, we will try to give you the conceptual and analytic tools to help you answer these questions. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Performance terminology</I></B></SPAN> </P>
+<P>In Chapter 1 we defined some performance-related terms we will use throughout this chapter and the rest of the book; we summarize those terms here. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Task.</B> A user request. A task is also often called a <EM>job</EM>. A task can be any size, from simply redrawing the screen to show the movement of the mouse cursor to computing the shape of a newly discovered protein. When discussing scheduling, we use the term task, rather than thread or process, because a single thread or process may be responsible for multiple user requests or tasks. For example, in a word processor, each character typed is an individual user request to add that character to the file and display the result on the screen. </P>
+<LI class=itemize>
+<P><B>Response time (or delay).</B> The user-perceived time to do some task. </P>
+<LI class=itemize>
+<P><B>Predictability.</B> Low variance in response times for repeated requests. </P>
+<LI class=itemize>
+<P><B>Throughput.</B> The rate at which tasks are completed. </P>
+<LI class=itemize>
+<P><B>Scheduling overhead.</B> The time to switch from one task to another. </P>
+<LI class=itemize>
+<P><B>Fairness.</B> Equality in the number and timeliness of resources given to each task. </P>
+<LI class=itemize>
+<P><B>Starvation.</B> The lack of progress for one task, due to resources given to a higher priority task.</P></LI></UL>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P><B>Chapter roadmap:</B> </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Uniprocessor Scheduling.</B> How do uniprocessor scheduling policies affect fairness, response time, and throughput? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1080001"}'>7.1</A>) </P>
+<LI class=itemize>
+<P><B>Multiprocessor Scheduling.</B> How do scheduling policies change when we have multiple processor cores per computer? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1150002"}'>7.2</A>) </P>
+<LI class=itemize>
+<P><B>Energy-Aware Scheduling.</B> Many new computer systems can save energy by turning off portions of the computer, slowing the execution speed. How do we make this tradeoff while minimizing the impact on user perceived response time? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1210003"}'>7.3</A>) </P>
+<LI class=itemize>
+<P><B>Real-Time Scheduling.</B> More generally, how do we make sure tasks finish in time? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1220004"}'>7.4</A>) </P>
+<LI class=itemize>
+<P><B>Queueing Theory.</B> In a server environment, how are response time and throughput affected by the rate at which requests arrive for processing and by the scheduling policy? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1230005"}'>7.5</A>) </P>
+<LI class=itemize>
+<P><B>Overload Management.</B> How do we keep response time reasonable when a system becomes overloaded? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1330006"}'>7.6</A>) </P>
+<LI class=itemize>
+<P><B>Case Study: Servers in a Data Center.</B> How do we combine these technologies to manage servers a data center? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1340007"}'>7.7</A>) </P></LI></UL><A id=x1-107001r179 name=x1-107001r179></A><A id=x1-1080001 name=x1-1080001>

@@ -1,0 +1,464 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>5.6 Three Case Studies</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">The best way to learn how to program concurrently is to practice. Multithreaded programming is an important skill, and we anticipate that almost everyone reading this book will over time need to write many multi-threaded programs. To help get you started, this section walks through several examples. </FONT><A id=x1-62001r100 name=x1-62001r100></A>
+<H4 class=subsectionHead>5.6.1 <A id=x1-630001 name=x1-630001></A>Readers/Writers Lock</H4>First, we implement a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:readers/writers lock"}'>readers/writers lock</A></EM>. Like a normal mutual exclusion lock, a readers/writers lock (RWLock) protects shared data. However, it makes the following optimization. To maximize performance, an RWLock allows multiple &#8220;reader&#8221; threads to simultaneously access the shared data. Any number of threads can safely read shared data at the same time, as long as no thread is modifying the data. However, only one &#8220;writer&#8221; thread may hold the RWLock at any one time. (While a &#8220;reader&#8221; thread is restricted to only read access, a &#8220;writer&#8221; thread may read <EM>and</EM> write the data structure.) When a writer thread holds the RWLock, it may safely modify the data, as the lock guarantees that no other thread (whether reader or writer) may simultaneously hold the lock. The mutual exclusion is thus between any writer and any other writer, and between any writer and <EM>the set</EM> of readers. 
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Optimizing for the common case</I></B></SPAN> </P>
+<P>Reader/writer locks are an example of an important principle in the design of computer systems: optimizing for the common case. Performance optimizations often have the side effect of making the code more complex to understand and reason about. Code that is more complex is more likely to be buggy, and more likely to have new bugs introduced as features are added. How do we decide when an optimization is worth the cost? </P>
+<P>One approach is to profile your code. Then, <EM>and only then</EM>, optimize the code paths that are frequently used. </P>
+<P>In the case of locks, it is obviously simpler to use a regular mutual exclusion lock. Replacing a mutual exclusion lock with a reader-writer lock is appropriate when both of the following are true: (i) there is substantial contention for the mutual exclusion lock and (ii) a substantial majority of the accesses are read-only. In other words, it is only appropriate to use if it would make a significant difference. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P>Reader-writer locks are very commonly used in databases, where they are used to support faster search queries over the database, while also supporting less frequent database updates. Another common use is inside the operating system kernel, where core data structures are often read by many threads and only infrequently updated. </P>
+<P>To generalize our mutual exclusion lock into a readers/writers lock, we implement a new kind of shared object, RWLock, to guard access to the shared data and to enforce these rules. The RWLock is implemented using our standard synchronization building blocks: mutual exclusion locks and condition variables. </P>
+<P>A thread that wants to (atomically) read the shared data proceeds as follows: </P>
+<P><BR></P><PRE class=code>   &nbsp;rwLock-&gt;startRead();
+   &nbsp;//&nbsp;Read&nbsp;shared&nbsp;data
+   &nbsp;rwLock-&gt;doneRead();</PRE><BR>
+<P>Similarly, a thread that wants to (atomically) write the shared data does the following: </P>
+<P><BR></P><PRE class=code>   &nbsp;rwLock-&gt;startWrite();
+   &nbsp;//&nbsp;Read&nbsp;and&nbsp;write&nbsp;shared&nbsp;data
+   &nbsp;rwLock-&gt;doneWrite();</PRE><BR>
+<P>To design the RWLock class, we begin by defining its interface (already done in this case) and its shared state. For the state, it is useful to keep enough data to allow a precise characterization of the object; especially when debugging, having too much state is better than having too little. Here, the object&#8217;s behavior is fully characterized by the number of threads reading or writing and the number of threads waiting to read or write, so we have chosen to keep four integers to track these values. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-630019"}'>5.9</A> shows the members of and interface to the RWLock class. <A id=x1-630019 name=x1-630019></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;class&nbsp;RWLock{
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Synchronization&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lock&nbsp;lock;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CV&nbsp;readGo;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CV&nbsp;writeGo;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;State&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;activeReaders;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;activeWriters;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;waitingReaders;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;waitingWriters;
+&nbsp;
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;RWLock();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~RWLock()&nbsp;{};
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;startRead();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;doneRead();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;startWrite();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;doneWrite();
+&nbsp;
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;readShouldWait();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;writeShouldWait();
+&nbsp;};
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.9: </B>The interface and member variables for our readers/writers lock.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>Next, we add synchronization variables by asking, &#8220;When can methods wait?&#8221; First, we add a mutual exclusion lock: the RWLock methods must wait whenever another thread is accessing the RWLock state variables. Next, we observe that startRead or startWrite may have to wait, so we add a condition variable for each case: readGo and writeGo. </P>
+<P>RWLock::doneRead and doneWrite do not wait (other than to acquire the mutual exclusion lock). Therefore, these methods do not need any additional condition variables. </P>
+<P>We can now implement RWLock. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6300210"}'>5.10</A> shows the complete solution, which we develop in a few simple steps. Much of what we need to do is almost automatic. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Since we always acquire/release mutual exclusion locks at the beginning/end of a method (and never in the middle), we can write calls to acquire and release the mutual exclusion lock at the start and end of each public method before even thinking in detail about what these methods do. </P>
+<P>At this point, startRead and doneRead look like this:</P>
+<P><BR></P>
+<P></P><PRE class=code>&nbsp;void&nbsp;RWLock::startRead()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+&nbsp;
+&nbsp;void&nbsp;RWLock::doneRead()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+ </PRE>
+<P><BR></P>
+<P>RWLock::startWrite and RWLock::doneWrite are similar. </P>
+<LI class=itemize>
+<P>Since we know startRead and startWrite may have to wait, we can write a while(...){wait(...);} loop in the middle of each. In fact, we can defer thinking about the details by inserting a private method to be defined later, as the predicate for the while loop (e.g., readShouldWait and writeShouldWait). </P>
+<P>At this point, startRead looks like this: </P>
+<P><BR></P><PRE class=code>&nbsp;void&nbsp;RWLock::startRead()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(readShouldWait())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;readGo.Wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}</PRE><BR>
+<P>RWLock::StartWrite() looks similar. </P></LI></UL>
+<P>Now things get a bit more complex. We can add code to track activeReaders, activeWriters, waitingReaders, and waitingWriters. Since we hold mutual exclusion locks in all of the public methods, this is easy to do. For example, a call to startRead initially increments the number of waiting readers; when the thread gets past the while loop, the number of waiting readers is decremented, but the number of active readers is incremented. </P>
+<P>When reads or writes finish, it may become possible for waiting threads to proceed. We therefore need to add <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;calls to doneRead and doneWrite. The simplest solution would be to <TT>broadcast</TT>&nbsp;on both readGo and writeGo in each method, but that would be both inefficient and (to our taste) less clear about how the class actually works. </P>
+<P>Instead, we observe that in doneRead, when a read completes, there are two interesting cases: (a) no writes are pending, and nothing needs to be done since this read cannot prevent other reads from proceeding, or (b) a write is pending, and this is the last active read, so one write can proceed. In case (b), we use <TT>signal</TT>&nbsp;since at most one write can proceed, and any write waiting on the condition variable can proceed. </P>
+<P>Our code for startRead and doneRead is now done: </P>
+<P><BR></P>
+<P></P><PRE class=code>&nbsp;//&nbsp;Wait&nbsp;until&nbsp;no&nbsp;active&nbsp;or&nbsp;waiting
+&nbsp;//&nbsp;writes,&nbsp;then&nbsp;proceed.
+&nbsp;void&nbsp;RWLock::startRead()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitingReaders++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(readShouldWait())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;readGo.Wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitingReaders--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;activeReaders++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Done&nbsp;reading.&nbsp;If&nbsp;no&nbsp;other&nbsp;active
+&nbsp;//&nbsp;reads,&nbsp;a&nbsp;write&nbsp;may&nbsp;proceed.
+&nbsp;void&nbsp;RWLock::doneRead()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;activeReaders--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(activeReaders&nbsp;==&nbsp;0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp;&nbsp;waitingWriters&nbsp;&gt;&nbsp;0)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;writeGo.signal();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+ </PRE>
+<P><BR></P>
+<P>Code for startWrite and doneWrite is similar. For doneWrite, if there are any pending writes, we signal on writeGo. Otherwise, we broadcast on readGo. </P>
+<P>Finally, we need to define the readShouldWait and writeShouldWait predicates. Here, we implement a <EM>writers preferred</EM> solution: reads should wait if there are any active or pending writers, while writes wait only while there are active readers or active writers. Otherwise, a continuous stream of new readers could starve a write request and prevent if from ever being serviced. </P>
+<P><BR></P><PRE class=code>   &nbsp;bool
+   &nbsp;RWLock::readShouldWait()&nbsp;{
+   &nbsp;&nbsp;&nbsp;return&nbsp;(activeWriters&nbsp;&gt;&nbsp;0&nbsp;||&nbsp;waitingWriters&nbsp;&gt;&nbsp;0);
+   &nbsp;}</PRE><BR>
+<P>The code for writeShouldWait is similar. </P>
+<P>Since readShouldWait and writeShouldWait are private methods that are always called from public methods that hold the mutual exclusion lock, they do not need to acquire the lock. </P>
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6300210"}'>5.10</A> gives the full code. This solution may not be to your taste. You may decide to use more or fewer condition variables, use different state variables to implement different invariants, or change when to call <TT>signal</TT>&nbsp;or <TT>broadcast</TT>. The shared object approach allows designers freedom in these dimensions. <A id=x1-6300210 name=x1-6300210></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;//&nbsp;Wait&nbsp;until&nbsp;no&nbsp;active&nbsp;or&nbsp;waiting
+&nbsp;//&nbsp;writes,&nbsp;then&nbsp;proceed.
+&nbsp;void&nbsp;RWLock::startRead()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitingReaders++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(readShouldWait())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;readGo.Wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitingReaders--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;activeReaders++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Done&nbsp;reading.&nbsp;If&nbsp;no&nbsp;other&nbsp;active
+&nbsp;//&nbsp;reads,&nbsp;a&nbsp;write&nbsp;may&nbsp;proceed.
+&nbsp;void&nbsp;RWLock::doneRead()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;activeReaders--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(activeReaders&nbsp;==&nbsp;0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;&amp;&nbsp;waitingWriters&nbsp;&gt;&nbsp;0)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;writeGo.signal();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Read&nbsp;waits&nbsp;if&nbsp;any&nbsp;active&nbsp;or&nbsp;waiting
+&nbsp;//&nbsp;write&nbsp;("writers&nbsp;preferred").
+&nbsp;bool
+&nbsp;RWLock::readShouldWait()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;(activeWriters&nbsp;&gt;&nbsp;0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;||&nbsp;waitingWriters&nbsp;&gt;&nbsp;0);
+&nbsp;}
+&nbsp;
+&nbsp;
+&nbsp;//&nbsp;Wait&nbsp;until&nbsp;no&nbsp;active&nbsp;read&nbsp;or
+&nbsp;//&nbsp;write&nbsp;then&nbsp;proceed.
+&nbsp;void&nbsp;RWLock::startWrite()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitingWriters++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(writeShouldWait())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;writeGo.Wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitingWriters--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;activeWriters++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Done&nbsp;writing.&nbsp;A&nbsp;waiting&nbsp;write&nbsp;or
+&nbsp;//&nbsp;read&nbsp;may&nbsp;proceed.
+&nbsp;void
+&nbsp;RWLock::doneWrite()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;activeWriters--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert(activeWriters&nbsp;==&nbsp;0);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(waitingWriters&nbsp;&gt;&nbsp;0)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;writeGo.signal();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;readGo.broadcast();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Write&nbsp;waits&nbsp;for&nbsp;active&nbsp;read&nbsp;or&nbsp;write.
+&nbsp;bool
+&nbsp;RWLock::writeShouldWait()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;(activeWriters&nbsp;&gt;&nbsp;0
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;||&nbsp;activeReaders&nbsp;&gt;&nbsp;0);
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.10: </B>An implementation of a readers/writers lock.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Single stepping and model checking your code</I></B></SPAN> </P>
+<P>Suppose you have written some concurrent code, and you would like to verify that the solution behaves as you expect. One thing you should <EM>always</EM> do &#8212; whether for sequential or concurrent code &#8212; is to use a debugger to single step through the code on various inputs, to verify that the program logic is doing what you expect it to do, and do the variables have the values you expect. </P>
+<P>This is especially useful for concurrent programs. Since the program must work for any possible thread schedule, you can use the debugger to consider what happens when threads are interleaved in different ways. Does your program logic still do what you expect? </P>
+<P>For example, for the RWLock class, you can: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Start a single reader. Does it go all the way through? Obviously, it should not wait, since no one has the lock and there are no writers. When it finishes readDone, are the state variables back to their initial state? </P>
+<LI class=itemize>
+<P>Start a writer, and after it acquires the mutual exclusion lock, start a reader. Does it wait for the lock? When the writer finishes startWrite, does the reader proceed and then wait for the writer to call doneWrite? Does the reader proceed after that? </P>
+<LI class=itemize>
+<P>Start a reader, followed by a writer, followed by another reader. And so forth. </P></LI></UL>
+<P>We encourage you to do this for the examples in this section. The examples are short enough that you can execute them by hand, but we also provide code if you want to try this in a debugger. </P>
+<P>A more systematic approach is called model checking. To fully verify that a concurrent program does what it was designed to do, a model checker enumerates all possible sequences of operations, and tries each one in turn. Since this could result in a nearly infinite number of possible tests even for a fairly simple program, to be practical model checking needs to reduce the search space. For code that follows our guidelines &#8212; with locks to protect shared data &#8212; the exact ordering of instructions is no longer important. For example, preempting a thread that holds a lock is immaterial to the behavior of the program. </P>
+<P>Rather, the behavior of the program depends on the sequence of synchronization instructions: which thread is first to acquire the lock, which thread waits on a condition variable, and so forth. Thus, a model checker can proceed in two steps: first verify that there are no unlocked accesses to shared data, and then enumerate various sequences of synchronization operations. Even with this, the number of possibilities can be prohibitively large, and so typically the model checker will verify however many different interleavings it can within some time limit. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-63003r102 name=x1-63003r102></A>
+<H4 class=subsectionHead>5.6.2 <A id=x1-640002 name=x1-640002></A>Synchronization Barriers</H4>With data parallel programming, as we explained in Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100004"}'>4</A>, the computation executes in parallel across a data set, with each thread operating on a different partition of the data. Once all threads have completed their work, they can safely use each other&#8217;s results in the next (data parallel) step in the algorithm. MapReduce is an example of data parallel programming, but there are many other systems with the same structure. 
+<P>For this to work, we need an efficient way to check whether all n threads have finished their work. This is called a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:synchronization barrier"}'>synchronization barrier</A></EM>. It has one operation, <TT>checkin</TT>. A thread calls <TT>checkin</TT>&nbsp;when it has completed its work; no thread may return from <TT>checkin</TT>&nbsp;until <EM>all</EM> n threads have checked in. Once all threads have checked in, it is safe to use the results of the previous step. </P>
+<P>Note that a synchronization barrier is different from a memory barrier, defined earlier in the chapter. A synchronization barrier is called concurrently by many threads; the barrier prevents any thread from proceeding until all threads reach the barrier. A memory barrier is called by one thread, to prevent the thread from proceeding until all memory operations that occur before the barrier have completed and are visible to other threads. </P>
+<P>An implementation of MapReduce using a synchronization barrier might look like the code in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6400111"}'>5.11</A>. <A id=x1-6400111 name=x1-6400111></A></P>
+<HR>
+<PRE class=code>&nbsp;Create&nbsp;n&nbsp;threads.
+&nbsp;Create&nbsp;barrier.
+&nbsp;
+&nbsp;Each&nbsp;thread&nbsp;executes&nbsp;map&nbsp;operation&nbsp;in&nbsp;parallel.
+&nbsp;barrier.checkin();
+&nbsp;
+&nbsp;Each&nbsp;thread&nbsp;sends&nbsp;data&nbsp;in&nbsp;parallel&nbsp;to&nbsp;reducers.
+&nbsp;barrier.checkin();
+&nbsp;
+&nbsp;Each&nbsp;thread&nbsp;executes&nbsp;reduce&nbsp;operation&nbsp;in&nbsp;parallel.
+&nbsp;barrier.checkin();</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.11: </B>An implementation of MapReduce using synchronization barriers.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>An alternative to using a synchronization barrier would be to create n threads at each step; the main thread could then call thread_join&nbsp;on each thread to ensure its completion. While this would be correct, it might be inefficient. Not only would n new threads need to be started at each step, the partitioning of work among threads would also need to be redone each time. Frequently, each thread in a data parallel computation can work on the same data repeatedly over many steps, maximizing the efficiency of the hardware processor cache. </P>
+<P>We can derive an implementation for a synchronization barrier in the same way as we described above for the readers/writers lock. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>We create a Barrier class, with a lock to protect its internal state variables: how many have checked in so far (count), and how many we are expecting (numThreads). </P>
+<LI class=itemize>
+<P>We <TT>acquire</TT>&nbsp;the lock at the beginning of <TT>checkin</TT>, and we <TT>release</TT>&nbsp;it at the end. </P>
+<LI class=itemize>
+<P>Since threads may have to wait in <TT>checkin</TT>, we need a condition variable, allCheckedIn. </P>
+<LI class=itemize>
+<P>We put the <TT>wait</TT>&nbsp;in a while loop, checking if all n threads have checked in yet. </P>
+<LI class=itemize>
+<P>The last thread to <TT>checkin</TT>&nbsp;does a <TT>broadcast</TT>&nbsp;to wake up all of the waiters.</P></LI></UL>
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6400212"}'>5.12</A> gives the full implementation. Note that we still use a while loop, even though the signal means that the thread can safely exit <TT>checkin</TT>. There is no harm in using a while statement, and it protects against the possibility of the runtime library issuing spurious wakeups. <A id=x1-6400212 name=x1-6400212></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;//&nbsp;A&nbsp;single&nbsp;use&nbsp;synch&nbsp;barrier.
+&nbsp;class&nbsp;Barrier{
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Synchronization&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lock&nbsp;lock;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CV&nbsp;allCheckedIn;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;State&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;numEntered;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;numThreads;
+&nbsp;
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Barrier(int&nbsp;n);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~Barrier();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;checkin();
+&nbsp;};
+&nbsp;
+&nbsp;Barrier::Barrier(int&nbsp;n)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numEntered&nbsp;=&nbsp;0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numThreads&nbsp;=&nbsp;n;
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;No&nbsp;one&nbsp;returns&nbsp;until&nbsp;all&nbsp;threads
+&nbsp;//&nbsp;have&nbsp;called&nbsp;checkin.
+&nbsp;void
+&nbsp;checkin()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numEntered++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(numEntered&nbsp;&lt;&nbsp;numThreads)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(numEntered&nbsp;&lt;&nbsp;numThreads)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allCheckedIn.wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{&nbsp;//&nbsp;last&nbsp;thread&nbsp;to&nbsp;checkin
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allCheckedIn.broadcast();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.12: </B>Candidate implementation of a synchronization barrier. With this implementation, each instance of a barrier can be safely used only one time.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>The design is straightforward, but a problem is that the barrier can only be used once. One way to see this is that the state of the barrier does not revert to the same state it had when it was created. Implementing a reusable barrier is a bit more subtle. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>The <EM>first</EM> thread to leave (the one that wakes up the other threads) cannot reset the state, because until the other threads have woken up, the state is needed so that they know to exit the while loop. </P>
+<LI class=itemize>
+<P>The <EM>last</EM> thread to leave the barrier cannot reset the state for the next iteration, because there is a possible race condition. Suppose a thread finishes <TT>checkin</TT>&nbsp;and calls <TT>checkin</TT>&nbsp;on the next barrier <EM>before</EM> the last thread wakes up and leaves the previous barrier. In that case, the thread would find that n threads have already checked in (because the state hasn&#8217;t been reset), and so it would think it is &#8220;ok to proceed!&#8221;</P></LI></UL>
+<P>A simple way to implement a re-usable barrier is to use two single-use barriers. The first barrier ensures that all threads are checked in, and the second ensures that all threads have woken up from allCheckedIn.wait. The nth thread to leave can safely reset numCheckedIn; the nth thread to call <TT>checkin</TT>&nbsp;can safely reset numLeaving. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6400313"}'>5.13</A> gives the result. <A id=x1-6400313 name=x1-6400313></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;//&nbsp;A&nbsp;re-usable&nbsp;synch&nbsp;barrier.
+&nbsp;class&nbsp;Barrier{
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Synchronization&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lock&nbsp;lock;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CV&nbsp;allCheckedIn;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CV&nbsp;allLeaving;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;State&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;numEntered;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;numLeaving;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;numThreads;
+&nbsp;
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Barrier(int&nbsp;n);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~Barrier();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;checkin();
+&nbsp;};
+&nbsp;
+&nbsp;Barrier::Barrier(int&nbsp;n)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numEntered&nbsp;=&nbsp;0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numLeaving&nbsp;=&nbsp;0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numThreads&nbsp;=&nbsp;n;
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;No&nbsp;one&nbsp;returns&nbsp;until&nbsp;all&nbsp;threads
+&nbsp;//&nbsp;have&nbsp;called&nbsp;checkin.
+&nbsp;void
+&nbsp;checkin()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numEntered++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(numEntered&nbsp;&lt;&nbsp;numThreads)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(numEntered&nbsp;&lt;&nbsp;numThreads)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allCheckedIn.wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;no&nbsp;threads&nbsp;in&nbsp;allLeaving.wait
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numLeaving&nbsp;=&nbsp;0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allCheckedIn.broadcast();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numLeaving++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(numLeaving&nbsp;&lt;&nbsp;numThreads)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(numLeaving&nbsp;&lt;&nbsp;numThreads)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allLeaving.wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;no&nbsp;threads&nbsp;in&nbsp;allCheckedIn.wait
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;numEntered&nbsp;=&nbsp;0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allLeaving.broadcast();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.13: </B>Implementation of a re-usable synchronization barrier.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+<A id=x1-64004r105 name=x1-64004r105></A>
+<H4 class=subsectionHead>5.6.3 <A id=x1-650003 name=x1-650003></A>FIFO Blocking Bounded Queue</H4>Assuming Mesa semantics for condition variables, our implementation of the thread-safe blocking bounded queue in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-560018"}'>5.8</A> does not guarantee freedom from starvation. For example, a thread may call remove and wait in the while loop because the queue is empty. Starvation would occur if every time another thread inserts an item into the queue, a <EM>different</EM> thread calls remove, acquires the lock, sees that the queue is full, and removes the item before the waiting thread resumes. 
+<P>Often, starvation is not a concern. For example, if we have one thread putting items into the queue, and n equivalent worker threads removing items from the queue, it may not matter which of the worker threads goes first. Even if starvation is a concern, as long as calls to insert and remove are infrequent, or the buffer is rarely empty or full, every thread is highly likely to make progress. </P>
+<P>Suppose, however, we do need a thread-safe bounded buffer that does guarantee progress to all threads. We can more formally define the liveness constraint as: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Starvation-freedom.</B> If a thread waits in insert, then it is guaranteed to proceed after a bounded number of remove calls complete, and vice versa. </P>
+<LI class=itemize>
+<P><B>First-in-first-out (FIFO).</B> A stronger constraint is that the queue is first-in-first-out, or FIFO. The nth thread to acquire the lock in remove retrieves the item inserted by the nth thread to acquire the lock in insert. </P></LI></UL>
+<P>Under Hoare semantics, the implementation in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-560018"}'>5.8</A> is FIFO, and therefore also starvation-free, provided that <TT>signal</TT>&nbsp;wakes up the thread waiting the longest. </P>
+<P>Here we consider a related question: can we implement a starvation-free or FIFO bounded buffer using Mesa semantics? We need to ensure that when one thread signals a waiter, the waiting thread (and not any other) removes the item. <A id=x1-6500114 name=x1-6500114></A></P>
+<HR>
+<PRE class=code>&nbsp;ConditionQueue&nbsp;insertQueue;
+&nbsp;ConditionQueue&nbsp;removeQueue;
+&nbsp;int&nbsp;numRemoveCalled&nbsp;=&nbsp;0;&nbsp;//&nbsp;#&nbsp;of&nbsp;times&nbsp;remove&nbsp;has&nbsp;been&nbsp;called
+&nbsp;int&nbsp;numInsertCalled&nbsp;=&nbsp;0;&nbsp;//&nbsp;#&nbsp;of&nbsp;times&nbsp;insert&nbsp;has&nbsp;been&nbsp;called
+&nbsp;
+&nbsp;int
+&nbsp;FIFOBBQ::remove()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;item;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;myPosition;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CV&nbsp;*myCV,&nbsp;*nextWaiter;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;myPosition&nbsp;=&nbsp;numRemoveCalled++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mycv&nbsp;=&nbsp;new&nbsp;CV;&nbsp;&nbsp;//&nbsp;Create&nbsp;a&nbsp;new&nbsp;condition&nbsp;variable&nbsp;to&nbsp;wait&nbsp;on.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;removeQueue.append(myCV);
+&nbsp;
+&nbsp;//&nbsp;Even&nbsp;if&nbsp;I&nbsp;am&nbsp;woken&nbsp;up,&nbsp;wait&nbsp;until&nbsp;it&nbsp;is&nbsp;my&nbsp;turn.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(front&nbsp;&lt;&nbsp;myPosition&nbsp;||&nbsp;front&nbsp;==&nbsp;nextEmpty)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mycv-&gt;Wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;delete&nbsp;self;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;The&nbsp;condition&nbsp;variable&nbsp;is&nbsp;no&nbsp;longer&nbsp;needed.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;item&nbsp;=&nbsp;items[front&nbsp;%&nbsp;size];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;front++;
+&nbsp;
+&nbsp;//&nbsp;Wake&nbsp;up&nbsp;the&nbsp;next&nbsp;thread&nbsp;waiting&nbsp;in&nbsp;insert,&nbsp;if&nbsp;any.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nextWaiter&nbsp;=&nbsp;insertQueue.removeFromFront();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(nextWaiter&nbsp;!=&nbsp;NULL)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nextWaiter-&gt;Signal(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;item;
+&nbsp;}</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.14: </B>An implementation of FIFO Blocking Bounded Buffer using Mesa semantics. ConditionQueue is a linked list of condition variables.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>The easiest way to do this is to create a condition variable for each separate waiting thread. Then, you can be precise as to which thread to wake up! Although you might be worried that this would be space inefficient, on modern computer systems a condition variable (or lock) takes up just a few words of DRAM; it is small compared to the rest of the storage needed per thread. </P>
+<P>The outline of the solution is as follows: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Create a condition variable for every waiter. </P>
+<LI class=itemize>
+<P>Put condition variables on a queue in FIFO order. </P>
+<LI class=itemize>
+<P>Signal wakes up the thread at the front of the queue. </P>
+<LI class=itemize>
+<P>Be CAREFUL about spurious wakeups!</P></LI></UL>
+<P>We give an implementation of FIFOBBQ::remove in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6500114"}'>5.14</A>; insert is similar. </P>
+<P>The implementation easily extends to the case where we want the queue to be last in first out (LIFO) rather than FIFO, or if want it to wake up threads in some priority order. With Hoare semantics, this is not as easy; we would need to have a different implementation of CV for each different queueing discipline, rather than leaving it to those few applications where the specific order matters. <A id=x1-65002r101 name=x1-65002r101></A></P><A id=x1-660007 name=x1-660007>

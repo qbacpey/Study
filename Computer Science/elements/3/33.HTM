@@ -1,0 +1,68 @@
+<strong><font color="blue"> : </font></strong><h3 class=likesectionHead>Exercises</H3></A>
+<P></P>
+<OL class=problems>
+<P></P>
+<LI>When a user process is interrupted or causes a processor exception, the x86 hardware switches the stack pointer to a kernel stack, before saving the current process state. Explain why. 
+<P></P></LI>
+<P></P>
+<LI>For the &#8220;Hello world&#8221; program, we mentioned that the kernel must copy the string from the user program to screen memory. Why must the screen&#8217;s buffer memory be protected? Explain what might happen if a malicious application could alter any pixel on the screen, not just those within its own window. 
+<P></P></LI>
+<P></P>
+<LI>For each of the three mechanisms that supports dual-mode operation &#8212; privileged instructions, memory protection, and timer interrupts &#8212; explain what might go wrong without that mechanism, assuming the system still had the other two. 
+<P></P></LI>
+<P></P>
+<LI>Suppose you are tasked with designing the security system for a new web browser that supports rendering web pages with embedded web page scripts. What checks would you need to implement to ensure that executing buggy or malicious scripts could not corrupt or crash the browser? 
+<P></P></LI>
+<LI>Define three types of user-mode to kernel-mode transfers. </LI>
+<P></P>
+<LI>Define four types of kernel-mode to user-mode transfers. </LI>
+<P></P>
+<LI>Most hardware architectures provide an instruction to return from an interrupt, such as iret. This instruction switches the mode of operation from kernel-mode to user-mode. 
+<P></P>
+<OL class=subproblems>
+<LI>Explain where in the operating system this instruction would be used. </LI>
+<LI>Explain what happens if an application program executes this instruction. </LI></OL>
+<P></P></LI>
+<P></P>
+<LI>A hardware designer argues that there is now enough on-chip transistors to provide 1024 integer registers and 512 floating point registers. As a result, the compiler should almost never need to store anything on the stack. As an operating system guru, give your opinion of this design. 
+<P></P>
+<OL class=subproblems>
+<LI>What is the effect on the operating system of having a large number of registers? </LI>
+<LI>What hardware features would you recommend adding to the design? </LI>
+<LI>What happens if the hardware designer also wants to add a 16-stage pipeline into the CPU, with precise exceptions. How would that affect the user-kernel switching overhead? </LI></OL>
+<P></P></LI>
+<LI>
+<P>With virtual machines, the host kernel runs in privileged mode to create a virtual machine that runs in user mode. The virtual machine provides the illusion that the guest kernel runs on its own machine in privileged mode, even though it is actually running in user mode. </P>
+<P>Early versions of the x86 architecture (pre-2006) were not <EM>completely virtualizable</EM> &#8212; these systems could not guarantee to run unmodified guest operating systems properly. One problem was the popf &#8220;pop flags&#8221; instruction that restores the processor status word. When popf was run in privileged mode, it changed both the ALU flags (e.g., the condition codes) and the systems flags (e.g., the interrupt mask). When popf was run in unprivileged mode, it changed just the ALU flags. </P>
+<P></P>
+<OL class=subproblems>
+<LI>Why do instructions like popf prevent transparent virtualization of the (old) x86 architecture? 
+<P></P></LI>
+<P></P>
+<LI>How would you change the (old) x86 hardware to fix this problem? 
+<P></P></LI></OL>
+<P></P></LI>
+<P></P>
+<LI>Which of the following components is responsible for loading the initial value in the program counter for an application program before it starts running: the compiler, the linker, the kernel, or the boot ROM? 
+<P></P></LI>
+<P></P>
+<LI>We described how the operating system kernel mediates access to I/O devices for safety. Some newer I/O devices are <EM>virtualizable</EM> &#8212; they permit safe access from user-level programs, such as a guest operating system running in a virtual machine. Explain how you might design the hardware and software to get this to work. (Hint: The device needs much of the same hardware support as the operating system kernel.) </LI>
+<P></P>
+<LI>System calls vs. procedure calls: How much more expensive is a system call than a procedure call? Write a simple test program to compare the cost of a simple procedure call to a simple system call (getpid() is a good candidate on UNIX; see the man page). To prevent the optimizing compiler from &#8220;optimizing out" your procedure calls, do not compile with optimization on. You should use a system call such as the UNIX gettimeofday() for time measurements. Design your code so the measurement overhead is negligible. Also, be aware that timer values in some systems have limited resolution (e.g., millisecond resolution). 
+<P>Explain the difference (if any) between the time required by your simple procedure call and simple system call by discussing what work each call must do. </P></LI>
+<P></P>
+<LI>Suppose you have to implement an operating system on hardware that supports interrupts and exceptions but does not have a trap instruction. Can you devise a satisfactory substitute for traps using interrupts and/or exceptions? If so, explain how. If not, explain why. 
+<P></P></LI>
+<P></P>
+<LI>Suppose you have to implement an operating system on hardware that supports exceptions and traps but does not have interrupts. Can you devise a satisfactory substitute for interrupts using exceptions and/or traps? If so, explain how. If not, explain why. 
+<P></P></LI>
+<P></P>
+<LI>Explain the steps that an operating system goes through when the CPU receives an interrupt. </LI>
+<P></P>
+<LI>When an operating system receives a system call from a program, a switch to operating system code occurs with the help of the hardware. The hardware sets the mode of operation to kernel mode, calls the operating system trap handler at a location specified by the operating system, and lets the operating system return to user mode after it finishes its trap handling. 
+<P>Consider the stack on which the operating system must run when it receives the system call. Should this stack be different from the one the application uses, or could it use the same stack as the application program? Assume that the application program is blocked while the system call runs. </P></LI>
+<P></P>
+<LI>Write a program to verify that the operating system on your computer correctly protects itself from rogue system calls. For a single system call &#8212; such as file system open &#8212; try all possible illegal calls: e.g., an invalid system call number, an invalid stack pointer, an invalid pointer stored on the stack, etc. What happens? </LI></OL>
+<P>
+<DIV style="break-after: always; -webkit-column-break-after: always"></DIV><BR><BR><BR>
+<P></P><A id=x1-540003 name=x1-540003>

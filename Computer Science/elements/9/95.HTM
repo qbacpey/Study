@@ -1,0 +1,22 @@
+<SPAN class=extract>
+<P>An interrupted process&#8217;s registers must be saved so that the process can be restarted exactly where it left off. Because the handler might change the values in those registers as it executes, the state must be saved <EM>before</EM> the handler runs. Because most instructions modify the contents of registers, the hardware typically provides special instructions to make it easier to save and restore user state. </P>
+<P>To make this concrete, consider the x86 architecture. Rather than relying on handler software to do all the work, when an interrupt or trap occurs: </P>
+<P>&#20445;&#23384;&#20013;&#26029;&#36827;&#31243;&#29366;&#24577;&#36825;&#19968;&#24037;&#20316;&#30001;&#30828;&#20214;&#65288;x86&#65289;&#21644;&#36719;&#20214;&#65288;handler&#65289;&#20849;&#21516;&#23436;&#25104;</P>
+<P>&#30828;&#20214;&#20027;&#35201;&#36127;&#36131;&#23558;&#22788;&#29702;&#22120;&#20013;&#37096;&#20998;&#27604;&#36739;&#37325;&#35201;&#30340;&#25968;&#25454;&#20445;&#23384;&#36215;&#26469;&#65292;&#20043;&#25152;&#20197;&#36873;&#25321;&#36825;&#20123;&#25968;&#25454;&#65292;&#26159;&#22240;&#20026;&#36825;&#20123;&#25968;&#25454;&#22312;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#30340;&#25191;&#34892;&#36807;&#31243;&#20013;&#24456;&#21487;&#33021;&#20250;&#34987;&#26356;&#25913;</P>
+<P>&#19979;&#38754;&#26159;x86&#26550;&#26500;&#20013;&#65292;&#30828;&#20214;&#20250;&#36873;&#25321;&#20445;&#23384;&#30340;&#25968;&#25454;&#20197;&#21450;&#25191;&#34892;&#30340;&#34892;&#20026;&#65306;</P>
+<P>1. &#23558;&#29992;&#25143;&#26632;&#25351;&#38024;&#20445;&#23384;&#21040;&#20869;&#26680;&#26632;&#20013;&#65292;&#21516;&#26102;&#20999;&#25442;&#21040;&#20869;&#26680;&#26632;&#65307;</P>
+<P>2. &#23558; PC &#25351;&#38024;&#20445;&#23384;&#21040;&#20869;&#26680;&#26632;&#20013;&#65307;</P>
+<P>3. &#23558; x86 &#22788;&#29702;&#22120;&#29366;&#24577;&#23383;&#65288;processor status word&#65289;&#20445;&#23384;&#21040;&#20869;&#26680;&#26632;&#20013;&#65307;</P>
+<P>&#22788;&#29702;&#22120;&#29366;&#24577;&#23383;&#20013;&#21253;&#25324;&#25511;&#21046;&#27604;&#29305;&#65288;Control Bit&#65289;&#65292;&#22914;&#20013;&#26029;&#20195;&#30721;&#20013;&#26368;&#36817;&#25191;&#34892;&#30340;&#31639;&#26415;&#25805;&#20316;&#30340;&#32467;&#26524;&#27491;&#36127;</P>
+<P></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>If the processor is in user mode, the x86 pushes the interrupted process&#8217;s stack pointer onto the kernel&#8217;s interrupt stack and switches to the kernel stack. </P>
+<LI class=itemize>
+<P>The x86 pushes the interrupted process&#8217;s instruction pointer. </P>
+<LI class=itemize>
+<P>The x86 pushes the x86 <EM>processor status word</EM>. The processor status word includes control bits, such as whether the most recent arithmetic operation in the interrupted code resulted in a positive, negative, or zero value. This needs to be saved and restored for the correct behavior of any subsequent conditional branch instruction.</P></LI></UL></SPAN><SPAN class=extract>
+<P>The hardware saves the values for the stack pointer, program counter, and processor status word <EM>before</EM> jumping through the interrupt vector table to the interrupt handler. </P>
+<P>&#31616;&#21333;&#26469;&#35828;&#65292;&#30828;&#20214;&#20250;&#23558;&#26632;&#25351;&#38024;&#12289;PC&#12289;&#22788;&#29702;&#22120;&#29366;&#24577;&#23383;&#31561;&#25968;&#25454;&#65292;&#22312;&#36339;&#36716;&#21040;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#20043;&#21069;&#65292;&#20445;&#23384;&#21040;&#20869;&#26680;&#20013;&#26029;&#26632;&#20013;</P>
+<P>Once the handler starts running, these values will be those of the handler, not those of the interrupted process.</P>
+<P></SPAN>

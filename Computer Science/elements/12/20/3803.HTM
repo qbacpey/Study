@@ -1,0 +1,33 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h2 class=chapter_name><I>6. Multi-Object Synchronization</I></H2></A>
+<DIV class=chapterQuote>
+<P>When two trains approach each other at a crossing, both shall come to a full stop and neither shall start up again until the other has gone. &#8212;<I>Kansas state law, early 1900s</I> </P>
+<DL>
+<DT>
+<DD></DD></DL>
+<P></P></DIV>
+<HR>
+<BR>
+<P>In the previous chapter, we described a key building block for writing concurrent programs: how to design an object that can be shared between multiple threads. In this chapter, we need to go one step further: what happens as programs become more complex, with multiple shared objects and multiple locks? To answer this, we need to reason about the interactions between shared objects. </P>
+<P>Several considerations arise in this context: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Multiprocessor performance.</B> Modern computers have increasing numbers of processors because of the difficulty of improving single CPU performance. The design of shared objects can have a large impact on multiprocessor performance. For example, a lock protecting a frequently accessed shared object can become a bottleneck, since only one thread can hold the lock at a time. </P>
+<LI class=itemize>
+<P><B>Correctness.</B> Performance considerations often cause designers to re-engineer their data structures for increased concurrency. Splitting a single shared object into a set of related objects each with their own lock can improve performance. However, it also raises issues of correctness. For programs with multiple shared objects, we face a problem similar to the one faced when reasoning about atomic loads and stores: even if each individual operation on a shared object is atomic, we must reason about interactions of sequences of operations across objects. </P>
+<LI class=itemize>
+<P><B>Deadlock.</B> One way to help reason about the behavior of operations across multiple objects is to hold multiple locks. This approach raises the possibility of deadlock, where threads are permanently stuck waiting for each other in a cycle. </P></LI></UL>
+<P>No cookbook recipe always works for addressing these challenges. In particular, current techniques have two basic limitations. First, they pose engineering trade-offs. Some solutions are general but complex or expensive; others are simple but slow; still others are simple and cheap but not general. Second, many solutions are inherently <EM>non-modular</EM>: they require reasoning about the global structure of the system and internal implementation details of modules to understand or restrict how different modules can interact. </P>
+<P><B>Chapter roadmap:</B> </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Multiprocessor Lock Performance.</B> Can we predict when a lock will become a bottleneck on a multiprocessor? (Section <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-790001"}'>6.1</A>) </P>
+<LI class=itemize>
+<P><B>Lock Design Patterns.</B> If a lock is a bottleneck, can we restructure the program to reduce the problem? (Section <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-800002"}'>6.2</A>) </P>
+<LI class=itemize>
+<P><B>Lock Contention.</B> If a lock is still a bottleneck after re-structuring, what then? (Section <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-850003"}'>6.3</A>) </P>
+<LI class=itemize>
+<P><B>Multi-Object Atomicity.</B> How can we make a sequence of operations across multiple objects appear atomic to other threads? (Section <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-920004"}'>6.4</A>) </P>
+<LI class=itemize>
+<P><B>Deadlock.</B> What causes deadlock in multi-threaded programs, and what solutions exist to prevent or break deadlocks? (Section <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-960005"}'>6.5</A>) </P>
+<LI class=itemize>
+<P><B>Non-Blocking Synchronization.</B> Are there ways to eliminate locks in complex multi-object programs? (Section <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1040006"}'>6.6</A>)</P></LI></UL><A id=x1-78001r124 name=x1-78001r124></A><A id=x1-790001 name=x1-790001>

@@ -1,0 +1,235 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>5.5 Designing and Implementing Shared Objects</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Although multi-threaded programming has a reputation for being difficult, shared objects provide a basis for writing simple, safe code for multi-threaded programs. In this section, we provide a methodology for writing correct multi-threaded code using shared objects. </FONT>
+<UL class=itemize1>
+<LI class=itemize>
+<P>We first define a high-level approach to designing shared objects. Given a concurrent problem, where do you start? (Section <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-590001"}'>5.5.1</A>) </P>
+<LI class=itemize>
+<P>We provide six specific rules, or best practices, that you should always follow when writing multi-threaded shared objects. (Section <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600002"}'>5.5.2</A>) </P>
+<LI class=itemize>
+<P>We describe three common pitfalls to multi-threading in C, C++, and Java code. (Section <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-610003"}'>5.5.3</A>)</P></LI></UL>
+<P>Our experience is that following this approach and these rules makes it much more likely that you will write code that is not only correct but also easy for others to read, understand, and maintain. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>On simplicity</I></B></SPAN> </P>
+<P>One of the themes running through this textbook is the importance of simple abstractions in building robust, reliable operating systems. Operating systems place a premium on reliability; if the operating system breaks, the computer becomes temporarily unusable, or worse. And yet, it is nearly impossible to fully test whether some piece of multi-threaded operating system code works under all possible conditions and all possible schedule interleavings. This places a premium on designing solutions that work the first time they are run, by keeping code simple. </P>
+<P>Particularly with concurrent code, it is not enough for the code to work. It also needs to be simple enough to understand. We often find students write intricate concurrent code in solutions to our homework assignments and exams. Perhaps the difficulty of the topic suggests to students that their solutions must also be difficult to understand! Sometimes these solutions work; more often the complexity hides a design flaw. </P>
+<P>Even if your code is literally correct, we would like to encourage you to not stop there. Is it easy to understand <EM>why</EM> your code works? If not, try again. Even if you can get the code to work this time, someone else may need to come along later and change it. For concurrent code to be maintainable over time, it is essential that the next developer to work on the code be able to understand it. </P>
+<P>Yet, often in technology circles, simplicity is considered an insult. Someone might say, &#8220;Anyone could have done that!&#8221;, meaning it as a put down. We take the other side: a simple design should be seen as a complement. Complexity should be introduced only where it is absolutely necessary. Consider three possible states for one of your designs (hat tip to John Ousterhout for this list): </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>The code is simple enough that anyone can understand it. If someone says this to you, the appropriate response is to take it as a complement and reply, &#8220;Thank you.&#8221; </P>
+<LI class=itemize>
+<P>The code is so complicated that only the author can understand it. While this might be useful in the short-term as a strategy to keep the author employed (after all, no one else can fix or improve code without understanding it first), it is not such a good idea over the long term. Eventually, you will want to work on something new! </P>
+<LI class=itemize>
+<P>The code is so complicated not even the author can understand it. Concurrent code often lands in this category, unnecessarily in our view. Using the rules we introduce in this section will help put your code in the first and not the last bucket.</P></LI></UL>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P>Of course, writing individual shared objects is not enough. Most programs have multiple shared objects, and new issues arise when combining them. But, before trying to compose multiple shared objects, we must make sure that each individual object works. Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-780006"}'>6</A> discusses the issues that arise when programs use multiple shared objects. <A id=x1-58001r96 name=x1-58001r96></A></P>
+<H4 class=subsectionHead>5.5.1 <A id=x1-590001 name=x1-590001></A>High Level Methodology</H4>A shared object has public methods, private methods, state variables, and synchronization variables; its synchronization variables include a lock and one or more condition variables. At this level, shared object programming resembles standard object-oriented programming, except that we have added synchronization variables to each shared object. This similarity is deliberate: the interfaces to locks and condition variables have been carefully defined so that we can continue to apply familiar techniques for programming and reasoning about objects. 
+<P>Therefore, most high-level design challenges for a shared object&#8217;s class are the same as for class design in single-threaded programming: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Decompose the problem into objects. </P>
+<LI class=itemize>
+<P>For each object: </P>
+<UL class=itemize2>
+<LI class=itemize>
+<P>Define a clean interface. </P>
+<LI class=itemize>
+<P>Identify the right internal state and invariants to support that interface. </P>
+<LI class=itemize>
+<P>Implement methods with appropriate algorithms to manipulate that state.</P></LI></UL></LI></UL>
+<P>These steps require creativity and sound engineering judgment and intuition. Going from single-threaded to multi-threaded programming does not make these steps much more difficult. </P>
+<P>Compared to how you implement a class in a single-threaded program, the new steps needed for the multi-threaded case for shared objects are straightforward: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-59002x1 name=x1-59002x1></A>
+<P>Add a lock. </P>
+<LI class=enumerate><A id=x1-59004x2 name=x1-59004x2></A>
+<P>Add code to <TT>acquire</TT>&nbsp;and <TT>release</TT>&nbsp;the lock. </P>
+<LI class=enumerate><A id=x1-59006x3 name=x1-59006x3></A>
+<P>Identify and add condition variables. </P>
+<LI class=enumerate><A id=x1-59008x4 name=x1-59008x4></A>
+<P>Add loops to wait using the condition variables. </P>
+<LI class=enumerate><A id=x1-59010x5 name=x1-59010x5></A>
+<P>Add <TT>signal</TT>&nbsp;and <TT>broadcast</TT>&nbsp;calls. </P></LI></OL>
+<P>We discuss each of these steps in turn. </P>
+<P>Other than these fairly mechanical changes, writing the rest of your code proceeds as in the single-threaded case. </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-59012x1 name=x1-59012x1></A>
+<P><B>Add a lock.</B> Each shared object needs a lock as a member variable to enforce mutually exclusive access to the object&#8217;s shared state. </P>
+<P>This chapter focuses on the simple case where each shared object includes exactly one lock. In Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-780006"}'>6</A>, we will talk about more advanced variations, such as an <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-830003"}'>ownership design pattern</A> where higher-level program structure enforces mutual exclusion by ensuring that at most one thread at a time owns and can access an object. </P>
+<LI class=enumerate><A id=x1-59014x2 name=x1-59014x2></A>
+<P><B>Add code to acquire and release the lock.</B> All code accessing the object&#8217;s shared state &#8212; any state shared across more than one thread &#8212; must hold the object&#8217;s lock. Typically, all of an object&#8217;s member variables are shared state. </P>
+<P>The simplest and most common approach is to acquire the lock at the start of each public method and release it at the end of each public method. Doing so makes it easy to inspect your code to verify that a lock is always held when needed. It also means that the lock is already held when each private method is called, and you do not need to re-acquire it. </P>
+<P><B>WARNING</B>: You may be tempted to try to avoid acquiring the lock in some methods or parts of some methods. Do not be tempted by this &#8220;optimization&#8221; until you are an experienced programmer and have done sufficient profiling of the code to verify that the optimization will significantly speed up your program, <EM>and</EM> you fully understand the hazards posed by compiler and architecture instruction re-ordering. </P>
+<P>Acquiring an uncontended lock is a relatively inexpensive operation. By contrast, reasoning about memory interleavings can be quite difficult &#8212; and the instruction reordering done by modern compilers and processors makes it even harder. Later in this section, we discuss one commonly used (and abused) &#8220;optimization,&#8221; double-checked locking, that is outright dangerous to use. </P>
+<LI class=enumerate><A id=x1-59016x3 name=x1-59016x3></A>
+<P><B>Identify and add condition variables.</B> How do you decide what condition variables a shared object needs? </P>
+<P>A systematic way to approach this problem is to consider each method and ask, <EM>&#8220;When can this method wait?"</EM> Then, you can map each situation in which a method can wait to a condition variable. </P>
+<P>You have considerable freedom in deciding how many condition variables a class should have and what each should represent. A good option is to add a condition variable for each situation in which the method must wait. </P>
+<P><B>EXAMPLE: Blocking bounded queue with two condition variables.</B> In our blocking bounded queue example, if the queue is full, <TT>insert</TT>&nbsp;must wait until another thread removes an item, so we created a condition variable itemRemoved. Similarly, if the queue is empty, <TT>remove</TT>&nbsp;must wait until another thread inserts an item, so we created a condition variable itemAdded. It is natural in this case to create two condition variables, itemAdded to wait until the queue has items, and itemRemoved to wait until the queue has space. </P>
+<P>Alternatively, a single condition variable can often suffice. In fact, early versions of Java defined a single condition variable per object and did not let programmers allocate additional ones. Using this approach, any thread that waits for any reason uses that condition variable; if the condition variable is used by different threads waiting for different reasons, then any thread that wakes up a thread must <TT>broadcast</TT>&nbsp;on the condition variable. </P>
+<P><B>EXAMPLE: Blocking bounded queue with one condition variable.</B> It is also possible to implement the blocking bounded queue with a single condition variable, i.e., somethingChanged, on which threads in both <TT>insert</TT>&nbsp;or threads in <TT>remove</TT>&nbsp;can wait. With this approach, both <TT>insert</TT>&nbsp;and <TT>remove</TT>&nbsp;need to <TT>broadcast</TT>&nbsp;rather than <TT>signal</TT>&nbsp;to ensure that the right threads get a chance to run. </P>
+<P>Programs that are more complex make these trade-offs more interesting. For example, imagine a ResourceManager class that allows a calling thread to request exclusive access to any subset of n distinct resources. One could imagine creating 2<SUP>n</SUP> condition variables; this would let a requesting thread wait on a condition variable representing exactly its desired combination. However, it would be simpler to have a single condition variable on which requesting threads wait and to broadcast on that condition whenever a resource is freed. Depending on the number of resources and the expected number of waiting threads, this simpler approach may even be more efficient. </P>
+<P>The bottom line is that there is no hard and fast rule for how many condition variables to use in a shared object. Selecting condition variables requires thought, and different designers may use different numbers of condition variables for a given class. Like many other design decisions, this is a matter of programmer taste, judgment, and experience. Asking &#8220;When can this method wait?&#8221; will help you identify what is for you a natural way of thinking about a shared object&#8217;s condition variables. </P>
+<LI class=enumerate><A id=x1-59018x4 name=x1-59018x4></A>
+<P><B>Add loops to wait using the condition variables.</B> Add a while(...) {cv.wait()} loop into each method that you identified as potentially needing to wait before returning. </P>
+<P>Remember that every call to <TT>wait</TT>&nbsp;must be enclosed in a while loop that tests an appropriate predicate. Modern implementations almost invariably provide Mesa semantics and often allow for spurious wakeups (i.e., a thread can return from <TT>wait</TT>&nbsp;even if no thread called <TT>signal</TT>&nbsp;or <TT>broadcast</TT>). Therefore, a thread must always check the condition before proceeding. Even if the condition was true when the <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;call occurred, it may no longer be true when the waiting thread resumes execution. </P>
+<P><B>Modularity benefits.</B> If you always wait in a while loop, your code becomes highly modular. You can look at the code that waits, and when it proceeds, know <EM>without</EM> examining any other code that the condition holds. Even erroneous calls to <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;will not change how the waiting code behaves. </P>
+<P>For example, consider the assertion in the following code: </P>
+<P><BR></P><PRE class=code>&nbsp;...
+&nbsp;while&nbsp;(!workAvailable())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cond.wait(&amp;lock);
+&nbsp;}
+&nbsp;assert(workAvailable());
+&nbsp;...</PRE><BR>
+<P>We know that the assertion holds by local inspection <EM>without knowing anything about the code that calls <TT>signal</TT>&nbsp;or <TT>broadcast</TT>.</EM> </P>
+<P>Waiting in a while loop also makes the signal and broadcast code more robust. Adding an extra <TT>signal</TT>, or changing a <TT>signal</TT>&nbsp;to a <TT>broadcast</TT>, will not introduce bugs. </P>
+<P><B>HINT</B>: <B>Top-down design.</B> As you start writing your code, you may know that a method needs to include a wait loop, but you may not know exactly what the predicate should be. In this situation, it is often useful to name a private method function that will perform the test (e.g., workAvailable in the preceding example) and write the code that defines the function later. </P>
+<LI class=enumerate><A id=x1-59020x5 name=x1-59020x5></A>
+<P><B>Add <TT>signal</TT>&nbsp;and <TT>broadcast</TT>&nbsp;calls.</B> Just as you must decide when methods can wait, you must decide when methods can let other waiting threads proceed. It is usually easy to ask, &#8220;Can a call to this method allow another thread to proceed?&#8221; and then add a <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;call if the answer is yes. But which call should you use? </P>
+<P>CV::signal is appropriate when: (1) at most one waiting thread can make progress, and (2) any thread waiting on the condition variable can make progress. In contrast, <TT>broadcast</TT>&nbsp;is needed when: (1) multiple waiting threads may all be able to make progress, or (2) different threads are using the same condition variable to wait for different predicates, so some of the waiting threads can make progress but others cannot. </P>
+<P><B>EXAMPLE: </B>Consider the n-resource ResourceManager problem described earlier. For the solution with a single condition variable, we must <TT>broadcast</TT>&nbsp;on the condition variable whenever a resource is freed. We do not know which thread(s) can make progress, so we tell them all to check. If, instead, we used <TT>signal</TT>, then the &#8220;wrong&#8221; thread might receive the <TT>signal</TT>, and a thread that could make progress might remain blocked. </P>
+<P>It is always safe to use <TT>broadcast</TT>. Even in cases where <TT>signal</TT>&nbsp;would suffice, at worst, all of the waiting threads would run and check the condition in the while loop, but only one would continue out of the loop. Compared to <TT>signal</TT>, this would consume some additional resources, but it would not introduce any bugs.</P></LI></OL><A id=x1-59021r98 name=x1-59021r98></A>
+<H4 class=subsectionHead>5.5.2 <A id=x1-600002 name=x1-600002></A>Implementation Best Practices</H4>Above, we described the basic thought process you should follow when designing a shared object. To make things more concrete, we next give a set of six simple rules that we strongly advocate you follow; these are a set of &#8220;best practices&#8221; for writing code for shared objects. 
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Coding standards, soapboxes, and preaching</I></B></SPAN> </P>
+<P>Some programmers rebel against coding standards. We do not understand their logic. For concurrent programming in particular, a few good design patterns have stood the test of time (and many unhappy people who have departed from those patterns). For concurrent programming, <EM>debugging does not work</EM>. You must rely on: (a) writing correct code, and (b) writing code that you and others can read and understand &#8212; not just for now, but also over time as the code changes. Following the rules we provide will help you write correct, readable code. </P>
+<P>When we teach multi-threaded programming, we treat the six rules described in this section as <EM>required coding standards</EM> for all multi-threaded code that students write in our course. We say, &#8220;We cannot control what you do when you leave this class, but while you are in this class, any solution that violates these standards is, by definition, <EM>wrong</EM>.&#8221; </P>
+<P>In fact, we feel so strongly about these rules that one of us actually presents them in class by standing on a table and pronouncing them as the Six Commandments of multi-threaded programming: </P>
+<P>1. Thou shalt always do things the same way. </P>
+<P>and so on. </P>
+<P>The particular formulation (and presentation) of these rules evolved from our experience teaching multi-threaded programming dozens of times to hundreds of students and identifying common mistakes. We have found that when we insist that students follow these rules, the vast majority find it easy to write clear and correct code for shared objects. Conversely, in earlier versions of the course, when we phrased these items as &#8220;strong suggestions,&#8221; many students found themselves adrift, unable to write code for even the simplest shared objects. </P>
+<P>Our advice to those learning multi-threaded programming is to treat these rules as a given and follow them strictly for a semester or so, until writing shared objects is easy. At that point, you most likely will understand concurrent programming well enough to decide whether to continue to follow the rules. </P>
+<P>We also believe that experienced programmers benefit from adhering closely to these rules. Since we began teaching them, we have also disciplined ourselves to follow them unless there is a very good reason not to. We have found exceptions to be rare. Conversely, when we catch ourselves being tempted to deviate from the rules, the vast majority of the time our code improves if we force ourselves to rewrite the code to follow the rules. </P>
+<P>Although the rules may come across as opinionated (and they are), they are far from novel. Over three decades ago, Lampson and Redell&#8217;s paper, &#8220;Experience with Processes and Monitors in Mesa,&#8221; provided similar advice (in a more measured tone). </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-60002x1 name=x1-60002x1></A>
+<P><B>Consistent structure.</B> The first rule is a meta-rule that underlies the other five rules: <EM>follow a consistent structure.</EM> Although programming with a clean, consistent structure is always useful, it is particularly important to strictly follow tried-and-true design patterns for shared objects. </P>
+<P>At a minimum, even if one way is not inherently better than another, following the same strategy every time: (1) frees you to focus on the core problem because the details of the standard approach become a habit, and (2) makes it easier for those who follow to review, maintain, and debug your code. (And it will make it easier for <EM>you</EM> to maintain and debug your code.) </P>
+<P>As an analogy, electricians follow standards for the colors of wire they use for different tasks. White is neutral. Black or red is hot. Copper is ground. An electrician does not have to decide &#8220;Hm. I have a bit more white on my belt today than black, should I use white or black for my grounds?&#8221; When an electrician walks into a room she wired last month, she does not have to spend time trying to remember which color is which. If an electrician walks into a room she has never seen before, she can immediately determine what the wiring is doing, without having to trace it back into the switchboard. Similar advantages apply to coding standards. </P>
+<P>However, for concurrent programs, the evidence is that the abstractions we describe <EM>are</EM> better than almost all others. Until you become a <EM>very</EM> experienced concurrent programmer, take advantage of the hard-won experience of those that have come before you. Once you are a concurrency guru, you are welcome to invent a better mousetrap. </P>
+<P>Sure, you can cut corners and occasionally save a line or two of typing by departing from the standards. However, you will have to spend a few minutes thinking to convince yourself that you are right on a case-by-case basis (and another few minutes typing comments to convince the next person to look at the code that you are right), and a few hours or weeks tracking down bugs when you are wrong. It is just not worth it. </P>
+<LI class=enumerate><A id=x1-60004x2 name=x1-60004x2></A>
+<P><B>Always synchronize with locks and condition variables.</B> </P>
+<P>Many operating systems, such as Linux, Windows, and MacOS, provide a diversity of synchronization primitives. At the end of this chapter, we will describe one such primitive, semaphores, which is particularly widely used in operating system kernel implementations. Compared to locks and condition variables, semaphores are equally powerful: you can build condition variables using semaphores and vice versa. If so, why pick one over the other? </P>
+<P>We recommend that you be able to read and understand semaphores so you can understand legacy code, but that you only write new code using locks and condition variables. Almost always, code using locks and condition variables is clearer than the equivalent code using semaphores because it is more &#8220;self-documenting.&#8221; If the code is well structured, what each synchronization action is doing should be obvious. Admittedly, semaphores sometimes seem to fit what you are doing perfectly because you can map the object&#8217;s invariants exactly onto the internal state of the semaphore; for example, you can write an extremely concise version of our blocking bounded queue using semaphores. But what happens when the code changes next month? Will the fit remain as good? For consistency and simplicity, choose one of the two styles and stick with it. In our opinion, the right one is to use locks and condition variables. </P>
+<LI class=enumerate><A id=x1-60006x3 name=x1-60006x3></A>
+<P><B>Always acquire the lock at the beginning of a method and release it right before the return.</B> </P>
+<P>This extends the principle of consistent structure: pick one way to do things and always follow it. The benefit here is that it is easy to read code and see where the lock is or is not held because synchronization is structured on a method-by-method basis. Conversely, if <TT>acquire</TT>&nbsp;and <TT>release</TT>&nbsp;calls are buried in the middle of a method, it is harder to quickly inspect and understand the code. </P>
+<P>Taking a step back, if there is a logical chunk of code that you can identify as a set of actions that require a lock, then that section should probably be its own procedure: it is a set of logically related actions. If you find yourself wanting to acquire a lock in the middle of a procedure, that is usually a red flag that you should break the piece you are considering into a separate procedure. We are all sometimes lazy about creating new procedures when we should. Take advantage of this signal, and the result will be clearer code. </P>
+<P>There are two corollaries to this rule. First, if your code is well structured, all shared data will be encapsulated in an object, and therefore all accesses to shared data will be protected by a lock. Since compilers and processors <EM>never</EM> re-order instructions across lock operations, this rule guarantees instruction re-ordering is not a concern for your code. </P>
+<P>Second, from time to time, we see students attempting to acquire a lock in one procedure, and release it in another procedure, or worse, in a completely different thread. (One popular idea is to acquire a lock in a parent thread, pass it in thread_fork to a child, and have the child release the lock after it has started.) <EM>Do not do this.</EM> For one, it can make it very difficult for someone reading your code to determine which shared variables are protected by which lock; by acquiring at the beginning of the procedure and releasing at the end, which variables go with which locks is obvious. </P>
+<P>While some early thread systems allowed lock passing, most recently designed systems prohibit it. For example, in POSIX, lock release is &#8220;undefined&#8221; when called by a different thread than the thread that acquired the lock. In other words, it might work on some systems, but it is not portable. In Java, it is completely prohibited. </P>
+<LI class=enumerate><A id=x1-60008x4 name=x1-60008x4></A>
+<P><B>Always hold the lock when operating on a condition variable.</B> </P>
+<P>The reason you signal on a condition variable &#8212; after manipulating shared state &#8212; is that another thread is waiting in a loop for some test on shared state to become true. Condition variables are useless without shared state, and shared state should only be accessed while holding a lock. </P>
+<P>Many libraries enforce this rule &#8212; that you cannot call condition variable methods unless you hold the corresponding lock. However, some run-time systems and libraries allow sloppiness, so take care. </P>
+<LI class=enumerate><A id=x1-60010x5 name=x1-60010x5></A>
+<P><B>Always wait in a while() loop</B> </P>
+<P>The pattern should always be: </P>
+<P><BR></P><PRE class=code>&nbsp;while&nbsp;(predicateOnStateVariables(...))&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;condition-&gt;wait(&amp;lock);
+&nbsp;}</PRE><BR>
+<P>and never: </P>
+<P><BR></P><PRE class=code>&nbsp;...
+&nbsp;if&nbsp;(predicateOnStateVariables(...))&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wait(&amp;lock);
+&nbsp;}
+&nbsp;...</PRE><BR>
+<P>Here, predicateOnStateVariables(...) is code that looks at the state variables of the current object to decide if the thread should proceed. </P>
+<P>You may be tempted to guard a <TT>wait</TT>&nbsp;call with an if conditional rather than a while loop when you can deduce from the global structure of the program that, despite Mesa semantics, any time a thread returns from wait, it can proceed. Avoid this temptation. </P>
+<P>While works any time if does, and it works in situations when if does not. By the principle of consistent structure, do things the same way every time. But there are three additional issues. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Using if breaks modularity. In the preceding example, to know whether using if will work, you must consider the global structure of the program: what threads there are, where <TT>signal</TT>&nbsp;is called, etc. The problem is that a change in code in one method (say, adding a <TT>signal</TT>) can then cause a bug in another method (where the <TT>wait</TT>&nbsp;is). Using while is self-documenting; anyone can look at the <TT>wait</TT>&nbsp;and see exactly when a thread may proceed. </P>
+<LI class=itemize>
+<P>Always using while gives you incredible freedom about where to put a <TT>signal</TT>. In fact, <TT>signal</TT>&nbsp;becomes a hint &#8212; you can add a signal to an arbitrary place in a correct program and have it remain correct. </P>
+<LI class=itemize>
+<P>Using if breaks portability. Some implementations of condition variables allow spurious wakeups, while others do not. For example, implementations of condition variables in both Java and the POSIX pthreads library are allowed to return from <TT>wait</TT>&nbsp;even though no thread called <TT>signal</TT>&nbsp;or <TT>broadcast</TT>.</P></LI></UL>
+<LI class=enumerate><A id=x1-60012x6 name=x1-60012x6></A>
+<P><B>(Almost) never use <TT>thread_sleep</TT>.</B> </P>
+<P>Many thread libraries have a <TT>thread_sleep</TT>&nbsp;function that suspends execution of the calling thread for some period of wall clock time. Once that time passes, the thread is returned to the scheduler&#8217;s ready queue and can run again. </P>
+<P>Never use <TT>thread_sleep</TT>&nbsp;to have one thread wait for another thread to perform a task. The correct way to wait for a condition to become true is to <TT>wait</TT>&nbsp;on a condition variable. </P>
+<P>In general, <TT>thread_sleep</TT>&nbsp;is appropriate only when there is a particular real-time moment when you want to perform some action, such as a timeout for when to declare a remote server non-responsive. If you catch yourself writing while(testOnObjectState()) {thread_sleep();}, treat this as a red flag that you are probably making a mistake. </P>
+<P>Similarly, if a thread must wait for an object&#8217;s state to change, it should <TT>wait</TT>&nbsp;on a condition variable, and not just call thread_yield. Use thread_yield&nbsp;only when a low-priority thread <EM>that can still make progress</EM> wants to let a higher-priority thread to run. </P></LI></OL><A id=x1-60013r99 name=x1-60013r99></A>
+<H4 class=subsectionHead>5.5.3 <A id=x1-610003 name=x1-610003></A>Three Pitfalls</H4>We next describe three common pitfalls. The first, double-checked locking, is a problem in many different programming languages, including C, C++ and Java. The second and third pitfalls are specific to Java. Java is a modern type-safe language that included support for threads from its inception. This built-in support makes multi-threaded programming in Java convenient. However, some aspects of the language are <EM>too</EM> flexible and can encourage bad practices. We highlight those pitfalls here. 
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-61002x1 name=x1-61002x1></A>
+<P><B>Double-Checked Locking.</B> </P>
+<P>We strongly advise holding a shared object&#8217;s lock across any method that accesses the object&#8217;s member variables. Programmers are often tempted to avoid some of these lock acquire and release operations. Unfortunately, such efforts often result in code that is complex, wrong, or both. </P>
+<P>To illustrate the challenges, consider the <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:double-checked locking"}'>double-checked locking</A></EM> design pattern. The canonical example is an object that is allocated and initialized lazily the first time it is needed by any thread. (This example and analysis is taken from Meyers and Alexandrescu, &#8220;C++ and the Perils of Double-Checked Locking.&#8221; <A href="http://www.aristeia.com/Papers/DDJ_Jul_Aug_2004_revised.pdf">http://www.aristeia.com/Papers/DDJ_Jul_ Aug_2004_revised.pdf</A>) Being good programmers, we can hide the lazy allocation inside an object, Singleton, which returns a pointer to the object, creating it if needed. </P>
+<P>The &#8220;optimization&#8221; is to acquire the lock if the object has not already been allocated, but to avoid acquiring the lock if the object already exists. Because there can be a race condition between the first check and acquiring the lock, the check must be made again inside the lock. </P>
+<P><BR></P>
+<P></P><PRE class=code>&nbsp;class&nbsp;Singleton&nbsp;{
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static&nbsp;Singleton*&nbsp;instance();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lock&nbsp;lock;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;static&nbsp;Singleton*&nbsp;pInstance;
+&nbsp;};
+&nbsp;
+&nbsp;Singleton*&nbsp;Singleton::pInstance&nbsp;=&nbsp;NULL;
+ </PRE><PRE class=code>&nbsp;//&nbsp;BUG!&nbsp;&nbsp;DON&#8217;T&nbsp;DO&nbsp;THIS!
+&nbsp;Singleton*
+&nbsp;Singleton::instance()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(pInstance&nbsp;==&nbsp;NULL)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(pInstance&nbsp;==&nbsp;NULL){
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pInstance&nbsp;=&nbsp;new&nbsp;Instance();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;pInstance;
+&nbsp;}
+ </PRE>
+<P><BR></P>
+<P>Although the intuition is appealing, <B>this code does not work.</B> The problem is that the statement pInstance = new Instance() is not an atomic operation; in fact, it comprises at least three steps: </P>
+<OL class=enumerate2>
+<LI class=enumerate><A id=x1-61004x1 name=x1-61004x1></A>
+<P>Allocate memory for a Singleton object. </P>
+<LI class=enumerate><A id=x1-61006x2 name=x1-61006x2></A>
+<P>Initialize the Singleton object&#8217;s memory by running the constructor. </P>
+<LI class=enumerate><A id=x1-61008x3 name=x1-61008x3></A>
+<P>Make pInstance point to this newly constructed object.</P></LI></OL>
+<P>The problem is that modern compilers and hardware architectures can reorder these events. Thus, it is possible for thread 1 to execute the first step and then the third step; then thread 2 can call instance, see that pInstance is non-null, return it, and begin using this object before thread 1 finishes initializing it. </P>
+<P><B>Discussion.</B> This is just an example of dangers that lurk when you try to elide locks; the lesson applies more broadly. This example is extremely simple &#8212; fewer than 10 lines of code with very simple logic &#8212; yet a number of published solutions have been wrong. As Meyers and Alexandrescu note, some tempting solutions using temporary variables and the volatile keyword do not work. Bacon et al.&#8217;s &#8220;The &#8217;Double-Checked Locking is Broken&#8217; Declaration&#8221; discusses a range of non-solutions in Java. <A href="http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html">http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html</A> </P>
+<P>This type of optimization is risky and often does not provide significant performance gains in practice. Most programmers should not consider them. Even expert programmers should habitually stick to simpler programming patterns, like the ones we have discussed, and only consider optimizations like double-checked locking when performance measurements and profiling indicate that the optimizations would significantly improve overall performance. </P>
+<LI class=enumerate><A id=x1-61010x2 name=x1-61010x2></A>
+<P><B>Avoid defining a synchronized block in the middle of a method.</B> </P>
+<P>Java provides built in language support for shared objects. The base Object class, from which all classes inherit, includes a lock and a condition variable as members. Any method declaration can include the keyword synchronized to indicate that the object&#8217;s lock is to be automatically acquired on entry to the method and automatically released on any return from the method. For example: </P>
+<P><BR></P><PRE class=code>&nbsp;public&nbsp;synchronized&nbsp;foo()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Do&nbsp;something;&nbsp;lock&nbsp;is&nbsp;automatically&nbsp;acquired/released.
+&nbsp;}</PRE><BR>
+<P>This syntax is useful &#8212; it follows rule #2 above, and it frees the programmer from having to worry about details, like making sure the lock is released before every possible return point including exceptions. The pitfall is that Java also allows a <EM>synchronized block</EM> in the middle of a method. For example: </P>
+<P><BR></P><PRE class=code>&nbsp;public&nbsp;bar()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Do&nbsp;something&nbsp;without&nbsp;holding&nbsp;the&nbsp;lock
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;synchronized{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Do&nbsp;something&nbsp;while&nbsp;holding&nbsp;the&nbsp;lock
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Do&nbsp;something&nbsp;without&nbsp;holding&nbsp;the&nbsp;lock
+&nbsp;}</PRE><BR>
+<P>This construct violates rule #3 from Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600002"}'>5.5.2</A> and suffers from the disadvantages listed there. The solution is the same as discussed above: when you find yourself tempted to write a synchronized block in the middle of a Java method, treat that as a strong hint that you should define a separate method to more clearly encapsulate the logical chunk you have identified. </P>
+<LI class=enumerate><A id=x1-61012x3 name=x1-61012x3></A>
+<P><B>Keep shared state classes separate from thread classes.</B> </P>
+<P>Java defines a class called Thread that implements an interface called Runnable that other classes can implement in order to be treated as threads by the runtime system. To write the code that represents a thread&#8217;s &#8220;main loop,&#8221; you typically extend the Thread class or implement a class that implements Runnable. </P>
+<P>The pitfall is that, when extending the Thread class (or writing a new class that implements Runnable), you may be tempted to include not only the thread&#8217;s main loop but also state to be shared across multiple threads, blurring the lines between the threads and the shared objects. This is almost always confusing. </P>
+<P>For example, for a blocking bounded queue, rather than defining two classes, BBQ for the shared queue and WorkerThread for the threads, you may be tempted to combine the two into a single class &#8212; for example, a queue with an associated worker thread. If this sounds confusing, it is, but it is a pitfall that we frequently see in student code. </P>
+<P>The solution is simple. Always make sure threads and shared objects are defined in separate classes. State that can be accessed by multiple threads, locks, and condition variables should never appear in any Java class that extends Thread or implements Runnable.</P></LI></OL><A id=x1-61013r97 name=x1-61013r97></A><A id=x1-620006 name=x1-620006>

@@ -1,0 +1,13 @@
+Next, consider what happens when the guest user process does a system call, illustrated in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-5101319"}'>2.19</A>. To the hardware, there is only one kernel, the host operating system. <SPAN class=extract>Thus, the trap instruction traps into the host kernel&#8217;s system call handler</SPAN>. <SPAN class=extract>Of course, the system call was not intended for the host! Rather, the host kernel simulates what would have happened had the system call instruction occurred on real hardware running the guest operating system</SPAN>: 
+<P></P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-51015x1 name=x1-51015x1></A>
+<P>The host kernel saves the instruction counter, processor status register, and user stack pointer on the interrupt stack of the guest operating system. </P>
+<LI class=enumerate><A id=x1-51017x2 name=x1-51017x2></A>
+<P>The host kernel transfers control to the guest kernel at the beginning of the interrupt handler, but with the guest kernel running with user-mode privilege. </P>
+<LI class=enumerate><A id=x1-51019x3 name=x1-51019x3></A>
+<P>The guest kernel performs the system call &#8212; saving user state and checking arguments. </P>
+<LI class=enumerate><A id=x1-51021x4 name=x1-51021x4></A>
+<P>When the guest kernel attempts to return from the system call back to user level, this causes a processor exception, dropping back into the host kernel. </P>
+<LI class=enumerate><A id=x1-51023x5 name=x1-51023x5></A>
+<P><SPAN class=extract>The host kernel can then restore the state of the user process, running at user level, as if the guest OS had been able to return there directly</SPAN></P></LI></OL>

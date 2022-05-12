@@ -1,0 +1,51 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=likesectionHead>Exercises</H3></A>
+<P></P>
+<OL class=problems>
+<P></P>
+<LI>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-9400113"}'>6.13</A> shows the parallel execution of some requests and an equivalent sequential execution &#8212; request 1 then request 2 then request 3. Two other sequential executions are also equivalent to the parallel execution shown in the figure. What are these other equivalent sequential executions? 
+<P></P>
+<P></P>
+<LI>Generalize the rules for two-phase locking to include both mutual exclusion locks and readers/writers locks. What can be done in the expanding phase? What can be done in the contracting phase? 
+<P></P>
+<P></P>
+<LI>Consider the variation of the Dining Philosophers problem shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-9801817"}'>6.17</A>, where all unused chopsticks are placed in the center of the table and any philosopher can eat with any two chopsticks. 
+<P>One way to prevent deadlock in this system is to <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-990003"}'>provide sufficient resources</A>. For a system with n philosophers, what is the minimum number of chopsticks that ensures deadlock freedom? Why? </P>
+<P></P>
+<P></P>
+<LI>If the queues between stages are finite, is it possible for a staged architecture to deadlock even if each individual stage is internally deadlock free? If so, give an example. If not, prove it. 
+<P></P>
+<LI>Suppose you build a system using a staged architecture with some fixed number of threads operating in each stage. Assuming each stage is individually deadlock free, describe two ways to guarantee that your system as a whole cannot deadlock. Each way should eliminate a different one of the 4 necessary conditions for deadlock. 
+<P></P>
+<P></P>
+<LI>
+<P>Consider a system with four mutual exclusion locks (A, B, C, and D) and a readers/writers lock (E). Suppose the programmer follows these rules: </P>
+<P></P>
+<OL class=subproblems>
+<P></P>
+<LI>Processing for each request is divided into two parts. 
+<P></P>
+<LI>During the first part, no lock may be released, and, if E is held in writing mode, it cannot be downgraded to reading mode. Furthermore, lock A may not be acquired if any of locks B, C, D, or E are held in any mode. Lock B may not be acquired if any of locks C, D, or E are held in any mode. Lock C may not be acquired if any of locks D or E are held in any mode. Lock D may not be acquired if lock E is held in any mode. Lock E may always be acquired in read mode or write mode, and it can be upgraded from read to write mode but not downgraded from write to read mode. 
+<P></P>
+<LI>During the second part, any lock may be released, and lock E may be downgraded from write mode to read mode; releases and downgrades can happen in any order; by the end of part 2, all locks must be released; and no locks may be acquired or upgraded. 
+<P></P></LI></OL>
+<P>Do these rules ensure serializability? Do they ensure freedom from deadlock? Why? </P>
+<P></P>
+<P></P>
+<LI>In RCUList::remove, a possible strategy to increase concurrency would be to hold a read lock while searching for the target item, and to grab the write lock once it is found. Specifically: (i) replace the writeLock and writeUnlock calls with readLock and readUnlock calls, and (ii) insert new writeLock and writeUnlock calls at the beginning and end of the code that is executed when the if conditional test succeeds. Will this work? 
+<P></P>
+<P></P>
+<LI>Implement a highly concurrent, multi-threaded file buffer cache. A buffer cache stores recently used disk blocks in memory for improved latency and throughput. Disk blocks have unique numbers and are fixed size. The cache provides two routines: 
+<P><BR></P><PRE class=code>   &nbsp;void&nbsp;blockread(char&nbsp;*x,&nbsp;int&nbsp;blocknum);
+   &nbsp;
+   &nbsp;void&nbsp;blockwrite(char&nbsp;*x,&nbsp;int&nbsp;blocknum);</PRE><BR>
+<P>These routines read/write complete, block-aligned, fixed-size blocks. blockread reads a block of data into x; blockwrite (eventually) writes the data in x to disk. On a read, if the requested data is in the cache, the buffer will return it. Otherwise, the buffer must fetch the data from disk, making room in the cache by evicting a block as necessary. If the evicted block is modified, the cache must first write the modified data back to disk. On a write, if the block is not already in the buffer, it must make room for the new block. Modified data is stored in the cache and written back later to disk when the block is evicted. </P>
+<P>Multiple threads can call blockread and blockwrite concurrently, and to the maximum degree possible, those operations should be allowed to complete in parallel. You should assume the disk driver has been implemented; it provides the same interface as the file buffer cache: diskblockread and diskblockwrite. The disk driver routines are synchronous (the calling thread blocks until the disk operation completes) and re-entrant (while one thread is blocked, other threads can call into the driver to queue requests). </P>
+<P></P>
+<LI>Suppose we have a version of the Dining Philosopher&#8217;s problem where the chopsticks are placed in the middle of the table, each Philosopher needs three chopsticks before she will start to eat, and every Philosopher will return all of their chopsticks to the shared pool when done eating. (For example, the Philosopher needs two chopsticks to eat with and one to point at the white board.) 
+<P></P>
+<OL class=subproblems>
+<LI>Using the Banker&#8217;s Algorithm, devise a rule for when is it safe for a Philosopher to pick up a chopstick. Explain why. 
+<LI>Now suppose each Philosopher needs k chopsticks, for k &gt; 3. Generalize the rule you developed above to work for any k. </LI></OL></LI></OL>
+<P>
+<DIV style="break-after: always; -webkit-column-break-after: always"></DIV><BR><BR><BR>
+<P></P><A id=x1-1070007 name=x1-1070007>

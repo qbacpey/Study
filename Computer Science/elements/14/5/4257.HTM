@@ -1,0 +1,126 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : </FONT></STRONG>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 4.5 Thread Life Cycle</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">It is useful to consider the progression of states as a thread goes from being created, to being scheduled and de-scheduled onto and off of a processor, and then to exiting. Figure&nbsp;</FONT><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-220019"}'>4.9</A><FONT style="BACKGROUND-COLOR: #ffffff"> shows the states of a thread during its lifetime. </FONT><A id=x1-220019 name=x1-220019></A><FONT style="BACKGROUND-COLOR: #ffffff">
+<HR>
+</FONT>
+<P></P>
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00393.gif" data-calibre-src="OEBPS/Images/image00393.gif"></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B><SPAN class=extract><B>Figure&nbsp;4.9: </B>The states of a thread during its lifetime</SPAN></B>.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><B><SPAN class=extract><B>INIT.</B> Thread creation puts a thread into its INIT&nbsp;state and allocates and initializes per-thread data structures</SPAN></B>. <SPAN class=extract>Once that is done, thread creation code puts the thread into the READY&nbsp;state by adding the thread to the <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:ready list"}'>ready list</A></EM>. The ready list is the set of runnable threads that are waiting their turn to use a processor. In practice, as discussed in Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1070007"}'>7</A>, the ready list is not in fact a &#8220;list&#8221;; the operating system typically uses a more sophisticated data structure to keep track of runnable threads, such as a priority queue</SPAN>. Nevertheless, following convention, we will continue to refer to it as the ready list. </P>
+<P><B><SPAN class=extract><B>READY.</B> A thread in the <EM>READY</EM> state is available to be run but is not currently running. Its TCB is on the ready list, and the values of its registers are stored in its TCB. At any time, the scheduler can cause a thread to transition from READY&nbsp;to RUNNING&nbsp;by copying its register values from its TCB to a processor&#8217;s registers</SPAN></B>. </P>
+<P><B>RUNNING.</B> A thread in the <EM>RUNNING</EM> state is running on a processor. At this time, its register values are stored on the processor rather than in the TCB. <SPAN class=extract></P>
+<P>A RUNNING&nbsp;thread can transition to the READY&nbsp;state in two ways: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>The scheduler can preempt a running thread and move it to the READY&nbsp;state by: (1) saving the thread&#8217;s registers to its TCB and (2) switching the processor to run the next thread on the ready list. </P>
+<LI class=itemize>
+<P>A running thread can voluntarily relinquish the processor and go from RUNNING&nbsp;to READY&nbsp;by calling yield (e.g., thread_yield&nbsp;in the thread library). </P></LI></UL></SPAN>
+<P>Notice that a thread can transition from READY&nbsp;to RUNNING&nbsp;and back many times. Since the operating system saves and restores the thread&#8217;s registers exactly, only the speed of the thread&#8217;s execution is affected by these transitions. </P>
+<P><B><SPAN class=extract><B>WARNING</B>: By convention in this book, a thread that is RUNNING&nbsp;is not on the ready list; the ready list is for READY&nbsp;and not RUNNING&nbsp;threads. However, some operating systems, such as Linux, use a different convention, where the RUNNING&nbsp;thread is whichever thread is at the front of the ready list.</SPAN></B> Either convention is equivalent as long as it used consistently. </P>
+<P><B><SPAN class=extract><B>WAITING.</B> A thread in the <EM>WAITING</EM> state is waiting for some event. Whereas the scheduler can move a thread in the READY&nbsp;state to the RUNNING&nbsp;state, a thread in the WAITING&nbsp;state cannot run until some action by another thread moves it from WAITING&nbsp;to READY</SPAN></B>. </P>
+<P>The threadHello program in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-170016"}'>4.6</A> provides an example of a WAITING&nbsp;thread. After creating its children threads, the main thread must wait for them to complete, by calling thread_join&nbsp;once for each child. If the specific child thread is not yet done at the time of the join, the main thread goes from RUNNING&nbsp;to WAITING&nbsp;until the child thread exits. </P>
+<P><SPAN class=extract>While a thread waits for an event, it cannot make progress; therefore, it is not useful to run it. Rather than continuing to run the thread or storing the TCB on the scheduler&#8217;s ready list, the TCB is stored on the <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:waiting list"}'>waiting list</A></EM> of some <EM>synchronization variable</EM> associated with the event. When the required event occurs, the operating system moves the TCB from the synchronization variable&#8217;s waiting list to the scheduler&#8217;s ready list, transitioning the thread from WAITING&nbsp;to READY</SPAN>. We describe synchronization variables in Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-390005"}'>5</A>. </P>
+<P><B>FINISHED.</B> A thread in the FINISHED&nbsp;state never runs again. <SPAN class=extract>The system can free some or all of its state for other uses, though it may keep some remnants of the thread in the FINISHED&nbsp;state for a time by putting the TCB on a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:finished list"}'>finished list</A></EM>.</SPAN> <SPAN class=extract>For example, the thread_exit&nbsp;call lets a thread pass its exit value to its parent thread via thread_join</SPAN>. <SPAN class=extract>Eventually, when a thread&#8217;s state is no longer needed (e.g., after its exit value has been read by the join call), the system can delete and reclaim the thread&#8217;s state</SPAN>. <A id=x1-2200210 name=x1-2200210></A></P>
+<HR>
+
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"><B>State of Thread</B> </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Location of Thread Control Block (TCB)</B> </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Location of Registers</B> </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">INIT </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Being Created </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">TCB </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">READY </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Ready List </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">TCB </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">RUNNING </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Running List </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Processor </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">WAITING </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Synchronization Variable&#8217;s Waiting List </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">TCB </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">FINISHED </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Finished List then Deleted </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">TCB or Deleted </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE></DIV>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;4.10: </B>Location of thread&#8217;s per-thread state for different life cycle stages.</FONT></P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>One way to understand these states is to consider where a thread&#8217;s TCB and registers are stored, as shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-2200210"}'>4.10</A>. For example, all threads in the READY&nbsp;state have their TCBs on the ready list and their registers in the TCB. All threads in the RUNNING&nbsp;state have their TCBs on the running list and their register values in hardware registers. And all threads in the WAITING&nbsp;state have their TCBs on various synchronization variables&#8217; waiting lists. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>The idle thread</I></B></SPAN> </P>
+<P><SPAN class=extract>If a system has k processors, most operating systems ensure that there are exactly k RUNNING&nbsp;threads, by keeping a low priority <EM>idle thread</EM> per processor for when there is nothing else to run</SPAN>. </P>
+<P>On old machines, the idle thread would spin in a tight loop doing nothing. </P>
+<P>Today, the idle thread still spins in a loop, but to save power, on each iteration it puts the processor into a low-power sleep mode. <SPAN class=extract>In sleep mode, the processor stops executing instructions until a hardware interrupt occurs</SPAN>. Then, the processor wakes up and handles the interrupt in the normal way &#8212; saving the state of the currently running thread (the idle thread) and running the handler. After running the handler, a thread waiting for that I/O event may now be READY. If so, the scheduler runs that thread next; otherwise, the idle thread resumes execution, putting the processor to sleep again. </P>
+<P>Having a low-power idle thread also helps when running the operating system inside a virtual machine. Obviously, it would be inefficient for an idle operating system to consume processing cycles that could be better used by another virtual machine on the same system. Putting the processor into sleep mode is a privileged instruction, so if the operating system is running inside a virtual machine, the hardware will trap to the host kernel. The host kernel can then switch to a different virtual machine. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><B><SPAN class=extract>
+<P><B>EXAMPLE: </B>For the threadHello program in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-170016"}'>4.6</A>, when thread_join&nbsp;returns for thread i, what is thread i&#8217;s thread state? </P>
+<P><B>ANSWER: </B>When join returns, thread i has finished running and exited. The runtime system saved the exit value in the TCB and moved the TCB to the finished list (so that its exit value can be found by the parent thread). <B>The thread is thus in the FINISHED&nbsp;state.</B> &#9633;</P>
+<P></SPAN></B>&nbsp;</P><B><SPAN class=extract>
+<P><B>EXAMPLE: </B>For the threadHello program, what is the minimum and maximum number of times that the main thread enters the READY&nbsp;state on a <EM>uniprocessor</EM>? </P>
+<P><B>ANSWER: </B>The main thread must go into the READY&nbsp;state when it is first created; otherwise, it would never be scheduled. On a uniprocessor, it must also give up the processor (e.g., due to a time slice or in thread_join) in order for its children threads to run. The children threads could then completely run before the main thread is re-scheduled. Once the children have finished, the main thread can run to completion. Thus, <B>the minimum number of times is two</B></P>
+<P></SPAN></B><B>.</B> </P>
+<P><B>The maximum number of times is (near) infinite.</B> A running thread can be preempted and re-scheduled many times, without affecting the correctness of the execution. In the limit, the thread could conceivably be preempted after each instruction! &#9633; </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left><SPAN class=sidebar_name><B><I><SPAN class=extract>
+<P width=0><SPAN class=sidebar_name><B><I>Where is my TCB?</I></B></SPAN> </P>
+<P>A remarkably tricky implementation question is how to find the current thread&#8217;s TCB. The thread library needs access to the current TCB for a number of reasons, e.g., to change its priority or to access thread-local variables. </P>
+<P>One might think finding the TCB would be simple: just store a pointer to the TCB in a global variable. However, recall that every thread running in the same process uses exactly the same code, and therefore each thread would look in exactly the same place for the TCB. On a uniprocessor, this works: the global variable can hold the value of the current TCB, and the library can change the value whenever it switches between threads. </P>
+<P>This does not work on a multiprocessor, however. Some systems, such as the Intel x86, have hardware support for fetching the ID of the current processor. In these systems, the thread library can maintain a global array of pointers, with the i&#8217;th entry pointing to the TCB of the thread running on the i&#8217;th processor. A running thread can then find its TCB by looking up its processor ID and then finding the corresponding entry in the array. </P>
+<P>For systems without this feature, however, there is another approach: the stack pointer is always unique to each thread. The thread library can store a pointer to the thread TCB at the very bottom of the stack, underneath the procedure frames. (Some systems take this one step farther, and put the entire TCB at the bottom of the stack.) As long as thread stacks are aligned to start at a fixed block boundary, the low order bits of the current stack pointer can be masked to locate the pointer to the current TCB. </P></SPAN></I></B></SPAN>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-22003r40 name=x1-22003r40></A><A id=x1-230006 name=x1-230006>

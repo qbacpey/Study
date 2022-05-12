@@ -1,0 +1,40 @@
+<STRONG><FONT color=blue>3.1 Process Management : </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3.1 Process Management : 3.1.1 Windows Process Management</SPAN></FONT></H4><SPAN class=extract>One approach to process management is to just add a system call to create a process, and other system calls for other process operations. This turns out to be simple in theory and complex in practice. In Windows, there is a routine called, unsurprisingly, CreateProcess, in simplified form below</SPAN>: 
+<P><BR></P><PRE class=code>   &nbsp;boolean&nbsp;CreateProcess(char&nbsp;*prog,&nbsp;char&nbsp;*args);
+</PRE><BR>
+<P>We call the process creator the <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:parent process"}'>parent</A></EM> and the process being created, the <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:child process"}'>child</A></EM>. </P>
+<P>What steps does CreateProcess take? As we explained in the previous chapter, the kernel needs to: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Create and initialize the process control block (PCB) in the kernel. </P>
+<LI class=itemize>
+<P>Create and initialize a new address space. </P>
+<LI class=itemize>
+<P>Load the program prog into the address space. </P>
+<LI class=itemize>
+<P>Copy arguments args into memory in the address space. </P>
+<LI class=itemize>
+<P>Initialize the hardware context to start execution at &#8220;start&#8221;. </P>
+<LI class=itemize>
+<P>Inform the scheduler that the new process is ready to run.</P></LI></UL>
+<P>Unfortunately, there are quite a few aspects of the process that the parent might like to control, such as: its privileges, where it sends its input and output, what it should store its files, what to use as a scheduling priority, and so forth. <SPAN class=extract>We cannot trust the child process itself to set its own privileges and priority, and it would be inconvenient to expect every application to include code for figuring out its context. So the real interface to CreateProcess is quite a bit more complicated in practice, given in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-560013"}'>3.3</A></SPAN>. <A id=x1-560013 name=x1-560013></A></P>
+<HR>
+<PRE class=code><FONT size=2>&nbsp;//&nbsp;Start&nbsp;the&nbsp;child&nbsp;process</FONT>
+&nbsp;<FONT size=2>if&nbsp;(!CreateProcess(NULL,&nbsp;&nbsp;&nbsp;//&nbsp;No&nbsp;module&nbsp;name&nbsp;(use&nbsp;command&nbsp;line)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;argv[1],&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Command&nbsp;line<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Process&nbsp;handle&nbsp;not&nbsp;inheritable
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Thread&nbsp;handle&nbsp;not&nbsp;inheritable
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FALSE,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Set&nbsp;handle&nbsp;inheritance&nbsp;to&nbsp;FALSE
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;No&nbsp;creation&nbsp;flags
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Use&nbsp;parent&#8217;s&nbsp;environment&nbsp;block
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Use&nbsp;parent&#8217;s&nbsp;starting&nbsp;directory
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;si,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Pointer&nbsp;to&nbsp;STARTUPINFO&nbsp;structure
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;pi&nbsp;)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Pointer&nbsp;to&nbsp;PROCESS_INFORMATION&nbsp;structure
+&nbsp;)</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;3.3: </B>Excerpt from an example of how to use the Windows CreateProcess system call. The first two arguments specify the program and its arguments; the rest concern aspects of the process runtime environment.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+<A id=x1-56002r96 name=x1-56002r96></A>

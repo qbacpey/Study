@@ -1,0 +1,145 @@
+<FONT color=blue><STRONG>: </STRONG>What is the system call interface for performing I/O and interprocess communication?</FONT>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3.2 Input/Output</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Computer systems have a wide diversity of input and output devices: keyboard, mouse, disk, USB port, Ethernet, WiFi, display, hardware timer, microphone, camera, accelerometer, and GPS, to name a few. </FONT>
+<P>To deal with this diversity, we could specialize the application programming interface for each device, customizing it to the device&#8217;s specific characteristics. After all, a disk device is quite different from a network and both are quite different from a keyboard: a disk is addressed in fixed sized chunks, while a network sends and receives a stream of variable sized packets, and the keyboard returns individual characters as keys are pressed. While the disk only returns data when asked, the network and keyboard provide data unprompted. Early computer systems took the approach of specializing the interface to the device, but it had a significant downside: every time a new type of hardware device is invented, the system call interface has to be upgraded to handle that device. </P>
+<P>One of the primary innovations in UNIX was to regularize all device input and output behind a single common interface. In fact, UNIX took this one giant step further: it uses this same interface for reading and writing files and for interprocess communication. This approach was so successful that it is almost universally followed in systems today. We will sketch the interface in this section, and then in the next section, show how to use it to build a shell. </P>
+<P>The basic ideas in the UNIX I/O interface are: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Uniformity.</B> All device I/O, file operations, and interprocess communication use the same set of system calls: open, close, read and write. </P>
+<LI class=itemize>
+<P><B>Open before use.</B> Before an application does I/O, it must first call open on the device, file, or communication channel. This gives the operating system a chance to check access permissions and to set up any internal bookkeeping. Some devices, such as a printer, only allow one application access at a time &#8212; the open call can return an error if the device is in use. </P>
+<P>Open returns a handle to be used in later calls to read, write and close to identify the file, device or channel; this handle is somewhat misleadingly called a <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:file descriptor"}'>file descriptor</A></EM>, even when it refers to a device or channel so there is no file involved. For convenience, the UNIX shell starts applications with open file descriptors for reading and writing to the terminal. </P>
+<LI class=itemize>
+<P><B>Byte-oriented.</B> All devices, even those that transfer fixed-size blocks of data, are accessed with byte arrays. Similarly, file and communication channel access is in terms of bytes, even though we store data structures in files and send data structures across channels. </P>
+<LI class=itemize>
+<P><B>Kernel-buffered reads.</B> Stream data, such as from the network or keyboard, is stored in a kernel buffer and returned to the application on request. This allows the UNIX system call read interface to be the same for devices with streaming reads as those with block reads, such as disks and Flash memory. In both cases, if no data is available to be returned immediately, the read call blocks until it arrives, potentially giving up the processor to some other task with work to do. </P>
+<LI class=itemize>
+<P><B>Kernel-buffered writes.</B> Likewise, outgoing data is stored in a kernel buffer for transmission when the device becomes available. In the normal case, the system call write copies the data into the kernel buffer and returns immediately. This decouples the application from the device, allowing each to go at its own speed. If the application generates data faster than the device can receive it (as is common when spooling data to a printer), the write system call blocks in the kernel until there is enough room to store the new data in the buffer. </P>
+<LI class=itemize>
+<P><B>Explicit close.</B> When an application is done with the device or file, it calls close. This signals to the operating system that it can decrement the reference-count on the device, and garbage collect any unused kernel data structures.</P></LI></UL>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Open vs. creat vs. stat</I></B></SPAN> </P>
+<P>By default, the UNIX open system call returns an error if the application tries to open a file that does not exist; as an option (not shown above), a parameter can tell the kernel to instead create the file if it does not exist. Since UNIX also has system calls for creating a file (creat) and for testing whether a file exists (stat), it might seem as if open could be simplified to always assume that the file already exists. </P>
+<P>However, UNIX often runs in a multi-user, multi-application environment, and in that setting the issue of system call design can become more subtle. Suppose instead of the UNIX interface, we had completely separate functions for testing if a file exists, creating a file, and opening the file. Assuming that the user has permission to test, open, or create the file, does this code work? </P>
+<P><BR></P><PRE class=code>   &nbsp;if&nbsp;(!exists(file))&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;If&nbsp;the&nbsp;file&nbsp;doesn&#8217;t&nbsp;exist&nbsp;create&nbsp;it.
+   &nbsp;//&nbsp;Are&nbsp;we&nbsp;guaranteed&nbsp;the&nbsp;file&nbsp;doesn&#8217;t&nbsp;exist?
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;create(file);
+   &nbsp;}
+   &nbsp;//&nbsp;Are&nbsp;we&nbsp;guaranteed&nbsp;the&nbsp;file&nbsp;does&nbsp;exist?
+   &nbsp;open(file);</PRE><BR>
+<P>The problem is that on a multi-user system, some other user might have created the file in between the call to test for its existence, and the call to create the file. Thus, call to create must also test the existence of the file. Likewise, some other user might have deleted the file between the call to create and the call to open. So open also needs the ability to test if the file is there, and if not to create the file (if that is the user&#8217;s intent). </P>
+<P>UNIX addresses this with an all-purpose, atomic open: test if the file exists, optionally create it if it does not, and then open it. Because system calls are implemented in the kernel, the operating system can make open (and all other I/O systems calls) non-interruptible with respect to other system calls. If another user tries to delete a file while the kernel is executing an open system call on the same file, the delete will be delayed until the open completes. The open will return a file descriptor that will continue to work until the application closes the file. The delete will remove the file from the file system, but the file system does not actually reclaim its disk blocks until the file is closed. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P>For interprocess communication, we need a few more concepts: <A id=x1-600016 name=x1-600016></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00209.gif" data-calibre-src="OEBPS/Images/image00209.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;3.6: </B>A pipe is a temporary kernel buffer connecting a process producing data with a process consuming the data.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Pipes.</B> A <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX pipe"}'>UNIX pipe</A></EM> is a kernel buffer with two file descriptors, one for writing (to put data into the pipe) and one for reading (to pull data out of the pipe), as illustrated in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600016"}'>3.6</A>. Data is read in exactly the same sequence it is written, but since the data is buffered, the execution of the producer and consumer can be decoupled, reducing waiting in the common case. The pipe terminates when either endpoint closes the pipe or exits. </P>
+<P>The Internet has a similar facility to UNIX pipes called TCP (Transmission Control Protocol). Where UNIX pipes connect processes on the same machine, TCP provides a bi-directional pipe between two processes running on different machines. In TCP, data is written as a sequence of bytes on one machine and read out as the same sequence on the other machine. </P>
+<LI class=itemize>
+<P><B>Replace file descriptor.</B> By manipulating the file descriptors of the child process, the shell can cause the child to read its input from, or send its output to, a file or a pipe instead of from a keyboard or to the screen. This way, the child process does not need to be aware of who is providing or consuming its I/O. The shell does this redirection using a special system call named dup2(from, to) that replaces the to file descriptor with a copy of the from file descriptor. </P>
+<LI class=itemize>
+<P><B>Wait for multiple reads.</B> For client-server computing, a server may have a pipe open to multiple client processes. Normally, read will block if there is no data to be read, and it would be inefficient for the server to poll each pipe in turn to check if there is work for it to do. The UNIX system call select(fd[], number) addresses this. Select allows the server to wait for input from any of a set of file descriptors; it returns the file descriptor that has data, but it does not read the data. Windows has an equivalent function, called WaitForMultipleObjects.</P></LI></UL>
+<P>Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600027"}'>3.7</A> summarizes the dozen UNIX system calls discussed in this section. <A id=x1-600027 name=x1-600027></A></P>
+<HR>
+
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td colSpan=2 align=left>
+<P class=tabp></P>
+<DIV class=multicolumn align=center noWrap><B>Creating and managing processes</B></DIV>. </TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>fork () </P></TD>
+<TD class=td align=left>
+<P class=tabp>Create a child process as a clone of the current process. The fork call returns to both the parent and child. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>exec (prog, args) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Run the application prog in the current process. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>exit () </P></TD>
+<TD class=td align=left>
+<P class=tabp>Tell the kernel the current process is complete, and its data structures should be garbage collected. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>wait (processID) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Pause until the child process has exited. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>signal (processID, type) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Send an interrupt of a specified type to a process. </P></TD></TR>
+<TR class=tr>
+<TD class=td colSpan=2 align=left>
+<P class=tabp></P>
+<DIV class=multicolumn align=center noWrap><B>I/O operations</B></DIV></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>fileDesc open (name) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Open a file, channel, or hardware device, specified by name; returns a file descriptor that can be used by other calls. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>pipe (fileDesc[2]) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Create a one-directional pipe for communication between two processes. Pipe returns two file descriptors, one for reading and one for writing. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>dup2 (fromFileDesc, toFileDesc) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Replace the toFileDesc file descriptor with a copy of fromFileDesc. Used for replacing stdin or stdout or both in a child process before calling exec. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>int read (fileDesc, buffer, size) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Read up to size bytes into buffer, from the file, channel, or device. Read returns the number of bytes actually read. For streaming devices this will often be less than size. For example, a read from the keyboard device will (normally) return all of its queued bytes. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>int write (fileDesc, buffer, size) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Analogous to read, write up to size bytes into kernel output buffer for a file, channel, or device. Write normally returns immediately but may stall if there is no space in the kernel buffer. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>fileDesc select (fileDesc[], arraySize) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Return when any of the file descriptors in the array fileDesc[] have data available to be read. Returns the file descriptor that has data pending. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>close (fileDescriptor) </P></TD>
+<TD class=td align=left>
+<P class=tabp>Tell the kernel the process is done with this file, channel, or device. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;3.7: </B>List of UNIX system calls discussed in this section.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+<A id=x1-60003r103 name=x1-60003r103></A><A id=x1-610003 name=x1-610003></A>

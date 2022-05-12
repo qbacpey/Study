@@ -1,0 +1,116 @@
+<STRONG><FONT color=blue>: </FONT></STRONG><STRONG><FONT color=blue>: </FONT></STRONG>
+<H2 class=chapter_name><I><SPAN class=RefText><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3. The Programming Interface</SPAN></FONT></SPAN></FONT></I></H2></A>
+<DIV class=chapterQuote>
+<P>From a programmer&#8217;s point of view, the user is a peripheral that types when you issue a read request. &#8212;<I>Peter Williams</I> </P>
+<DL>
+<DT>
+<DD></DD></DL>
+<P></P></DIV>
+<HR>
+<BR>
+<P>The previous chapter concerned the mechanisms needed in the operating system kernel to implement the process abstraction. <SPAN class=extract>A process is an instance of a program &#8212; the kernel provides an efficient sandbox for executing untrusted code at user-level, running user code directly on the processor</SPAN>. </P>
+<P>This chapter concerns how we choose to use the process abstraction: what functionality does the operating system provide applications, and what should go where &#8212; what functionality should be put in the operating system kernel, what should be put into user-level libraries, and how should the operating system itself be organized? </P>
+<P>There are as many answers to this as there are operating systems. Describing the full programming interface and internal organization for even a single operating system would take an entire book. Instead, in this chapter we explore a subset of the programming interface for UNIX, the foundation of Linux, MacOS, iOS, and Android. We also touch on how the same issues are addressed in Windows. </P><SPAN class=extract>
+<P>First, we need to answer &#8220;what&#8221; &#8212; what functions do we need an operating system to provide applications? </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Process management.</B> Can a program create an instance of another program? Wait for it to complete? Stop or resume another running program? Send it an asynchronous event? </P>
+<LI class=itemize>
+<P><B>Input/output.</B> How do processes communicate with devices attached to the computer and through them to the physical world? Can processes communicate with each other</SPAN>? </P></LI></UL>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Thread management.</B> Can we create multiple activities or threads that share memory or other resources within a process? Can we stop and start threads? How do we synchronize their use of shared data structures? </P>
+<LI class=itemize>
+<P><B>Memory management.</B> Can a process ask for more (or less) memory space? Can it share the same physical memory region with other processes? </P>
+<LI class=itemize>
+<P><B>File systems and storage.</B> How does a process store the user&#8217;s data persistently so that it can survive machine crashes and disk failures? How does the user name and organize their data? </P>
+<LI class=itemize>
+<P><B>Networking and distributed systems.</B> How do processes communicate with processes on other computers? How do processes on different computers coordinate their actions despite machine crashes and network problems? </P>
+<LI class=itemize>
+<P><B>Graphics and window management.</B> How does a process control pixels on its portion of the screen? How does a process make use of graphics accelerators? </P>
+<LI class=itemize>
+<P><B>Authentication and security.</B> What permissions does a user or a program have, and how are these permissions kept up to date? On what basis do we know the user (or program) is who they say they are?</P></LI></UL>
+<P>In this chapter, we focus on just the first two of these topics: process management and input/output. We will cover thread management, memory management, and file systems in detail in later chapters in this book. </P>
+<P><SPAN class=extract>Remarkably, we can describe a functional interface for process management and input/output with just a dozen system calls, and the rest of the system call interface with another dozen</SPAN>. Even more remarkably, these calls are nearly unchanged from the original UNIX design. Despite being first designed and implemented in the early 1970&#8217;s, most of these calls are still in wide use in systems today! <A id=x1-540011 name=x1-540011></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00206.gif" data-calibre-src="OEBPS/Images/image00206.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B><SPAN class=extract><B>Figure&nbsp;3.1: </B>Operating system functionality can be implemented in user-level programs, in user-level libraries, in the kernel itself, or in a user-level server invoked by the kernel</SPAN></B>.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Second, we need to answer &#8220;where&#8221; &#8212; for any bit of functionality the operating system provides to user programs, we have several options for where it lives, illustrated in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540011"}'>3.1</A>: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>We can put the functionality in a user-level program. In both Windows and UNIX, for example, there is a user program for managing a user&#8217;s login and another for managing a user&#8217;s processes. </P>
+<LI class=itemize>
+<P>We can put the functionality in a user-level library linked in with each application. In Windows and MacOS, user interface widgets are part of user-level libraries, included in those applications that need them. </P>
+<LI class=itemize>
+<P>We can put the functionality in the operating system kernel, accessed through a system call. In Windows and UNIX, low-level process management, the file system and the network stack are all implemented in the kernel. </P>
+<LI class=itemize>
+<P>We can access the function through a system call, but implement the function in a standalone server process invoked by the kernel. In many systems, the window manager is implemented as a separate server process.</P></LI></UL>
+<P>How do we make this choice? It is important to realize that the choice can be (mostly) transparent to both the user and the application programmer. The user wants a system that works; the programmer wants a clean, convenient interface that does the job. As long as the operating system provides that interface, where each function is implemented is up to the operating system, based on a tradeoff between flexibility, reliability, performance, and safety. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Flexibility. </STRONG>It is much easier to change operating system code that lives outside of the kernel, without breaking applications using the old interface. If we create a new version of a library, we can just link that library in with new applications, and over time convert old applications to use the new interface. However, if we need to change the system call interface, we must either simultaneously change both the kernel and all applications, or we must continue to support both the old and the new versions until all old applications have been converted. Many applications are written by third party developers, outside of the control of the operating system vendor. Thus, changing the system call interface is a huge step, often requiring coordination across many companies</SPAN>. <A id=x1-540022 name=x1-540022></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00207.gif" data-calibre-src="OEBPS/Images/image00207.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;3.2: </B>The kernel system call interface can be seen as a &#8220;thin waist,&#8221; enabling independent evolution of applications and hardware.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>One of the key ideas in UNIX, responsible for much of its success, was to design its system call interface to be simple and powerful, so that almost all of the innovation in the system could happen in user code without changing the interface to the operating system. The UNIX system call interface is also highly portable &#8212; the operating system can be ported to new hardware without needing to rewrite application code. As shown in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540022"}'>3.2</A>, the kernel can be seen as a &#8220;thin waist,&#8221; enabling innovation at the application-level, and in the hardware, without requiring simultaneous changes in the other parts of the system. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>The Internet and the &#8220;thin waist&#8221;</I></B></SPAN> </P>
+<P>The Internet is another example of the benefit of designing interfaces to be simple and portable. The Internet defines a packet-level protocol that can run on top of virtually any type of network hardware and can support almost any type of network application. Creating the World Wide Web required no changes to the Internet packet delivery mechanism; likewise, the introduction of wireless networks required changes in hardware devices and in the operating system, but no changes in network applications. Although the Internet&#8217;s &#8220;thin waist&#8221; can sometimes lead to inefficiencies, the upside is to foster innovation in both applications and hardware by decoupling changes in one from changes in the other. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Safety. </STRONG>However, resource management and protection are the responsibility of the operating system kernel. As Chapter&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-310002"}'>2</A> explained, protection checks cannot be implemented in a user-level library because application code can skip any checks made by the library</SPAN>. </P>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Reliability. </STRONG>Improved reliability is another reason to keep the operating system kernel minimal. Kernel code needs the power to set up hardware devices, such as the disk, and to control protection boundaries between applications. However, kernel modules are typically not protected from one another, and so a bug in kernel code (whether sensitive or not) may corrupt user or kernel data. This has led some systems to use a philosophy of &#8220;what can be at user level, should be.&#8221; An extreme version of approach is to isolate privileged, but less critical, parts of the operating system such as the file system or the window system, from the rest of the kernel. This is called a <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:microkernel"}'>microkernel</A></EM> design. In a microkernel, the kernel itself is kept small, and instead most of the functionality of a traditional operating system kernel is put into a set of user-level processes, or servers, accessed from user applications via interprocess communication</SPAN>. </P>
+<LI class=itemize>
+<P><SPAN class=extract><STRONG>Performance. </STRONG>Finally, transferring control into the kernel is more expensive than a procedure call to a library, and transferring control to a user-level file system server via the kernel is still even more costly. Hardware designers have attempted to reduce the cost of these boundary crossings, but their performance remains a problem. Microsoft Windows NT, a precursor to Windows 7, was initially designed as a microkernel, but over time, much of its functionality has been migrated back into the kernel for performance reasons</SPAN>. </P></LI></UL>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Application-level sandboxing and operating system functionality</I></B></SPAN> </P>
+<P>Applications that support executing third-party code or scripts in a restricted sandbox must address many of these same questions, with the sandbox playing the role of the operating system kernel. In terms of functionality: Can the scripting code start a new instance of itself? Can it do input/output? Can it perform work in the background? Can it store data persistently, and if it can, how does it name that data? Can it communicate data over the network? How does it authenticate actions? </P>
+<P>For example, in web browsers, HTML5 not only allows scripts to draw on the screen, communicate with servers, and save and read cookies, it also has recently added programming interfaces for offline storage and cross-document communication. The Flash media player provides scripts with the ability to do asynchronous operations, file storage, network communication, memory management, and authentication. </P>
+<P>Just as with system calls, these interfaces must be carefully designed to be bulletproof against malicious use. A decade ago, email viruses became widespread because scripts could be embedded in documents that were executed on opening; the programming interfaces for these scripts would allow them to discover the list of correspondents known to the current email user and to send them email, thereby propagating and expanding the virus with a single click. The more fully featured the interface, the more convenient it is for developers, and the more likely that some aspect of the interface will be abused by a hacker. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P>There are no easy answers! We will investigate the question of how to design the system call interface and where to place operating system functionality through case studies of UNIX and other systems. </P>
+<P><B>Chapter roadmap:</B> </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Process management.</B> What is the system call interface for process management? (Section&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-550001"}'>3.1</A>) </P>
+<LI class=itemize>
+<P><B>Input/output.</B> What is the system call interface for performing I/O and interprocess communication? (Section&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600002"}'>3.2</A>) </P>
+<LI class=itemize>
+<P><B>Case study: Implementing a shell.</B> We will illustrate these interfaces by using them to implement a user-level job control system called a <EM>shell</EM>. (Section&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-610003"}'>3.3</A>) </P>
+<LI class=itemize>
+<P><B>Case study: Interprocess communication.</B> How does the communication between a client and server work? (Section&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-620004"}'>3.4</A>) </P>
+<LI class=itemize>
+<P><B>Operating system structure.</B> Can we use the process abstraction to simplify the construction of the operating system itself and to make it more secure, more reliable, and more flexible? (Section&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-650005"}'>3.5</A>)</P></LI></UL><A id=x1-54003r88 name=x1-54003r88></A><A id=x1-550001 name=x1-550001></A>

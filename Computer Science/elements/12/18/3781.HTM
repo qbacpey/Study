@@ -1,0 +1,8 @@
+As we discussed in the previous chapter, when a UNIX process finishes, it calls the system call exit. 
+<P></P>
+<P><SPAN class=extract>&#27599;&#19968;&#20010; UNIX &#36827;&#31243;&#25191;&#34892;&#23436;&#27605;&#20043;&#21518;&#65292;&#24517;&#39035;&#25191;&#34892; exit &#36825;&#20010;&#31995;&#32479;&#35843;&#29992;&#20197;&#26174;&#24335;&#36864;&#20986;</SPAN></P>
+<P>Exit can release various resources associated with the process, such as the user stack, heap, and code segments.</P>
+<P><SPAN class=extract>exit &#30340;&#20316;&#29992;&#26159;&#37322;&#25918;&#36827;&#31243;&#36164;&#28304;&#65288;&#29992;&#25143;&#26632;&#12289;&#22534;&#12289;&#20195;&#30721;&#27573;&#65289;&#20294;&#26159;&#24403;&#23376;&#36827;&#31243;&#26174;&#24335;&#35843;&#29992; exit &#30340;&#26102;&#20505;&#23427;&#22823;&#22810;&#19981;&#20250;&#37322;&#25918;&#20854; PCB</SPAN></P>
+<P><SPAN class=extract>It must be careful, however, in how it garbage collects the process control block (PCB). Even though the child process has finished, if it deletes the PCB, then the parent process will be left with a dangling pointer if later on it calls UNIX wait. </SPAN></P>
+<P>Of course, we don&#8217;t know for sure if the parent will ever call wait, so to be safe, the PCB can only be reclaimed when both the parent and the child have finished or crashed</P>
+<P><SPAN class=extract>&#23376;&#36827;&#31243;&#30340;&nbsp;PCB &#21482;&#20250;&#22312;&#29238;&#36827;&#31243;&#21644;&#23376;&#36827;&#31243;&#37117;&#32467;&#26463;&#30340;&#26102;&#20505;&#25165;&#20250;&#34987;&#22238;&#25910;<BR></SPAN>

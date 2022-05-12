@@ -1,0 +1,133 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=likesectionHead>Exercises</H3></A>
+<P></P>
+<OL class=problems>
+<P></P>
+<LI>True or False: If a multi-threaded program runs correctly in all cases on a single time-sliced processor, then it will run correctly if each thread is run on a separate processor of a shared-memory multiprocessor. Justify your answer. 
+<P></P>
+<P></P>
+<LI>Show that solution 3 to the Too Much Milk problem is safe &#8212; that it guarantees that at most one roommate buys milk. 
+<P></P>
+<P></P>
+<LI>Precisely describe the set of possible outputs that could occur when the program shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-530015"}'>5.5</A> is run. 
+<P></P>
+<LI>Suppose that you mistakenly create an automatic (local) variable v in one thread t1 and pass a pointer to v to another thread t2. Is it possible that a write by t1 to some variable other than v will change the state of v as observed by t2? If so, explain how this can happen and give an example. If not, explain why not. 
+<P></P>
+<P></P>
+<LI>Suppose that you mistakenly create an automatic (local) variable v in one thread t1 and pass a pointer to v to another thread t2. Is it possible that a write by t2 to v will cause t1 to execute the wrong code? If so, explain how. If not, explain why not. 
+<P></P>
+<P></P>
+<LI>Assuming Mesa semantics for condition variables, our implementation of the blocking bounded queue in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-560018"}'>5.8</A> does not guarantee freedom from starvation: if a continuous stream of threads makes insert (or remove) calls, a waiting thread could wait forever. For example, a thread may call insert and wait in the while loop because the queue is full. Starvation would occur if every time another thread removes an item from the queue and signals the waiting thread, a <EM>different</EM> thread calls insert, sees that the queue is not full, and inserts an item before the waiting thread resumes. 
+<P>Prove that under Hoare semantics and assuming that signal wakes the longest-waiting thread, our implementation of BBQ ensures freedom from starvation. More precisely, prove that if a thread waits in insert, then it is guaranteed to proceed after a bounded number of remove calls complete, and vice versa. </P>
+<P></P>
+<P></P>
+<LI>
+<P>As noted in the previous problem, our implementation of the blocking bounded queue in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-560018"}'>5.8</A> does not guarantee freedom from starvation. Modify the code to ensure freedom from starvation so that if a thread waits in insert, it is guaranteed to proceed after a bounded number of remove() calls complete, and vice versa. <B>Note:</B> Your implementation must work under Mesa semantics for condition variables. </P>
+<P></P>
+<LI>Wikipedia provides an implementation of Peterson&#8217;s algorithm to provide mutual exclusion using loads and stores at <A href="http://en.wikipedia.org/wiki/Peterson's_algorithm">http://en.wikipedia.org/wiki/Peterson&#8217;s_algorithm</A>. Unfortunately, this code is not guaranteed to work with modern compilers or hardware. Update the code to include memory barriers where necessary. (Of course, you could add a memory barrier before and after each instruction; your solution should instead add memory barriers only where necessary for correctness.) 
+<P></P>
+<P></P>
+<LI>Linux provides a sys_futex() system call to assist in implementing hybrid user-level/kernel-level locks and condition variables. 
+<P>A call to long sys_futex(void *addr1, FUTEX_WAIT, int val1, NULL, NULL, 0) checks to see if the memory at address addr1 has the same value as val1. If so, the calling thread is suspended. If not, the calling thread returns immediately with the error return value EWOULDBLOCK. In addition, the system call returns with the value EINTR if the thread receives a signal. </P>
+<P>A call to long sys_futex(void *addr1, FUTEX_WAKE, 1, NULL, NULL, 0) causes one thread waiting on addr1 to return. </P>
+<P>Consider the following simple implementation of a hybrid user-level/kernel-level lock. </P>
+<P><BR></P><PRE class=code>   &nbsp;class&nbsp;TooSimpleFutexLock&nbsp;{
+   &nbsp;&nbsp;&nbsp;private:
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;val;
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;public:
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TooSimpleMutex()&nbsp;:&nbsp;val&nbsp;(0)&nbsp;{&nbsp;}&nbsp;&nbsp;//&nbsp;Constructor
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;acquire&nbsp;()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;c;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;atomic_inc&nbsp;returns&nbsp;*old*&nbsp;value
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;((c&nbsp;=&nbsp;atomic_inc&nbsp;(val))&nbsp;!=&nbsp;0)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;futex_wait&nbsp;(&amp;val,&nbsp;c&nbsp;+&nbsp;1);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;release&nbsp;()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;val&nbsp;=&nbsp;0;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;futex_wake&nbsp;(&amp;val,&nbsp;1);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;};</PRE><BR>
+<P>There are three problems with this code. </P>
+<P></P>
+<OL class=subproblems>
+<LI><B>Performance.</B> The goal of this code is to avoid making expensive system calls in the uncontested case of an <TT>acquire</TT>&nbsp;on a FREE&nbsp;lock or a <TT>release</TT>&nbsp;of a lock with no other waiting threads. This code fails to meet this goal. Why? 
+<P></P>
+<LI><B>Performance.</B> A subtle corner case occurs when multiple threads try to acquire the lock at the same time. It can show up as occasional slowdowns and bursts of CPU usage. What is the problem? 
+<P></P>
+<LI><B>Correctness</B>. A corner case can cause the mutual exclusion correctness condition to be violated, allowing two threads to both believe they hold the lock. What is the problem? </LI></OL>
+<P></P>
+<P></P>
+<LI>In the readers/writers lock example for the function RWLock::doneRead, why do we use writeGo.Signal rather than writeGo.Broadcast? 
+<P></P>
+<P></P>
+<LI>Show how to implement a semaphore by generalizing the multi-processor lock implementation shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-7000117"}'>5.17</A>. 
+<P></P>
+<P></P>
+<LI>In Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-430003"}'>5.1.3</A>, we presented a solution to the Too Much Milk problem. To make the problem more interesting, we will also allow roommates to drink milk. 
+<P>Implement in C++ or Java a Kitchen class with a drinkMilkAndBuyIfNeeded(). This method should randomly (with a 20% probability) change the value of milk from 1 to 0. Then, if the value just became 0, it should buy milk (incrementing milk back to 1). The method should return 1 if the roommate bought milk and 0 otherwise. </P>
+<P>Your solution should use locks for synchronization and work for any number of roommates. Test your implementation by writing a program that repeatedly creates a Kitchen object and varying numbers of roommate threads; each roommate thread should call drinkMilkAndBuyIfNeeded() multiple times in a loop. </P>
+<P><B>Hint:</B> You will probably write a main() thread that creates a Kitchen object, creates multiple roommate threads, and then waits for all of the roommates to finish their loops. If you are writing in C++ with the POSIX threads library, you can use pthread_join() to have one thread wait for another thread to finish. If you are writing in Java with the java.lang.Thread class, you can use the join() method. </P>
+<P></P>
+<LI>For the solution to Too Much Milk suggested in the previous problem, each call to drinkMilkAndBuyIfNeeded() is atomic and holds the lock from the start to the end even if one roommate goes to the store. This solution is analogous to the roommate padlocking the kitchen while going to the store, which seems a bit unrealistic. 
+<P>Implement a better solution to drinkMilkAndBuyIfNeeded() using both locks and condition variables. Since a roommate now needs to release the lock to the kitchen while going to the store, you will no longer acquire the lock at the start of this function and release it at the end. Instead, this function will call two helper-functions, each of which acquires/releases the lock. For example: </P>
+<P><BR></P><PRE class=code>   &nbsp;int&nbsp;Kitchen::drinkMilkAndBuyIfNeeded()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;iShouldBuy&nbsp;=&nbsp;waitThenDrink();
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(iShoudBuy)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buyMilk();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;}</PRE><BR>
+<P>In this function, waitThenDrink() should wait if there is no milk (using a condition variable) until there is milk, drink the milk, and if the milk is now gone, return a nonzero value to flag that the caller should buy milk. BuyMilk() should buy milk and then broadcast to let the waiting threads know that they can proceed. </P>
+<P>Again, test your code with varying numbers of threads. </P>
+<P></P>
+<LI>Before entering a <EM>priority critical section</EM>, a thread calls PriorityLock::enter(priority). When the thread exits the critical section, it calls PriorityLock::exit(). If several threads are waiting to enter a priority critical section, the one with the numerically highest priority should be the next one allowed in. Implement PriorityLock using monitors (locks and condition variables) and following the programming standards defined in this chapter. 
+<P></P>
+<OL class=subproblems>
+<LI>Define the state and synchronization variables and describe the purpose of each. 
+<P></P>
+<P></P>
+<LI>Implement PriorityLock::enter(int priority). 
+<P></P>
+<P></P>
+<LI>Implement PriorityLock::exit(). 
+<P></P></LI></OL>
+<P></P>
+<LI>
+<P>Implement a <EM>priority condition variable.</EM> A priority condition variable (PCV) has three public methods: </P>
+<P><BR></P><PRE class=code>   &nbsp;void&nbsp;PCV::wait(Lock&nbsp;*enclosingLock,&nbsp;int&nbsp;priority);
+   &nbsp;
+   &nbsp;void&nbsp;PCV::signal(Lock&nbsp;*enclosingLock);
+   &nbsp;
+   &nbsp;void&nbsp;PCV::broadcast(Lock&nbsp;*enclosingLock,&nbsp;int&nbsp;priority);</PRE><BR>
+<P>These methods are similar to those of a standard condition variable. The one difference is that a PCV enforces both <EM>priority</EM> and <EM>ordering</EM>. </P>
+<P>In particular, signal(Lock *lock) causes the currently waiting thread with the highest priority to return from wait; if multiple threads with the same priority are waiting, then the one that is waiting the longest should return before any that have been waiting a shorter amount of time. </P>
+<P>Similarly, broadcast(Lock *lock, int priority) causes all currently waiting threads whose priority equals or exceeds priority to return from wait. </P>
+<P>For full credit, you must follow the <EM>thread coding standards</EM> described in this chapter. </P>
+<P></P>
+<P></P>
+<LI>A synchronous buffer is one where the thread placing an item into the buffer waits until the thread retrieving the item has gotten it, and only then returns. 
+<P>Implement a synchronous buffer using Mesa-style locks and condition variables, with the following routines: </P>
+<P><BR></P><PRE class=code>   &nbsp;//&nbsp;Put&nbsp;item&nbsp;into&nbsp;the&nbsp;buffer&nbsp;and&nbsp;return&nbsp;only&nbsp;once&nbsp;the&nbsp;item
+   &nbsp;//&nbsp;has&nbsp;been&nbsp;retrieved&nbsp;by&nbsp;some&nbsp;thread.
+   &nbsp;SyncBuf::put(item);
+   &nbsp;
+   &nbsp;//&nbsp;Wait&nbsp;until&nbsp;there&nbsp;is&nbsp;an&nbsp;item&nbsp;in&nbsp;the&nbsp;buffer,&nbsp;and&nbsp;then&nbsp;return&nbsp;it.
+   &nbsp;SyncBuf::get();</PRE><BR>
+<P>Any number of threads can concurrently call SyncBuf::get and SyncBuf::put; the module pairs off puts and gets. Each item should be returned exactly once, and there should be no unnecessary waiting. Once the item is retrieved, the thread that called put with the item should return. </P>
+<P></P>
+<LI>You have been hired by a company to do climate modelling of oceans. The inner loop of the program matches atoms of different types as they form molecules. In an excessive reliance on threads, each atom is represented by a thread. 
+<P></P>
+<OL class=subproblems>
+<LI>Your task is to write code to form water out of two hydrogen threads and one oxygen thread (H2O). You are to write the two procedures: HArrives() and OArrives(). A water molecule forms when two H threads are present and one O thread; otherwise, the atoms must wait. Once all three are present, one of the threads calls MakeWater(), and only then, all three depart. 
+<P></P>
+<LI>The company wants to extend its work to handle cloud modelling. Your task is to write code to form ozone out of three oxygen threads. Each of the threads calls OArrives(), and when three are present, one calls MakeOzone(), and only then, all three depart. 
+<P></P>
+<LI>Extending the product line into beer production, your task is to write code to form alcohol (C2H6O) out of two carbon atoms, six hydrogens, and one oxygen. </LI></OL>
+<P>You must use locks and Mesa-style condition variables to implement your solutions, using the best practices as defined in this chapter. Obviously, an atom that arrives <EM>after</EM> the molecule is made must wait for a different group of atoms to be present. There should be no busy-waiting and you should correctly handle spurious wakeups. There must also be no useless waiting: atoms should not wait if there is a sufficient number of each type. </P>
+<P></P></LI></OL>
+<P>
+<DIV style="break-after: always; -webkit-column-break-after: always"></DIV><BR><BR><BR>
+<P></P><A id=x1-780006 name=x1-780006>

@@ -1,0 +1,6 @@
+If multiple interrupts arrive while interrupts are disabled, the hardware delivers them in turn when interrupts are re-enabled. However, since the hardware has limited buffering for pending interrupts, some interrupts may be lost if interrupts are disabled for too long a period of time. 
+<P></P><SPAN class=extract>
+<P>Generally, the hardware will buffer one interrupt of each type;the interrupt handler is responsible for checking the device hardware to see if multiple pending I/O events need to be processed.</P>
+<P></P>
+<P>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#36127;&#36131;&#26816;&#26597;&#30828;&#20214;&#35774;&#22791;&#65292;&#20197;&#30830;&#35748;&#26159;&#21542;&#26377;&#22810;&#20010;I/O&#20013;&#26029;&#31561;&#24453;&#22788;&#29702;</P>
+<P></SPAN>

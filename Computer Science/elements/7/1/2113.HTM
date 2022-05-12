@@ -1,0 +1,21 @@
+<DIV style='FONT-SIZE: medium; FONT-FAMILY: "Microsoft YaHei"; WHITE-SPACE: normal; WORD-SPACING: 0px; TEXT-TRANSFORM: none; FONT-WEIGHT: 400; COLOR: rgb(0,0,0); FONT-STYLE: normal; ORPHANS: 2; WIDOWS: 2; LETTER-SPACING: normal; TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial' align=left><STRONG><SPAN class=RefText><SPAN class=RefText><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Process Image</SPAN></FONT></SPAN></FONT></SPAN></FONT></STRONG></DIV>
+<DIV align=left>&nbsp;Executable files are stored in a defined format on the disk, different operating systems may have different definitions for the actual format but there are generally common elements in the way they are stored. A format commonly used on Unix systems such as Linux is called Extensible Linked Format (ELF). <SPAN class=extract>An ELF programme consists of an ELF header, a program header table, a number of sections and an optional section header table. The header contains all the information the kernel needs to create a process image (i.e. load the programme into memory and allocate resources to prepare it for execution)</SPAN>.</DIV>
+<DIV align=left><SPAN class=extract>Programme code on a multitasking operating system must be re-entrant. This means it can be shared by multiple processes. To be re-entrant the code must not modify itself at any time and the data must be stored separately from the instruction text (such that each independent process can maintain its own data space)</SPAN>.</DIV>
+<DIV align=left>&nbsp;When a programme is loaded as a process it is allocated a section of virtual memory which forms its useable address space. Within this process image there are typically at least four elements :</DIV>
+<DIV align=left><SPAN class=extract>&#36827;&#31243;&#26144;&#20687;&#65288;process image&#65289;&#20013;&#33267;&#23569;&#21547;&#26377;&#22235;&#20010;&#37096;&#20998;&#31243;&#24207;&#20195;&#30721;&#12289;&#31243;&#24207;&#25968;&#25454;&#12289;&#26632;&#12289;PCB</SPAN></DIV>
+<CENTER>&nbsp;</CENTER>
+<CENTER style='FONT-SIZE: medium; FONT-FAMILY: "Microsoft YaHei"; WHITE-SPACE: normal; WORD-SPACING: 0px; TEXT-TRANSFORM: none; FONT-WEIGHT: 400; COLOR: rgb(0,0,0); FONT-STYLE: normal; ORPHANS: 2; WIDOWS: 2; LETTER-SPACING: normal; TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial'>
+<TABLE borderColor=#000000 cellPadding=7 width=453 border=1>
+<TBODY>
+<TR>
+<TD vAlign=top width="27%">Program code (or text)</TD>
+<TD vAlign=top width="73%"><SPAN class=extract>The program instructions to be executed. Note that it is not necessary for the processor to read the totality of a process into physical memory when a program is run, instead by a procedure known as ?dynamic paging? the next block of instructions is loaded as required and may be shared between processes</SPAN>.</TD></TR>
+<TR>
+<TD vAlign=top width="27%">Program data</TD>
+<TD vAlign=top width="73%"><SPAN class=extract>May be distinguished as initialised variables including external global and static variables, uninitialised variables (known as a bss area on Unix derivative systems). Data blocks are not shared between processes by default</SPAN>.</TD></TR>
+<TR>
+<TD vAlign=top width="27%">Stack</TD>
+<TD vAlign=top width="73%"><SPAN class=extract>A process will commonly have at least two last-in, first-out (LIFO) stacks, including a user stack for user mode and a kernel stack for kernel mode</SPAN>.</TD></TR>
+<TR>
+<TD vAlign=top width="27%">Process Control Block</TD>
+<TD vAlign=top width="73%"><SPAN class=extract>Information needed by the operating system to control the process</SPAN>.</TD></TR></TBODY></TABLE></CENTER>

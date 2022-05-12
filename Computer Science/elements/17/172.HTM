@@ -1,0 +1,24 @@
+<SPAN class=extract>This starts the handler software. 
+<P></P>
+<P>The handler must first save the rest of the interrupted process&#8217;s state &#8212; it needs to save the other registers before it changes them! The handler pushes the rest of the registers, including the current stack pointer, onto the stack using the x86 pushad instruction. </P>
+<P>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#22312;&#25191;&#34892;&#20043;&#21069;&#65292;&#24517;&#39035;&#20351;&#29992; `pusha` &#25351;&#20196;&#65292;&#23558;&#20313;&#19979;&#23492;&#23384;&#22120;&#20013;&#30340;&#25152;&#26377;&#20869;&#23481;&#37117;&#20445;&#23384;&#21040;&#20013;&#26029;&#26632;&#20013;</P>
+<P>&#36825;&#20854;&#20013;&#26368;&#29305;&#21035;&#30340;&#26159;&#23558;&#24403;&#21069;&#30340;&#26632;&#25351;&#38024;&#20063;&#35201;&#20445;&#23384;&#36827;&#21435;&#65288;&#23613;&#31649;&#24403;&#21069;&#26632;&#25351;&#38024;&#25351;&#21521;&#20013;&#26029;&#26632;&#65289;</P></SPAN>
+<HR>
+
+<CENTER>&nbsp;</CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left><B><SPAN class=extract>
+<P class=caption width=0><B>Figure&nbsp;2.12: </B>State of the system after the interrupt handler has started executing on the x86 architecture. The handler first saves the current state of the processor registers, since it may overwrite them. Note that this saves the stack pointer twice: first, the user stack pointer then the kernel stack pointer.</P>
+<P class=caption width=0>&#27880;&#24847;&#65292;&#30828;&#20214;&#24635;&#20849;&#20445;&#23384;&#20102;&#20004;&#27425;&#26632;&#25351;&#38024;&#65292;&#19968;&#27425;&#26159;&#23558;&#29992;&#25143;&#26632;&#25351;&#38024;&#20445;&#23384;&#20102;&#36827;&#21435;&#65292;&#21478;&#19968;&#27425;&#26159;&#23558;&#20013;&#26029;&#26632;&#25351;&#38024;&#20445;&#23384;&#20102;&#36827;&#21435;</P>
+<P class=caption width=0></SPAN></B>&nbsp;</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><SPAN class=extract>&nbsp;</P>
+<P>As Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4601512"}'>2.12</A> shows, at this point the kernel&#8217;s interrupt stack holds (1) the stack pointer, execution flags, and program counter saved by the hardware, (2) an error code or dummy value, and (3) a copy of all of the general registers (including the stack pointer but not the instruction pointer or eflags register).</P>
+<P>&#24635;&#30340;&#26469;&#35828;&#65292;&#20869;&#26680;&#25191;&#34892;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#20043;&#21069;&#65292;&#20445;&#23384;&#20102;&#20197;&#19979;&#19977;&#26679;&#19996;&#35199;&#65306;</P>
+<UL>
+<LI>&#19977;&#20010;&#20851;&#38190;&#23492;&#23384;&#22120;&#65307; 
+<LI>&#38169;&#35823;&#20195;&#30721;&#65288;&#25110;&#20887;&#20313;&#25968;&#25454;&#65289;&#65307; 
+<LI>&#25152;&#26377;&#36890;&#29992;&#23492;&#23384;&#22120;&#65288;&#21253;&#25324;&#26632;&#25351;&#38024;&#20294;&#19981;&#21253;&#25324;&#25351;&#20196;&#25351;&#38024;&#21644; `EFALGS`&#65289;<BR><BR></LI></UL></SPAN>

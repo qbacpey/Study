@@ -1,0 +1,192 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h2 class=chapter_name><I>Preface</I></H2></A><A id=Q1-1-3 name=Q1-1-3></A><A id=x1-3000 name=x1-3000>
+<H3 class=likesectionHead>Preface to the eBook Edition</H3></A>
+<P>Operating Systems: Principles and Practice is a textbook for a first course in undergraduate operating systems. In use at over 50 colleges and universities worldwide, this textbook provides: </P>
+<UL class=itemize1>
+<LI class=itemize>A path for students to understand high level concepts all the way down to working code. 
+<LI class=itemize>Extensive worked examples integrated throughout the text provide students concrete guidance for completing homework assignments. 
+<LI class=itemize>A focus on up-to-date industry technologies and practice</LI></UL>
+<P>The eBook edition is split into four volumes that together contain exactly the same material as the (2nd) print edition of Operating Systems: Principles and Practice, reformatted for various screen sizes. Each volume is self-contained and can be used as a standalone text, e.g., at schools that teach operating systems topics across multiple courses. </P>
+<UL class=itemize1>
+<LI class=itemize><B>Volume 1: Kernels and Processes.</B> This volume contains Chapters 1-3 of the print edition. We describe the essential steps needed to isolate programs to prevent buggy applications and computer viruses from crashing or taking control of your system. 
+<LI class=itemize><B>Volume 2: Concurrency.</B> This volume contains Chapters 4-7 of the print edition. We provide a concrete methodology for writing correct concurrent programs that is in widespread use in industry, and we explain the mechanisms for context switching and synchronization from fundamental concepts down to assembly code. 
+<LI class=itemize><B>Volume 3: Memory Management.</B> This volume contains Chapters 8-10 of the print edition. We explain both the theory and mechanisms behind 64-bit address space translation, demand paging, and virtual machines. 
+<LI class=itemize><B>Volume 4: Persistent Storage.</B> This volume contains Chapters 11-14 of the print edition. We explain the technologies underlying modern extent-based, journaling, and versioning file systems.</LI></UL>
+<P>A more detailed description of each chapter is given in the preface to the print edition. <A id=Q1-1-5 name=Q1-1-5></A></P><A id=x1-4000 name=x1-4000>
+<H3 class=likesectionHead>Preface to the Print Edition</H3></A><A id=Q1-1-7 name=Q1-1-7></A><A id=x1-5000 name=x1-5000>
+<H3 class=likesectionHead>Why We Wrote This Book</H3></A>
+<P>Many of our students tell us that operating systems was the best course they took as an undergraduate and also the most important for their careers. We are not alone &#8212; many of our colleagues report receiving similar feedback from their students. </P>
+<P>Part of the excitement is that the core ideas in a modern operating system &#8212; protection, concurrency, virtualization, resource allocation, and reliable storage &#8212; have become widely applied throughout computer science, not just operating system kernels. Whether you get a job at Facebook, Google, Microsoft, or any other leading-edge technology company, it is impossible to build resilient, secure, and flexible computer systems without the ability to apply operating systems concepts in a variety of settings. In a modern world, nearly everything a user does is distributed, nearly every computer is multi-core, security threats abound, and many applications such as web browsers have become mini-operating systems in their own right. </P>
+<P>It should be no surprise that for many computer science students, an undergraduate operating systems class has become a <EM>de facto</EM> requirement: a ticket to an internship and eventually to a full-time position. </P>
+<P>Unfortunately, many operating systems textbooks are still stuck in the past, failing to keep pace with rapid technological change. Several widely-used books were initially written in the mid-1980&#8217;s, and they often act as if technology stopped at that point. Even when new topics are added, they are treated as an afterthought, without pruning material that has become less important. The result are textbooks that are very long, very expensive, and yet fail to provide students more than a superficial understanding of the material. </P>
+<P>Our view is that operating systems have changed dramatically over the past twenty years, and that justifies a fresh look at both <EM>how</EM> the material is taught and <EM>what</EM> is taught. The pace of innovation in operating systems has, if anything, increased over the past few years, with the introduction of the iOS and Android operating systems for smartphones, the shift to multicore computers, and the advent of cloud computing. </P>
+<P>To prepare students for this new world, we believe students need three things to succeed at understanding operating systems at a deep level: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Concepts and code.</B> We believe it is important to teach students both <EM>principles</EM> and <EM>practice</EM>, concepts and implementation, rather than either alone. This textbook takes concepts all the way down to the level of working code, e.g., how a context switch works in assembly code. In our experience, this is the only way students will really understand and master the material. All of the code in this book is available from the author&#8217;s web site, ospp.washington.edu. </P>
+<LI class=itemize>
+<P><B>Extensive worked examples.</B> In our view, students need to be able to apply concepts in practice. To that end, we have integrated a large number of example exercises, along with solutions, throughout the text. We uses these exercises extensively in our own lectures, and we have found them essential to challenging students to go beyond a superficial understanding. </P>
+<LI class=itemize>
+<P><B>Industry practice.</B> To show students how to apply operating systems concepts in a variety of settings, we use detailed, concrete examples from Facebook, Google, Microsoft, Apple, and other leading-edge technology companies throughout the textbook. Because operating systems concepts are important in a wide range of computer systems, we take these examples not only from traditional operating systems like Linux, Windows, and OS&nbsp;X but also from other systems that need to solve problems of protection, concurrency, virtualization, resource allocation, and reliable storage like databases, web browsers, web servers, mobile applications, and search engines. </P></LI></UL>
+<P>Taking a fresh perspective on what students need to know to apply operating systems concepts in practice has led us to innovate in every major topic covered in an undergraduate-level course: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Kernels and Processes.</B> The safe execution of untrusted code has become central to many types of computer systems, from web browsers to virtual machines to operating systems. Yet existing textbooks treat protection as a side effect of UNIX processes, as if they are synonyms. Instead, we start from first principles: what are the minimum requirements for process isolation, how can systems implement process isolation efficiently, and what do students need to know to implement functions correctly when the caller is potentially malicious? </P>
+<LI class=itemize>
+<P><B>Concurrency.</B> With the advent of multi-core architectures, most students today will spend much of their careers writing concurrent code. Existing textbooks provide a blizzard of concurrency alternatives, most of which were abandoned decades ago as impractical. Instead, we focus on providing students a <EM>single</EM> methodology based on Mesa monitors that will enable students to write correct concurrent programs &#8212; a methodology that is by far the dominant approach used in industry. </P>
+<LI class=itemize>
+<P><B>Memory Management.</B> Even as demand-paging has become less important, virtualization has become even more important to modern computer systems. We provide a deep treatment of address translation hardware, sparse address spaces, TLBs, and on-chip caches. We then use those concepts as a springboard for describing virtual machines and related concepts such as checkpointing and copy-on-write. </P>
+<LI class=itemize>
+<P><B>Persistent Storage.</B> Reliable storage in the presence of failures is central to the design of most computer systems. Existing textbooks survey the history of file systems, spending most of their time ad hoc approaches to failure recovery and de-fragmentation. Yet no modern file systems still use those ad hoc approaches. Instead, our focus is on how file systems use extents, journaling, copy-on-write, and RAID to achieve both high performance and high reliability. </P></LI></UL><A id=Q1-1-9 name=Q1-1-9></A><A id=x1-6000 name=x1-6000>
+<H3 class=likesectionHead>Intended Audience</H3></A>
+<P>Operating Systems: Principles and Practice is a textbook for a first course in undergraduate operating systems. We believe operating systems should be taken as early as possible in an undergraduate&#8217;s course of study; many students use the course as a springboard to an internship and a career. To that end, we have designed the textbook to assume minimal pre-requisites: specifically, students should have taken a data structures course and one on computer organization. The code examples are written in a combination of x86 assembly, C, and C++. In particular, we have designed the book to interface well with the Bryant and O&#8217;Halloran textbook. We review and cover in much more depth the material from the second half of that book. </P>
+<P>We should note what this textbook is <EM>not</EM>: it is not intended to teach the API or internals of any specific operating system, such as Linux, Android, Windows 8, OS X, or iOS. We use many concrete examples from these systems, but our focus is on the shared problems these systems face and the technologies these systems use to solve those problems. <A id=Q1-1-11 name=Q1-1-11></A></P><A id=x1-7000 name=x1-7000>
+<H3 class=likesectionHead>A Guide to Instructors</H3></A>
+<P>One of our goals is enable instructors to choose an appropriate level of depth for each course topic. Each chapter begins at a conceptual level, with implementation details and the more advanced material towards the end. The more advanced material can be omitted without compromising the ability of students to follow later material. No single-quarter or single-semester course is likely to be able to cover every topic we have included, but we think it is a good thing for students to come away from an operating systems course with an appreciation that there is <EM>always</EM> more to learn. </P>
+<P>For each topic, we attempt to convey it at three levels: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>How to reason about systems.</B> We describe core systems concepts, such as protection, concurrency, resource scheduling, virtualization, and storage, and we provide practice applying these concepts in various situations. In our view, this provides the biggest long-term payoff to students, as they are likely to need to apply these concepts in their work throughout their career, almost regardless of what project they end up working on. </P>
+<LI class=itemize>
+<P><B>Power tools.</B> We introduce students to a number of abstractions that they can apply in their work in industry immediately after graduation, and that we expect will continue to be useful for decades such as sandboxing, protected procedure calls, threads, locks, condition variables, caching, checkpointing, and transactions. </P>
+<LI class=itemize>
+<P><B>Details of specific operating systems.</B> We include numerous examples of how different operating systems work in practice. However, this material changes rapidly, and there is an order of magnitude more material than can be covered in a single semester-length course. The purpose of these examples is to illustrate how to use the operating systems principles and power tools to solve concrete problems. We do not attempt to provide a comprehensive description of Linux, OS&nbsp;X, or any other particular operating system.</P></LI></UL>
+<P>The book is divided into five parts: an introduction (Chapter 1), kernels and processes (Chapters 2-3), concurrency, synchronization, and scheduling (Chapters 4-7), memory management (Chapters 8-10), and persistent storage (Chapters 11-14). </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Introduction.</B> The goal of Chapter 1 is to introduce the recurring themes found in the later chapters. We define some common terms, and we provide a bit of the history of the development of operating systems. </P>
+<LI class=itemize>
+<P><B>The Kernel Abstraction.</B> Chapter 2 covers kernel-based process protection &#8212; the concept and implementation of executing a user program with restricted privileges. Given the increasing importance of computer security issues, we believe protected execution and safe transfer across privilege levels are worth treating in depth. We have broken the description into sections, to allow instructors to choose either a quick introduction to the concepts (up through Section 2.3), or a full treatment of the kernel implementation details down to the level of interrupt handlers. Some instructors start with concurrency, and cover kernels and kernel protection afterwards. While our textbook can be used that way, we have found that students benefit from a basic understanding of the role of operating systems in executing user programs, before introducing concurrency. </P>
+<LI class=itemize>
+<P><B>The Programming Interface.</B> Chapter 3 is intended as an impedance match for students of differing backgrounds. Depending on student background, it can be skipped or covered in depth. The chapter covers the operating system from a programmer&#8217;s perspective: process creation and management, device-independent input/output, interprocess communication, and network sockets. Our goal is that students should understand at a detailed level what happens when a user clicks a link in a web browser, as the request is transferred through operating system kernels and user space processes at the client, server, and back again. This chapter also covers the organization of the operating system itself: how device drivers and the hardware abstraction layer work in a modern operating system; the difference between a monolithic and a microkernel operating system; and how policy and mechanism are separated in modern operating systems. </P>
+<LI class=itemize>
+<P><B>Concurrency and Threads.</B> Chapter 4 motivates and explains the concept of threads. Because of the increasing importance of concurrent programming, and its integration with modern programming languages like Java, many students have been introduced to multi-threaded programming in an earlier class. This is a bit dangerous, as students at this stage are prone to writing programs with race conditions, problems that may or may not be discovered with testing. Thus, the goal of this chapter is to provide a solid conceptual framework for understanding the semantics of concurrency, as well as how concurrent threads are implemented in both the operating system kernel and in user-level libraries. Instructors needing to go more quickly can omit these implementation details. </P>
+<LI class=itemize>
+<P><B>Synchronization.</B> Chapter 5 discusses the synchronization of multi-threaded programs, a central part of all operating systems and increasingly important in many other contexts. Our approach is to describe one effective method for structuring concurrent programs (based on Mesa monitors), rather than to attempt to cover several different approaches. In our view, it is more important for students to master one methodology. Monitors are a particularly robust and simple one, capable of implementing most concurrent programs efficiently. The implementation of synchronization primitives should be included if there is time, so students see that there is no magic. </P>
+<LI class=itemize>
+<P><B>Multi-Object Synchronization.</B> Chapter 6 discusses advanced topics in concurrency &#8212; specifically, the twin challenges of multiprocessor lock contention and deadlock. This material is increasingly important for students working on multicore systems, but some courses may not have time to cover it in detail. </P>
+<LI class=itemize>
+<P><B>Scheduling.</B> This chapter covers the concepts of resource allocation in the specific context of processor scheduling. With the advent of data center computing and multicore architectures, the principles and practice of resource allocation have renewed importance. After a quick tour through the tradeoffs between response time and throughput for uniprocessor scheduling, the chapter covers a set of more advanced topics in affinity and multiprocessor scheduling, power-aware and deadline scheduling, as well as basic queueing theory and overload management. We conclude these topics by walking students through a case study of server-side load management. </P>
+<LI class=itemize>
+<P><B>Address Translation.</B> Chapter 8 explains mechanisms for hardware and software address translation. The first part of the chapter covers how hardware and operating systems cooperate to provide flexible, sparse address spaces through multi-level segmentation and paging. We then describe how to make memory management efficient with translation lookaside buffers (TLBs) and virtually addressed caches. We consider how to keep TLBs consistent when the operating system makes changes to its page tables. We conclude with a discussion of modern software-based protection mechanisms such as those found in the Microsoft Common Language Runtime and Google&#8217;s Native Client. </P>
+<LI class=itemize>
+<P><B>Caching and Virtual Memory.</B> Caches are central to many different types of computer systems. Most students will have seen the concept of a cache in an earlier class on machine structures. Thus, our goal is to cover the theory and implementation of caches: when they work and when they do not, as well as how they are implemented in hardware and software. We then show how these ideas are applied in the context of memory-mapped files and demand-paged virtual memory. </P>
+<LI class=itemize>
+<P><B>Advanced Memory Management.</B> Address translation is a powerful tool in system design, and we show how it can be used for zero copy I/O, virtual machines, process checkpointing, and recoverable virtual memory. As this is more advanced material, it can be skipped by those classes pressed for time. </P>
+<LI class=itemize>
+<P><B>File Systems: Introduction and Overview.</B> Chapter 11 frames the file system portion of the book, starting top down with the challenges of providing a useful file abstraction to users. We then discuss the UNIX file system interface, the major internal elements inside a file system, and how disk device drivers are structured. </P>
+<LI class=itemize>
+<P><B>Storage Devices.</B> Chapter 12 surveys block storage hardware, specifically magnetic disks and flash memory. The last two decades have seen rapid change in storage technology affecting both application programmers and operating systems designers; this chapter provides a snapshot for students, as a building block for the next two chapters. If students have previously seen this material, this chapter can be skipped. </P>
+<LI class=itemize>
+<P><B>Files and Directories.</B> Chapter 13 discusses file system layout on disk. Rather than survey all possible file layouts &#8212; something that changes rapidly over time &#8212; we use file systems as a concrete example of mapping complex data structures onto block storage devices. </P>
+<LI class=itemize>
+<P><B>Reliable Storage.</B> Chapter 14 explains the concept and implementation of reliable storage, using file systems as a concrete example. Starting with the ad hoc techniques used in early file systems, the chapter explains checkpointing and write ahead logging as alternate implementation strategies for building reliable storage, and it discusses how redundancy such as checksums and replication are used to improve reliability and availability.</P></LI></UL>
+<P>We welcome and encourage suggestions for how to improve the presentation of the material; please send any comments to the publisher&#8217;s website, suggestions@recursivebooks.com. <A id=Q1-1-13 name=Q1-1-13></A></P><A id=x1-8000 name=x1-8000>
+<H3 class=likesectionHead>Acknowledgements</H3></A>
+<P>We have been incredibly fortunate to have the help of a large number of people in the conception, writing, editing, and production of this book. </P>
+<P>We started on the journey of writing this book over dinner at the USENIX NSDI conference in 2010. At the time, we thought perhaps it would take us the summer to complete the first version and perhaps a year before we could declare ourselves done. We were very wrong! It is no exaggeration to say that it would have taken us a lot longer without the help we have received from the people we mention below. </P>
+<P>Perhaps most important have been our early adopters, who have given us enormously useful feedback as we have put together this edition: </P>
+<HR>
+
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Carnegie-Mellon </P></TD>
+<TD class=td align=left>
+<P class=tabp>David Eckhardt and Garth Gibson </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Clarkson </P></TD>
+<TD class=td align=left>
+<P class=tabp>Jeanna Matthews </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Cornell </P></TD>
+<TD class=td align=left>
+<P class=tabp>Gun Sirer </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>ETH Zurich </P></TD>
+<TD class=td align=left>
+<P class=tabp>Mothy Roscoe</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>New York University </P></TD>
+<TD class=td align=left>
+<P class=tabp>Laskshmi Subramanian </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Princeton University </P></TD>
+<TD class=td align=left>
+<P class=tabp>Kai Li </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Saarland University </P></TD>
+<TD class=td align=left>
+<P class=tabp>Peter Druschel </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Stanford University </P></TD>
+<TD class=td align=left>
+<P class=tabp>John Ousterhout </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>University of California Riverside </P></TD>
+<TD class=td align=left>
+<P class=tabp>Harsha Madhyastha </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>University of California Santa Barbara </P></TD>
+<TD class=td align=left>
+<P class=tabp>Ben Zhao </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>University of Maryland </P></TD>
+<TD class=td align=left>
+<P class=tabp>Neil Spring </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>University of Michigan </P></TD>
+<TD class=td align=left>
+<P class=tabp>Pete Chen </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>University of Southern California </P></TD>
+<TD class=td align=left>
+<P class=tabp>Ramesh Govindan </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>University of Texas-Austin </P></TD>
+<TD class=td align=left>
+<P class=tabp>Lorenzo Alvisi </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Universtiy of Toronto </P></TD>
+<TD class=td align=left>
+<P class=tabp>Ding Yuan </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>University of Washington </P></TD>
+<TD class=td align=left>
+<P class=tabp>Gary Kimura and Ed Lazowska </P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>In developing our approach to teaching operating systems, both before we started writing and afterwards as we tried to put our thoughts to paper, we made extensive use of lecture notes and slides developed by other faculty. Of particular help were the materials created by Pete Chen, Peter Druschel, Steve Gribble, Eddie Kohler, John Ousterhout, Mothy Roscoe, and Geoff Voelker. We thank them all. </P>
+<P>Our illustrator for the second edition, Cameron Neat, has been a joy to work with. We would also like to thank Simon Peter for running the multiprocessor experiments introducing Chapter 6. </P>
+<P>We are also grateful to Lorenzo Alvisi, Adam Anderson, Pete Chen, Steve Gribble, Sam Hopkins, Ed Lazowska, Harsha Madhyastha, John Ousterhout, Mark Rich, Mothy Roscoe, Will Scott, Gun Sirer, Ion Stoica, Lakshmi Subramanian, and John Zahorjan for their helpful comments and suggestions as to how to improve the book. </P>
+<P>We thank Josh Berlin, Marla Dahlin, Rasit Eskicioglu, Sandy Kaplan, John Ousterhout, Whitney Schmidt, and Mike Walfish for helping us identify and correct grammatical or technical bugs in the text. </P>
+<P>We thank Jeff Dean, Garth Gibson, Mark Oskin, Simon Peter, Dave Probert, Amin Vahdat, and Mark Zbikowski for their help in explaining the internal workings of some of the commercial systems mentioned in this book. </P>
+<P>We would like to thank Dave Wetherall, Dan Weld, Mike Walfish, Dave Patterson, Olav Kvern, Dan Halperin, Armando Fox, Robin Briggs, Katya Anderson, Sandra Anderson, Lorenzo Alvisi, and William Adams for their help and advice on textbook economics and production. </P>
+<P>The Helen Riaboff Whiteley Center as well as Don and Jeanne Dahlin were kind enough to lend us a place to escape when we needed to get chapters written. </P>
+<P>Finally, we thank our families, our colleagues, and our students for supporting us in this larger-than-expected effort. </P>
+<P><A id=Q1-1-15 name=Q1-1-15></A><A id=Q1-1-16 name=Q1-1-16></A><A id=Q1-1-17 name=Q1-1-17></A><A id=Q1-1-18 name=Q1-1-18></A></P>
+<P>
+<DIV style="break-after: always; -webkit-column-break-after: always"></DIV><BR><BR><BR>
+<P></P>
+<P></P>
+<P></P>
+<H1 class=partHead>&nbsp;II<BR><A id=x1-9000II name=x1-9000II></A>Concurrency</H1>
+<P>
+<DIV style="break-after: always; -webkit-column-break-after: always"></DIV><BR><BR><BR>
+<P></P><A id=x1-100004 name=x1-100004>

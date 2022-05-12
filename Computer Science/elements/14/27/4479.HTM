@@ -1,0 +1,11 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Asynchronous I/O structure</SPAN></FONT> 
+<P></P>
+<P>&#8226; After I/O starts, control returns to user program without waiting for I/O completion. 
+<P><SPAN class=extract>&#24322;&#27493; IO &#25805;&#20316;&#20250;&#22312;&#25191;&#34892;&#31995;&#32479;&#35843;&#29992;&#20043;&#21518;&#31435;&#21051;&#36820;&#22238;</SPAN> 
+<P>&#8211; System call request to the operating system to allow user to wait for I/O completion. 
+<P><SPAN class=extract>&#24322;&#27493; IO &#32467;&#26500;&#24471;&#20197;&#23454;&#29616;&#30340;&#21069;&#25552;&#26159;&#26377;&#19968;&#20010;&#35774;&#22791;&#29366;&#24577;&#34920; </SPAN></P><SPAN class=extract>
+<P>&#8211; Device-status table contains entry for each I/O device indicating its type, address, and state. 
+<P>&#35774;&#22791;&#29366;&#24577;&#34920;&#20013;&#30340;&#34920;&#39033;&#20648;&#23384;&#20102;&#27599;&#20010; IO &#35774;&#22791;&#24403;&#21069;&#25152;&#22788;&#29366;&#24577;&#12289;&#22320;&#22336;&#20197;&#21450;&#31867;&#22411;&#20449;&#24687; </P></SPAN><SPAN class=extract>
+<P>&#8211; When interrupt, operating system indexes into I/O device table to determine device status and to modify table entry to include interrupt. 
+<P>&#27599;&#24403;&#30828;&#20214;&#20013;&#26029;&#21457;&#29983;&#26102;&#65292;OS &#37117;&#20250;&#22312; IO &#35774;&#22791;&#29366;&#24577;&#34920;&#20013;&#36827;&#34892;&#23547;&#22336;&#65292;&#20197;&#30830;&#23450;&#35774;&#22791;&#29366;&#24577;&#24182;&#20462;&#25913;&#29366;&#24577;&#34920;&#34920;&#39033;&#20197;&#21253;&#21547;&#20013;&#26029;</P>
+<P></SPAN>

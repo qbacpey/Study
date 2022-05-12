@@ -1,0 +1,43 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : </FONT></STRONG>
+<H4 class=subsectionHead>4.2.1 <A id=x1-140001 name=x1-140001></A>Running, Suspending, and Resuming Threads</H4>Threads provide the illusion of an infinite number of processors. How does the operating system implement this illusion? It must execute instructions from each thread so that each thread makes progress, but the underlying hardware has only a limited number of processors, and perhaps only one! 
+<P><SPAN class=extract>To map an arbitrary set of threads to a fixed set of processors, operating systems include a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:thread scheduler"}'>thread scheduler</A></EM> that can switch between threads that are running and those that are ready but not running.</SPAN> For example, in the previous Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100011"}'>4.1</A>, a scheduler might suspend thread 1 from processor 1, move it to the list of ready threads, and then resume thread 5 by moving it from the ready list to run on processor 1. </P>
+<P><SPAN class=extract>Switching between threads is transparent to the code being executed within each thread. The abstraction makes each thread appear to be a single stream of execution; this means the programmer can pay attention to the sequence of instruction within a thread and not whether or when that sequence may be (temporarily) suspended to let another thread run.</SPAN> </P>
+<P><SPAN class=extract>Threads thus provide an execution model in which <EM>each thread runs on a dedicated virtual processor with unpredictable and variable speed.</EM> From the point of view of a thread&#8217;s code, each instruction appears to execute immediately after the preceding one. However, the scheduler may suspend a thread between one instruction and the next and resume running it later. It is as if the thread were running on a processor that sometimes becomes very slow.</SPAN> <A id=x1-140013 name=x1-140013></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00390.gif" data-calibre-src="OEBPS/Images/image00390.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;4.3: </B>Three possible ways that a thread might execute, all of which are equivalent to the programmer.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-140013"}'>4.3</A> illustrates a programmer&#8217;s view of a simple program and three (of many) possible ways the program might be executed, depending on what the scheduler does. From the thread&#8217;s point of view, other than the speed of execution, the alternatives are equivalent. Indeed, the thread would typically be unaware of which of these (or other) executions actually occurs. <A id=x1-140024 name=x1-140024></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00391.gif" data-calibre-src="OEBPS/Images/image00391.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;4.4: </B>Some of the many possible ways that three threads might be interleaved at runtime.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><SPAN class=extract>How threads are scheduled affects a thread&#8217;s interleavings with other threads. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-140024"}'>4.4</A> shows some of the many possible interleavings of a program with three threads. Thread programmers should therefore not make any assumptions about the relative speed with which different threads execute.</SPAN> </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left><SPAN class=sidebar_name><B><I><SPAN class=extract>
+<P width=0><SPAN class=sidebar_name><B><I>Cooperative vs. preemptive multi-threading</I></B></SPAN> </P>
+<P>Although most thread systems include a scheduler that can &#8212; at least in principle &#8212; run any thread at any time, some systems provide the abstraction of <EM>cooperative threads</EM>. In these systems, a thread runs without interruption until it explicitly relinquishes control of the processor to another thread. An advantage of cooperative multi-threading is increased control over the interleavings among threads. For example, in most cooperative multi-threading systems, only one thread runs at a time, so while a thread is running, no other thread can run and affect the system&#8217;s state. </P>
+<P>Unfortunately, cooperative multi-threading has significant disadvantages. For example, a long-running thread can monopolize the processor, starving other threads and making the system&#8217;s user interface sluggish or non-responsive. Additionally, modern multiprocessor machines run multiple threads at a time, so one would still have to reason about the possible interactions between threads even if cooperative multi-threading were used. Thus, although cooperative multi-threading was used in some significant systems in the past, including early versions of Apple&#8217;s MacOS operating system, it is less often used today. </P>
+<P>The alternative we describe in this book is sometimes called <EM>preemptive multi-threading</EM> since running threads can be switched at any time. Whenever the book uses the term &#8220;multi-threading,&#8221; it means preemptive multi-threading unless we explicitly state otherwise.</P>
+<P width=0></SPAN></I></B></SPAN>&nbsp;</P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-14003r26 name=x1-14003r26></A>

@@ -1,0 +1,33 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : </FONT></STRONG><STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : </FONT></STRONG>
+<H3 class=sectionHead>4.6 Implementing Kernel Threads</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">So far, we have described the basic data structures and operation of threads. We now describe how to implement them. The specifics of the implementation vary depending on the context: </FONT><A id=x1-2300111 name=x1-2300111></A><FONT style="BACKGROUND-COLOR: #ffffff">
+<HR>
+</FONT>
+<P></P>
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00394.gif" data-calibre-src="OEBPS/Images/image00394.gif"></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;4.11: </B>A multi-threaded kernel with three kernel threads and two single-threaded user-level processes. Each kernel thread has its own TCB and its own stack. Each user process has a stack at user-level for executing user code and a kernel interrupt stack for executing interrupts and system calls.</FONT></P></TD></TR></TBODY></TABLE>
+<HR>
+<A id=x1-2300212 name=x1-2300212></A>
+<P></P>
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00395.gif" data-calibre-src="OEBPS/Images/image00395.gif"></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left><B><SPAN class=extract>
+<P class=caption width=0><B>Figure&nbsp;4.12: </B>A multi-threaded kernel with three kernel threads and two user-level processes, each with two threads. Each user-level thread has a user-level stack and an interrupt stack in the kernel for executing interrupts and system calls.</P>
+<P class=caption width=0></SPAN></B>&nbsp;</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Kernel threads.</B> The simplest case is implementing threads inside the operating system kernel, sharing one or more physical processors. <SPAN class=extract>A <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:kernel thread"}'>kernel thread</A></EM> executes kernel code and modifies kernel data structures.</SPAN> Almost all commercial operating systems today support kernel threads. </P>
+<LI class=itemize>
+<P><B>Kernel threads and single-threaded processes.</B> An operating system with kernel threads might also run some single-threaded user processes. As shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-2300111"}'>4.11</A>, these processes can invoke system calls that run concurrently with kernel threads inside the kernel. </P>
+<LI class=itemize>
+<P><B>Multi-threaded processes using kernel threads.</B> Most operating systems provide a set of library routines and system calls to allow applications to use multiple threads within a single user-level process. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-2300212"}'>4.12</A> illustrates this case. These threads execute user code and access user-level data structures. They also make system calls into the operating system kernel. For that, they need a kernel interrupt stack just like a normal single-threaded process. </P>
+<LI class=itemize>
+<P><B><SPAN class=extract><B>User-level threads.</B> To avoid having to make a system call for every thread operation, some systems support a model where user-level thread operations &#8212; create, yield, join, exit, and the synchronization routines described in Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-390005"}'>5</A> &#8212; are implemented entirely in a user-level library, without invoking the kernel</SPAN></B>.</P></LI></UL>
+<P>We first describe the implementation for the baseline case of kernel threads. In Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-280008"}'>4.8</A>, we explain how to extend the model to support application multi-threading implemented with kernel threads or with a user-level library. <A id=x1-23003r39 name=x1-23003r39></A>

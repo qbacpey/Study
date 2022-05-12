@@ -1,0 +1,31 @@
+<STRONG><FONT color=blue>: </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.4.5 Hardware Support for Saving and Restoring Registers</SPAN></FONT></H4>An interrupted process&#8217;s registers must be saved so that the process can be restarted exactly where it left off. Because the handler might change the values in those registers as it executes, the state must be saved <EM>before</EM> the handler runs. Because most instructions modify the contents of registers, the hardware typically provides special instructions to make it easier to save and restore user state. 
+<P><SPAN class=extract>&nbsp;</P>
+<P>To make this concrete, consider the x86 architecture. Rather than relying on handler software to do all the work, when an interrupt or trap occurs: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>If the processor is in user mode, the x86 pushes the interrupted process&#8217;s stack pointer onto the kernel&#8217;s interrupt stack and switches to the kernel stack. </P>
+<LI class=itemize>
+<P>The x86 pushes the interrupted process&#8217;s instruction pointer. </P>
+<LI class=itemize>
+<P>The x86 pushes the x86 <EM>processor status word</EM>. The processor status word includes control bits, such as whether the most recent arithmetic operation in the interrupted code resulted in a positive, negative, or zero value. This needs to be saved and restored for the correct behavior of any subsequent conditional branch instruction.</P></LI></UL>
+<P>The hardware saves the values for the stack pointer, program counter, and processor status word <EM>before</EM> jumping through the interrupt vector table to the interrupt handler. Once the handler starts running, these values will be those of the handler, not those of the interrupted process. </P></SPAN>
+<P><SPAN class=extract>Once the handler starts running, it can use the pushad (&#8220;push all double&#8221;) instruction to save the remaining registers onto the stack. This instruction saves all 32-bit x86 integer registers. On a 16-bit x86, pusha is used instead. Because the kernel does not typically perform floating point operations, those do not need to be saved unless the kernel switches to a different process</SPAN>. </P>
+<P><SPAN class=extract>The x86 architecture has complementary features for restoring state: a popad instruction to pop an array of integer register values off the stack into the registers and an iret (return from interrupt) instruction that loads a stack pointer, instruction pointer, and processor status word off of the stack into the appropriate processor registers</SPAN>. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Architectural support for fast mode switches</I></B></SPAN> </P>
+<P>Some processor architectures are able to execute user- and kernel-mode switches very efficiently, while other architectures are much slower at performing these switches. </P>
+<P>The SPARC architecture is in the first camp. SPARC defines a set of <EM>register windows</EM> that operate like a hardware stack. Each register window includes a full set of the registers defined by the SPARC instruction set. When the processor performs a procedure call, it shifts to a new window, so the compiler never needs to save and restore registers across procedure calls, making them quite fast. (At a deep enough level of recursion, the SPARC will run out of its register windows; it then takes an exception that saves half the windows and resumes execution. Another exception occurs when the processor pops its last window, allowing the kernel to reload the saved windows.) </P>
+<P>Mode switches can be quite fast on the SPARC. On a mode switch, the processor switches to a different register window. The kernel handler can then run, using the registers from the new window and not disturbing the values stored in the interrupted process&#8217;s copy of its registers. Unfortunately, this comes at a cost: switching between different processes is quite expensive on the SPARC, as the kernel needs to save and restore the entire register set of every active window. </P>
+<P>The Motorola 88000 was in the second camp. The 88000 was an early pipelined architecture; now, almost all modern computers are pipelined. For improved performance, pipelined architectures execute multiple instructions at the same time. For example, one instruction is being fetched while another is being decoded, a third is completing a floating point operation, and a fourth is finishing a store to memory. When an interrupt or processor exception occurred on the 88000, the pipeline operation was suspended, and the operating system kernel was required to save and restore the entire state of the pipeline to preserve transparency to user code. </P>
+<P><SPAN class=extract>Most modern processors with deep execution pipelines, such as the x86, instead provide <EM>precise interrupts</EM>: the hardware first completes all instructions that occur, in program order, before the interrupted instruction. The hardware annuls any instruction that occurs, in program order, after the interrupt or trap, even if the instruction is in progress when the processor detects the interrupt</SPAN>. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-45001r64 name=x1-45001r64></A><A id=x1-460005 name=x1-460005></A>

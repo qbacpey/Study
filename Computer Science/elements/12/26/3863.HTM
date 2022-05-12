@@ -1,0 +1,5 @@
+<B>EXAMPLE: </B>For the threadHello program, what is the minimum and maximum number of times that the main thread enters the READY&nbsp;state on a <EM>uniprocessor</EM>?
+<P></P>
+<P><SPAN class=extract>&#24403;&#32447;&#31243;&#24819;&#35201;&#21021;&#27425;&#36816;&#34892;&#26102;&#65292;&#23427;&#24517;&#39035;&#20808;&#36827;&#20837; READY &#29366;&#24577;&nbsp;</SPAN></P>
+<P></P>
+<P><B>ANSWER: </B>The main thread must go into the READY&nbsp;state when it is first created; otherwise, it would never be scheduled. On a uniprocessor, it must also give up the processor (e.g., due to a time slice or in thread_join) in order for its children threads to run. The children threads could then completely run before the main thread is re-scheduled. Once the children have finished, the main thread can run to completion. Thus, <B>the minimum number of times is two</B>

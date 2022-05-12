@@ -1,0 +1,16 @@
+<SPAN class=Keyword><B>call</B>,<SPAN>&nbsp;</SPAN><B>ret</B></SPAN><SPAN><SPAN>&nbsp;</SPAN>&#8212; Subroutine call and return</SPAN> </P>
+<P></P>
+<BLOCKQUOTE>These instructions implement a subroutine call and return. The<SPAN>&nbsp;</SPAN><SPAN class=Keyword>call</SPAN><SPAN>&nbsp;</SPAN>instruction first pushes the current code location onto the hardware supported stack in memory (see the<SPAN>&nbsp;</SPAN><SPAN class=Keyword>push</SPAN><SPAN>&nbsp;</SPAN>instruction for details), and then performs an unconditional jump to the code location indicated by the label operand. Unlike the simple jump instructions, the<SPAN>&nbsp;</SPAN><SPAN class=Keyword>call</SPAN><SPAN>&nbsp;</SPAN>instruction saves the location to return to when the subroutine completes. 
+<P>The<SPAN>&nbsp;</SPAN><SPAN class=Keyword>ret</SPAN><SPAN>&nbsp;</SPAN>instruction implements a subroutine return mechanism. This instruction first pops a code location off the hardware supported in-memory stack (see the<SPAN>&nbsp;</SPAN><SPAN class=Keyword>pop</SPAN><SPAN>&nbsp;</SPAN>instruction for details). It then performs an unconditional jump to the retrieved code location.
+<P><EM>Syntax</EM> 
+<P><SPAN class=Keyword>call &lt;label&gt;</SPAN> 
+<P><SPAN class=Keyword>ret</SPAN></P></BLOCKQUOTE><SPAN class=extract>
+<P>call &#21644; ret &#25152;&#25191;&#34892;&#30340;&#36339;&#36716;&#26159;&#20160;&#20040;&#36339;&#36716;&#65311;&#26080;&#26465;&#20214;&#36339;&#36716;</P>
+<P></SPAN><SPAN class=extract>&nbsp;</P>
+<P>call &#25191;&#34892;&#36339;&#36716;&#20043;&#21069;&#65292;&#39318;&#20808;&#20250;&#65311;&#23558;&#36820;&#22238;&#22320;&#22336;&#20445;&#23384;&#21040;&#29992;&#25143;&#26632;&#20013;</P>
+<P></SPAN><SPAN class=extract>&nbsp;</P>
+<P>ret &#25191;&#34892;&#36339;&#36716;&#20043;&#21069;&#65292;&#39318;&#20808;&#20250;&#65311;&#23558;&#36820;&#22238;&#22320;&#22336;&#20174;&#29992;&#25143;&#26632;&#20013;&#24377;&#20986;</P>
+<P></SPAN><SPAN class=extract>&nbsp;</P>
+<P>&#22914;&#26524;&#25105;&#20204;&#24819;&#20174;&#20989;&#25968;&#20013;&#36820;&#22238;&#65292;&#21487;&#20197;&#25191;&#34892;&#20160;&#20040;&#25351;&#20196;&#65311;ret</P>
+<P></SPAN><SPAN class=extract>&#22914;&#26524;&#25105;&#20204;&#24819;&#35843;&#29992;&#20989;&#25968;&#65292;&#21487;&#20197;&#25191;&#34892;&#20160;&#20040;&#25351;&#20196;&#65311;call
+<P></SPAN>

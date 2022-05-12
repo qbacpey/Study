@@ -1,0 +1,5 @@
+This starts the handler software. 
+<P></P>
+<P>The handler must first save the rest of the interrupted process&#8217;s state &#8212; it needs to save the other registers before it changes them! The handler pushes the rest of the registers, including the current stack pointer, onto the stack using the x86 pushad instruction. </P><SPAN class=clozed><SPAN class=extract>
+<P><SPAN class=clozed>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#22312;&#25191;&#34892;&#20854;&#20195;&#30721;&#20043;&#21069;&#65292;&#24517;&#39035;&#20351;&#29992; `pusha` &#25351;&#20196;&#65292;&#23558;&#26410;&#34987;&#30828;&#20214;&#20445;&#23384;&#30340;&#36890;&#29992;&#23492;&#23384;&#22120;&#20013;&#20445;&#23384;&#21040;&#20013;&#26029;&#26632;&#20013;</SPAN></P>
+<P></SPAN></SPAN><SPAN class=extract>`pusha` &#25152;&#20445;&#23384;&#30340;&#26632;&#25351;&#38024;&#25351;&#21521;&#20869;&#26680;&#20013;&#26029;&#26632;<BR></SPAN>

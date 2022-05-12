@@ -1,0 +1,104 @@
+<STRONG><FONT color=blue>: </FONT></STRONG>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.6 Implementing Secure System Calls</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">The operating system kernel constructs a restricted environment for process execution to limit the impact of erroneous and malicious programs on system reliability. <SPAN class=extract>Any time a process needs to perform an action outside of its protection domain &#8212; to create a new process, read from the keyboard, or write a disk block &#8212; it must ask the operating system to perform the action on its behalf, via a system call</SPAN>. </FONT>
+<P>System calls provide the illusion that the operating system kernel is simply a set of library routines available to user programs. To the user program, the kernel provides a set of system call procedures, each with its own arguments and return values, that can be called like any other routine. The user program need not concern itself with how the kernel implements these calls. </P>
+<P><SPAN class=extract>Implementing system calls requires the operating system to define a <EM>calling convention</EM> &#8212; how to name system calls, pass arguments, and receive return values across the user/kernel boundary.</SPAN> <SPAN class=extract>Typically, the operating system uses the same convention as the compiler uses for normal procedures &#8212; some combination of passing arguments in registers and on the execution stack</SPAN>. </P>
+<P><SPAN class=extract>Once the arguments are in the correct format, the user-level program can issue a system call by executing the trap instruction to transfer control to the kernel</SPAN>. <SPAN class=extract>System calls, like interrupts and processor exceptions, share the same mechanism for switching between user and kernel mode. In fact, the x86 instruction to trap into the kernel on a system call is called int, for &#8220;software interrupt</SPAN>.&#8221; </P>
+<P><SPAN class=extract>Inside the kernel, a procedure implements each system call. This procedure behaves exactly as if the call was made from within the kernel but with one notable difference: the kernel must implement its system calls in a way that protects itself from all errors and attacks that might be launched by the misuse of the interface.</SPAN> Of course, most applications will use the interface correctly! <SPAN class=extract>But errors in an application program must not crash the kernel, and a computer virus must not be able to use the system call interface to take control of the kernel.</SPAN> One can think of this as an extreme version of defensive programming: the kernel should always assume that the parameters passed to a system call are intentionally designed to be as malicious as possible. </P>
+<P><SPAN class=extract>We bridge these two views &#8212; the user program calling the system call, and the kernel implementing the system call &#8212; with a pair of stubs. A <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:pair of stubs"}'>pair of stubs</A></EM> is a pair of procedures that mediate between two environments, in this case between the user program and the kernel</SPAN>. <SPAN class=extract>Stubs also mediate procedure calls between computers in a distributed system</SPAN>. <A id=x1-4700113 name=x1-4700113></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00201.gif" data-calibre-src="OEBPS/Images/image00201.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left><B><SPAN class=extract>
+<P class=caption width=0><B>Figure&nbsp;2.13: </B>A pair of stubs mediates between the user-level caller and the kernel&#8217;s implementation of system calls. The code is for the file_open system call; other calls have their own stubs. (1) The user process makes a normal procedure call to a stub linked with the process. (2) The stub executes the trap instruction. This transfers control to the kernel trap handler. The trap handler copies and checks its arguments and then (3) calls a routine to do the operation. Once the operation completes, (4) the code returns to the trap handler, which copies the return value into user memory and (5) resumes the user stub immediately after the trap. (6) The user stub returns to the user-level caller.</P>
+<P class=caption width=0></SPAN></B>&nbsp;</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><SPAN class=extract>&nbsp;</P>
+<P>Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4700113"}'>2.13</A> illustrates the sequence of steps involved in a system call: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-47003x1 name=x1-47003x1></A>
+<P>The user program calls the user stub in the normal way, oblivious to the fact the implementation of the procedure is in fact in the kernel. </P>
+<LI class=enumerate><A id=x1-47005x2 name=x1-47005x2></A>
+<P>The user stub fills in the code for the system call and executes the trap instruction. </P>
+<LI class=enumerate><A id=x1-47007x3 name=x1-47007x3></A>
+<P>The hardware transfers control to the kernel, vectoring to the system call handler. The handler acts as a stub on the kernel side, copying and checking arguments and then calling the kernel implementation of system call. </P>
+<LI class=enumerate><A id=x1-47009x4 name=x1-47009x4></A>
+<P>After the system call completes, it returns to the handler. </P>
+<LI class=enumerate><A id=x1-47011x5 name=x1-47011x5></A>
+<P>The handler returns to user level at the next instruction in the stub. </P>
+<LI class=enumerate><A id=x1-47013x6 name=x1-47013x6></A>
+<P>The stub returns to the caller.</P></LI></OL></SPAN><A id=x1-4701414 name=x1-4701414></A>
+<HR>
+<PRE class=code><FONT size=2>&nbsp;//&nbsp;We&nbsp;assume&nbsp;that&nbsp;the&nbsp;caller&nbsp;put&nbsp;the&nbsp;filename&nbsp;onto&nbsp;the&nbsp;stack,
+       //&nbsp;using&nbsp;the&nbsp;standard&nbsp;calling&nbsp;convention&nbsp;for&nbsp;the&nbsp;x86.&nbsp;
+      &nbsp;open:
+&nbsp;      //&nbsp;Put&nbsp;the&nbsp;code&nbsp;for&nbsp;the&nbsp;system&nbsp;call&nbsp;we&nbsp;want&nbsp;into&nbsp;%eax.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  movl&nbsp;#SysCallOpen,&nbsp;%eax&nbsp;
+&nbsp;      //&nbsp;Trap&nbsp;into&nbsp;the&nbsp;kernel.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  int&nbsp;#TrapCode&nbsp;
+      &nbsp;//&nbsp;Return&nbsp;to&nbsp;the&nbsp;caller;&nbsp;the&nbsp;kernel&nbsp;puts&nbsp;the&nbsp;return&nbsp;value&nbsp;in&nbsp;%eax.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  ret</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.14: </B>User-level library stub for the file system open system call for the x86 processor. SysCallOpen is the code for the specific system call to run. TrapCode is the index into the x86 interrupt vector table for the system call handler.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>We next describe these steps in more detail. Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4701414"}'>2.14</A> illustrates the behavior of the user-level stub for the x86. <SPAN class=extract>The operating system provides a library routine for each system call that takes its arguments, reformats them according to the calling convention, and executes a trap instruction.</SPAN> When the kernel returns, the stub returns the result provided by the kernel. Of course, the user program need not use the library routine &#8212; it is free to trap directly to the kernel; in turn, the kernel must protect itself from misbehaving programs that do not format arguments correctly. </P>
+<P><SPAN class=extract>The system call calling convention is arbitrary. In Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4701414"}'>2.14</A>, the code passes its arguments on the user stack, storing the system call code in the register %eax.</SPAN> <SPAN class=extract>The return value comes back in %eax, so there is no work to do on the return. </SPAN></P>
+<P><SPAN class=extract></SPAN><SPAN class=extract>The int instruction saves the program counter, stack pointer, and eflags on the kernel stack before jumping to the system call handler through the interrupt vector table. The kernel handler saves any additional registers that must be preserved across function calls. It then examines the system call integer code in %eax, verifies that it is a legal opcode, and calls the correct stub for that system call</SPAN>. </P><SPAN class=extract>
+<P>The kernel stub has four tasks: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Locate system call arguments.</B> Unlike a regular kernel procedure, the arguments to a system call are stored in user memory, typically on the user stack. Of course, the user stack pointer may be corrupted! Even if it is valid, it is a virtual, not a physical, address. If the system call has a pointer argument (e.g., a file name or buffer), the stub must check the address to verify it is a legal address within the user domain. If so, the stub converts it to a physical address so that the kernel can safely use it. In Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4701414"}'>2.14</A>, the pointer to the string representing the file name is stored on the stack; therefore, the stub must check and translate both the stack address and the string pointer. </P>
+<LI class=itemize>
+<P><B>Validate parameters.</B> The kernel must also protect itself against malicious or accidental errors in the format or content of its arguments. A file name is typically a zero-terminated string, but the kernel cannot trust the user code to always work correctly. The file name may be corrupted; it may point to memory outside the application&#8217;s region; it may start inside the application&#8217;s memory region but extend beyond it; the application may not have permission to access the file; the file may not exist; and so forth. If an error is detected, the kernel returns it to the user program; otherwise, the kernel performs the operation on the application&#8217;s behalf. </P>
+<LI class=itemize>
+<P><B>Copy before check.</B> In most cases, the kernel copies system call parameters into kernel memory before performing the necessary checks. The reason for this is to prevent the application from modifying the parameter <EM>after</EM> the stub checks the value, but <EM>before</EM> the parameter is used in the actual implementation of the routine. This is called a <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:time of check vs. time of use attack"}'>time of check vs. time of use</A></EM> (TOCTOU) attack. For example, the application could call open with a valid file name but, after the check, change the contents of the string to be a different name, such as a file containing another user&#8217;s private data. </P>
+<P>TOCTOU is not a new attack &#8212; the first occurrence dates from the mid-1960&#8217;s. While it might seem that a process necessarily stops whenever it does a system call, this is not always the case. For example, if one process shares a memory region with another process, then the two processes working together can launch a TOCTOU attack. Similarly, a parallel program running on two processors can launch a TOCTOU attack, where one processor traps into the kernel while the other modifies the string at precisely the right (or wrong) time. Note that the kernel needs to be correct in every case, while the attacker can try any number of times before succeeding. </P>
+<LI class=itemize>
+<P><B>Copy back any results.</B> For the user program to access the results of the system call, the stub must copy the result from the kernel into user memory. Again, the kernel must first check the user address and convert it to a kernel address before performing the copy</P></LI></UL>
+<P></SPAN>. </P>
+<P>Putting this together, Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-4701515"}'>2.15</A> shows the kernel stub for the system call open. In this case, the return value fits in a register so the stub can return directly; in other cases, such as a file read, the stub would need to copy data back into a user-level buffer. <A id=x1-4701515 name=x1-4701515></A></P><FONT size=2>
+<HR>
+</FONT>
+<P></P><PRE class=code><FONT size=2>int&nbsp;KernelStub_Open()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;*localCopy[MaxFileNameSize&nbsp;+&nbsp;1];&nbsp;
+&nbsp;//&nbsp;Check&nbsp;that&nbsp;the&nbsp;stack&nbsp;pointer&nbsp;is&nbsp;valid&nbsp;and&nbsp;that&nbsp;the&nbsp;arguments&nbsp;are&nbsp;stored&nbsp;at
+&nbsp;//&nbsp;valid&nbsp;addresses.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!validUserAddressRange(userStackPointer,&nbsp;userStackPointer&nbsp;+&nbsp;size&nbsp;of&nbsp;arguments))
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;error_code;
+&nbsp;&nbsp;//&nbsp;Fetch&nbsp;pointer&nbsp;to&nbsp;file&nbsp;name&nbsp;from&nbsp;user&nbsp;stack&nbsp;and&nbsp;convert&nbsp;it&nbsp;to&nbsp;a&nbsp;kernel&nbsp;pointer.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;filename&nbsp;=&nbsp;VirtualToKernel(userStackPointer);
+&nbsp;&nbsp;//&nbsp;Make&nbsp;a&nbsp;local&nbsp;copy&nbsp;of&nbsp;the&nbsp;filename.&nbsp;&nbsp;This&nbsp;prevents&nbsp;the&nbsp;application
+&nbsp;//&nbsp;from&nbsp;changing&nbsp;the&nbsp;name&nbsp;surreptitiously.
+&nbsp;//&nbsp;The&nbsp;string&nbsp;copy&nbsp;needs&nbsp;to&nbsp;check&nbsp;each&nbsp;address&nbsp;in&nbsp;the&nbsp;string&nbsp;before&nbsp;use&nbsp;to&nbsp;make&nbsp;sure
+&nbsp;//&nbsp;it&nbsp;is&nbsp;valid.
+&nbsp;//&nbsp;The&nbsp;string&nbsp;copy&nbsp;terminates&nbsp;after&nbsp;it&nbsp;copies&nbsp;MaxFileNameSize&nbsp;to&nbsp;ensure&nbsp;we
+&nbsp;//&nbsp;do&nbsp;not&nbsp;overwrite&nbsp;our&nbsp;internal&nbsp;buffer.
+&nbsp;   if&nbsp;(!VirtualToKernelStringCopy(filename,&nbsp;localCopy,&nbsp;MaxFileNameSize))
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;error_code;
+&nbsp;//&nbsp;Make&nbsp;sure&nbsp;the&nbsp;local&nbsp;copy&nbsp;of&nbsp;the&nbsp;file&nbsp;name&nbsp;is&nbsp;null&nbsp;terminated.&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;localCopy[MaxFileNameSize]&nbsp;=&nbsp;0;&nbsp;
+&nbsp;//&nbsp;Check&nbsp;if&nbsp;the&nbsp;user&nbsp;is&nbsp;permitted&nbsp;to&nbsp;access&nbsp;this&nbsp;file.&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!UserFileAccessPermitted(localCopy,&nbsp;current_process)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;error_code;&nbsp;
+&nbsp;//&nbsp;Finally,&nbsp;call&nbsp;the&nbsp;actual&nbsp;routine&nbsp;to&nbsp;open&nbsp;the&nbsp;file.&nbsp;&nbsp;This&nbsp;returns&nbsp;a&nbsp;file
+&nbsp;//&nbsp;handle&nbsp;on&nbsp;success,&nbsp;or&nbsp;an&nbsp;error&nbsp;code&nbsp;on&nbsp;failure.&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;Kernel_Open(localCopy);
+&nbsp;}</FONT>
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.15: </B>Stub routine for the open system call inside the kernel. The kernel must validate all parameters to a system call before it uses them.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P><SPAN class=extract>After the system call finishes, the handler pops any saved registers (except %eax)</SPAN> and uses the iret instruction to return to the user stub immediately after the trap, allowing the user stub to return to the user program. <A id=x1-47016r76 name=x1-47016r76></A></P><A id=x1-480007 name=x1-480007></A>

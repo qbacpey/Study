@@ -1,0 +1,231 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>5.3 Locks: Mutual Exclusion</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">A </FONT><EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:lock"}'>lock</A></EM><FONT style="BACKGROUND-COLOR: #ffffff"> is a synchronization variable that provides </FONT><EM>mutual exclusion</EM><FONT style="BACKGROUND-COLOR: #ffffff"> &#8212; when one thread holds a lock, no other thread can hold it (i.e., other threads are </FONT><EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:mutual exclusion"}'>excluded</A></EM><FONT style="BACKGROUND-COLOR: #ffffff">). A program associates each lock with some subset of shared state and requires a thread to hold the lock when accessing that state. Then, only one thread can access the shared state at a time. </FONT>
+<P>Mutual exclusion greatly simplifies reasoning about programs because a thread can perform an arbitrary set of operations while holding a lock, and those operations <EM>appear to be atomic</EM> to other threads. In particular, because a lock enforces mutual exclusion and threads must hold the lock to access shared state, no other thread can observe an intermediate state. Other threads can only observe the state left after the lock release. </P>
+<P><B>EXAMPLE: Locking to group multiple operations.</B> Consider, for example, a bank account object that includes a list of transactions and a total balance. To add a new transaction, we acquire the account&#8217;s lock, append the new transaction to the list, read the old balance, modify it, write the new balance, and release the lock. To query the balance and list of recent transactions, we acquire the account&#8217;s lock, read the recent transactions from the list, read the balance, and release the lock. Using locks in this way guarantees that one update or query completes before the next one starts. Every query always reflects the complete set of recent transactions. </P>
+<P>Another example of grouping is when printing output. Without locking, if two threads called printf at the same time, the individual characters of the two messages could be interleaved, garbling their meaning. Instead, on modern multi-threaded operating systems, printf uses a lock to ensure that the group of characters in each message prints as a unit. </P>
+<P>It is much easier to reason about interleavings of atomic groups of operations rather than interleavings of individual operations for two reasons. First, there are (obviously) fewer interleavings to consider. Reasoning about interleavings on a coarser-grained basis reduces the sheer number of cases to consider. Second, and more important, we can make each atomic group of operations correspond to the logical structure of the program, which allows us to reason about <EM>invariants</EM> not specific <EM>interleavings</EM>. </P>
+<P>In particular, shared objects usually have one lock guarding all of an object&#8217;s state. Each public method acquires the lock on entry and releases the lock on exit. Thus, reasoning about a shared class&#8217;s code is similar to reasoning about a traditional class&#8217;s code: we assume a set of invariants when a public method is called and re-establish those invariants before a public method returns. If we define our invariants well, we can then reason about each method independently. <A id=x1-49001r81 name=x1-49001r81></A></P>
+<H4 class=subsectionHead>5.3.1 <A id=x1-500001 name=x1-500001></A>Locks: API and Properties</H4>A lock enables mutual exclusion by providing two methods: Lock::acquire() and Lock::release(). These methods are defined as follows: 
+<UL class=itemize1>
+<LI class=itemize>
+<P>A lock can be in one of two states: BUSY&nbsp;or FREE. </P>
+<LI class=itemize>
+<P>A lock is initially in the FREE&nbsp;state. </P>
+<LI class=itemize>
+<P>Lock::acquire waits until the lock is FREE&nbsp;and then atomically makes the lock BUSY. </P>
+<P>Checking the state to see if it is FREE&nbsp;and setting the state to BUSY&nbsp;are together an <EM>atomic operation</EM>. Even if multiple threads try to acquire the lock, at most one thread will succeed. One thread observes that the lock is FREE&nbsp;and sets it to BUSY; the other threads just see that the lock is BUSY&nbsp;and wait. </P>
+<LI class=itemize>
+<P>Lock::release makes the lock FREE. If there are pending <TT>acquire</TT>&nbsp;operations, this state change causes one of them to proceed. </P></LI></UL>
+<P>We describe how to implement locks with these properties in Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-660007"}'>5.7</A>. Using locks makes solving the Too Much Milk problem trivial. Both threads run the following code: </P>
+<P><BR></P><PRE class=code>   &nbsp;lock.acquire();
+   &nbsp;if&nbsp;(milk&nbsp;==&nbsp;0)&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;if&nbsp;no&nbsp;milk
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milk++;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;buy&nbsp;milk
+   &nbsp;}
+   &nbsp;lock.release();</PRE><BR>
+<P><B>EXAMPLE: </B>Many routines in an operating system kernel need to allocate and de-allocate memory blocks. Assuming you are given the code for a single-threaded kernel memory allocator, explain how to implement a thread-safe memory allocator. </P>
+<P><B>ANSWER: </B>Using C malloc and free as an example, we can convert them to be thread-safe by acquiring a lock before accessing the heap, and releasing it after the block has been allocated or freed. Since malloc and free read and modify the same data structures, it is essential to use the <EM>same</EM> lock in both procedures, heaplock. </P>
+<P><BR></P>
+<P></P><PRE class=code>&nbsp;char&nbsp;*malloc&nbsp;(int&nbsp;n)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;*p;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;heaplock.acquire();
+&nbsp;&nbsp;//&nbsp;Code&nbsp;for&nbsp;single-threaded&nbsp;malloc()
+&nbsp;&nbsp;//&nbsp;p&nbsp;=&nbsp;allocate&nbsp;block&nbsp;of&nbsp;memory
+&nbsp;&nbsp;//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;of&nbsp;size&nbsp;n.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;heaplock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;p;
+&nbsp;}
+ </PRE><PRE class=code>&nbsp;void&nbsp;free&nbsp;(char&nbsp;*p)&nbsp;{
+&nbsp;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;heaplock.acquire();
+&nbsp;&nbsp;//&nbsp;Code&nbsp;for&nbsp;single-threaded&nbsp;free()
+&nbsp;&nbsp;//&nbsp;Put&nbsp;p&nbsp;back&nbsp;on&nbsp;free&nbsp;list.
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;heaplock.release();
+&nbsp;
+&nbsp;}
+ </PRE>
+<P><BR>&#9633; </P>
+<P><B>Formal properties.</B> A lock can be defined more precisely as follows. A thread <EM>holds a lock</EM> if it has returned from a lock&#8217;s <TT>acquire</TT>&nbsp;method more often than it has returned from a lock&#8217;s <TT>release</TT>&nbsp;method. A thread <EM>is attempting to acquire</EM> a lock if it has called but not yet returned from a call to <TT>acquire</TT>&nbsp;on the lock. </P>
+<P>A lock should ensure the following three properties: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-50002x1 name=x1-50002x1></A>
+<P><B>Mutual Exclusion.</B> At most one thread holds the lock. </P>
+<LI class=enumerate><A id=x1-50004x2 name=x1-50004x2></A>
+<P><B>Progress.</B> If no thread holds the lock and any thread attempts to acquire the lock, then eventually some thread succeeds in acquiring the lock. </P>
+<LI class=enumerate><A id=x1-50006x3 name=x1-50006x3></A>
+<P><B>Bounded waiting.</B> If thread T attempts to acquire a lock, then there exists a bound on the number of times other threads can successfully acquire the lock before T does. </P></LI></OL>
+<P>Mutual exclusion is a safety property because locks prevent more than one thread from accessing shared state. </P>
+<P>Progress and bounded waiting are liveness properties. If a lock is FREE, <EM>some</EM> thread must be able to acquire it. Further, any <EM>particular</EM> thread that wants to acquire the lock must eventually succeed in doing so. </P>
+<P>If these definitions sound stilted, it is because we have carefully crafted them to avoid introducing subtle corner cases. For example, if a thread holding a lock never releases it, other threads cannot make progress, so we define the <EM>bounded waiting</EM> condition in terms of successful <TT>acquire</TT>&nbsp;operations. </P>
+<P><B>WARNING</B>: <B>Non-property: Thread ordering.</B> The <EM>bounded waiting</EM> property defined above guarantees that a thread will eventually get a chance to acquire the lock. However, it does not promise that waiting threads acquire the lock in FIFO order. Most implementations of locks that you will encounter &#8212; for example with POSIX threads &#8212; do not provide FIFO ordering. <A id=x1-50007r83 name=x1-50007r83></A></P>
+<H4 class=subsectionHead>5.3.2 <A id=x1-510002 name=x1-510002></A>Case Study: Thread-Safe Bounded Queue</H4>As in standard object-oriented programming, each shared object is an instance of a class that defines the class&#8217;s state and the methods that operate on that state. 
+<P>The class&#8217;s state includes both state variables (e.g., ints, floats, strings, arrays, and pointers) and synchronization variables (e.g., locks). Every time a class constructor produces another instance of a shared object, it allocates both a new lock and new instances of the state protected by that lock. </P>
+<P>A <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:bounded queue"}'>bounded queue</A></EM> is a queue with a fixed size limit on the number of items stored in the queue. Operating system kernels use bounded queues for managing interprocess communication, TCP and UDP sockets, and I/O requests. Because the kernel runs in a finite physical memory, the kernel must be designed to work properly with finite resources. For example, instead of a simple, infinite buffer between a producer and a consumer thread, the kernel will instead use a limited size buffer, or bounded queue. </P>
+<P>A <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:thread-safe bounded queue"}'>thread-safe bounded queue</A></EM> is a type of a bounded queue that is safe to call from multiple concurrent threads. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-510013"}'>5.3</A> gives an implementation; it lets any number of threads safely insert and remove items from the queue. As Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-510024"}'>5.4</A> illustrates, a program can allocate multiple such queues (e.g., queue1, queue2, and queue3), each of which includes its own lock and state variables. <A id=x1-510013 name=x1-510013></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;//&nbsp;Thread-safe&nbsp;queue&nbsp;interface
+&nbsp;
+&nbsp;const&nbsp;int&nbsp;MAX&nbsp;=&nbsp;10;
+&nbsp;
+&nbsp;class&nbsp;TSQueue&nbsp;{
+&nbsp;&nbsp;&nbsp;//&nbsp;Synchronization&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lock&nbsp;lock;
+&nbsp;
+&nbsp;&nbsp;&nbsp;//&nbsp;State&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;items[MAX];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;front;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;nextEmpty;
+&nbsp;
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TSQueue();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~TSQueue(){};
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;tryInsert(int&nbsp;item);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;tryRemove(int&nbsp;*item);
+&nbsp;};
+</PRE><PRE class=code>&nbsp;//&nbsp;Initialize&nbsp;the&nbsp;queue&nbsp;to&nbsp;empty
+&nbsp;//&nbsp;and&nbsp;the&nbsp;lock&nbsp;to&nbsp;free.
+&nbsp;TSQueue::TSQueue()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;front&nbsp;=&nbsp;nextEmpty&nbsp;=&nbsp;0;
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Try&nbsp;to&nbsp;insert&nbsp;an&nbsp;item.&nbsp;If&nbsp;the&nbsp;queue&nbsp;is
+&nbsp;//&nbsp;full,&nbsp;return&nbsp;false;&nbsp;otherwise&nbsp;return&nbsp;true.
+&nbsp;bool
+&nbsp;TSQueue::tryInsert(int&nbsp;item)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;success&nbsp;=&nbsp;false;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;((nextEmpty&nbsp;-&nbsp;front)&nbsp;&lt;&nbsp;MAX)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;items[nextEmpty&nbsp;%&nbsp;MAX]&nbsp;=&nbsp;item;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nextEmpty++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;success&nbsp;=&nbsp;true;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;success;
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Try&nbsp;to&nbsp;remove&nbsp;an&nbsp;item.&nbsp;If&nbsp;the&nbsp;queue&nbsp;is
+&nbsp;//&nbsp;empty,&nbsp;return&nbsp;false;&nbsp;otherwise&nbsp;return&nbsp;true.
+&nbsp;bool
+&nbsp;TSQueue::tryRemove(int&nbsp;*item)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;success&nbsp;=&nbsp;false;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(front&nbsp;&lt;&nbsp;nextEmpty)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*item&nbsp;=&nbsp;items[front&nbsp;%&nbsp;MAX];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;front++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;success&nbsp;=&nbsp;true;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;success;
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.3: </B>A thread-safe bounded queue. For implementation simplicity, we assume the queue stores integers (rather than arbitrary objects) and the total number of items stored is modest.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+<A id=x1-510024 name=x1-510024></A>
+<CENTER><img alt="" src="about:../Images/image00402.gif" data-calibre-src="OEBPS/Images/image00402.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.4: </B>Three shared objects, each an instance of class TSQueue.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>The queue stores only a fixed number, MAX, of items. When the queue is full, an insert request returns an error. Similarly, when the queue is empty, a remove request returns an error. Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540004"}'>5.4</A> shows how <EM>condition variables</EM> let the calling thread <EM>wait</EM> instead of returning an error. On insert, the thread waits until the queue has space to store the item and, on remove, it waits until the queue has at least one item queued before returning it. </P>
+<P>The TSQueue implementation defines a circular queue that stores data in a fixed size array, items[MAX]. The state variable, front is the next item in the queue to be removed, if any; nextEmpty is the next location for a new item, if any. To keep the example as simple as possible, only items of type int can be stored in and removed from the queue, and we assume the total number of items stored fits within a 64 bit integer. </P>
+<P>All of these variables are as they would be for a single-threaded version of this object. The lock allows tryInsert and tryRemove to atomically read and write multiple variables just as a single-threaded version would. </P>
+<P><B>EXAMPLE: </B>What constraints are true of TSQueue at the moment immediately after the lock is acquired? What constraints hold immediately before the lock is released? </P>
+<P><B>ANSWER: </B>Because the lock enforces mutual exclusion and is always held whenever a thread modifies a state variable, when the lock is acquired the object&#8217;s state variables must be either: (i) in the initial state or (ii) in the state left by a previous thread when it released the lock. These constraints are the same as for single-threaded code using a bounded queue: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>The total number of items ever inserted in the queue is nextEmpty. </P>
+<LI class=itemize>
+<P>The total number of items ever removed from the queue is front. </P>
+<LI class=itemize>
+<P>front &lt;= nextEmpty </P>
+<LI class=itemize>
+<P>The current number of items in the queue is nextEmpty - front. </P>
+<LI class=itemize>
+<P>nextEmpty - front &lt;= MAX</P></LI></UL>
+<P>The lock holder always re-establishes these constraints before releasing the lock. &#9633; </P>
+<P><B>EXAMPLE: </B>Are these constraints also true if the lock is not held? </P>
+<P><B>ANSWER: </B><B>No.</B> It seems intuitive that if the constraints hold immediately before the lock is released, then they must also hold immediately after the lock is released. However, this is not the case. In the meantime, some other thread may have acquired the lock and may be in the process of modifying the state variables. In general, if the lock is not held, one cannot say <EM>anything</EM> about the object&#8217;s state variables. &#9633; </P>
+<H5 class=subsubsectionHead><A id=x1-520002 name=x1-520002></A>Critical Sections</H5>A <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:critical section"}'>critical section</A></EM> is a sequence of code that atomically accesses shared state. By ensuring that a thread holds the object&#8217;s lock while executing any of its critical sections, we ensure that each critical section appears to execute atomically on its shared state. There is a critical section in each of the methods tryInsert and tryRemove. 
+<P>Notice two things: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Each class can define multiple methods that operate on the shared state defined by the class, so there may be <EM>multiple critical sections per class</EM>. However, for each instance of the class (i.e., for each object), only one thread holds the object&#8217;s lock at a time, so <EM>only one thread actively executes any of the critical sections per shared object instance.</EM> For the TSQueue class, if one thread calls queue1.tryInsert and another calls queue1.tryRemove, the insert occurs either before the remove or vice versa. </P>
+<LI class=itemize>
+<P>A program can create <EM>multiple instances of a class</EM>. Each instance is a shared object, and each shared object has its own lock. Thus, different threads may be active in the critical sections for different shared object instances. For the TSQueue class, if one thread calls queue1.tryInsert, another thread calls queue2.tryRemove, and a third thread calls queue3.tryInsert, all three threads may be simultaneously executing critical section code operating on <EM>different instances</EM> of the TSQueue class. </P></LI></UL>
+<H5 class=subsubsectionHead><A id=x1-530002 name=x1-530002></A>Using Shared Objects</H5>Shared objects are allocated in the same way as other objects. They can be dynamically allocated from the heap using malloc and new, or they can be statically allocated in global memory by declaring static variables in the program. 
+<P>Multiple threads must be able to access shared objects. If shared objects are global variables, then a thread&#8217;s code can refer to an object&#8217;s global name to reference it; the compiler computes the corresponding address. If shared objects are dynamically allocated, then each thread that uses an object needs a pointer or reference to it. </P>
+<P>Two common ways to provide a thread a pointer to a shared object are: (1) provide a pointer to the shared object when the thread is created, and (2) store references to shared objects in other shared objects (e.g., containers). For example, a program might have a global, shared (and synchronized!) hash table that threads can use to store and retrieve references to other shared objects. </P>
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-530015"}'>5.5</A> shows a simple program that creates three queues and then creates some threads that insert into these queues. It then removes 20 items from each queue and prints the values it removes. The initial main thread allocates the shared queues on the heap using new, and provides each worker thread a pointer to one of the shared queues. <A id=x1-530015 name=x1-530015></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;//&nbsp;TSQueueMain.cc
+&nbsp;//&nbsp;&nbsp;&nbsp;Test&nbsp;code&nbsp;for&nbsp;TSQueue.
+&nbsp;
+&nbsp;int&nbsp;main(int&nbsp;argc,&nbsp;char&nbsp;**argv)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TSQueue&nbsp;*queues[3];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sthread_t&nbsp;workers[3];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;i,&nbsp;j;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Start&nbsp;worker&nbsp;threads&nbsp;to&nbsp;insert.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;3;&nbsp;i++)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;queues[i]&nbsp;=&nbsp;new&nbsp;TSQueue();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_create_p(&amp;workers[i],
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;putSome,&nbsp;queues[i]);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Wait&nbsp;for&nbsp;some&nbsp;items&nbsp;to&nbsp;be&nbsp;put.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_join(workers[0]);
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Remove&nbsp;20&nbsp;items&nbsp;from&nbsp;each&nbsp;queue.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;3;&nbsp;i++)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("Queue&nbsp;%d:\n",&nbsp;i);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;testRemoval(&amp;queues[i]);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Insert&nbsp;50&nbsp;items&nbsp;into&nbsp;a&nbsp;queue.
+&nbsp;void&nbsp;*putSome(void&nbsp;*p)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TSQueue&nbsp;*queue&nbsp;=&nbsp;(TSQueue&nbsp;*)p;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;i;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;50;&nbsp;i++)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;queue-&gt;tryInsert(i);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;NULL;
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Remove&nbsp;20&nbsp;items&nbsp;from&nbsp;a&nbsp;queue.
+&nbsp;void&nbsp;testRemoval(TSQueue&nbsp;*queue)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;i,&nbsp;item;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;20;&nbsp;j++)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(queue-&gt;tryRemove(&amp;item))
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("Removed&nbsp;%d\n",&nbsp;item);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("Nothing&nbsp;there.\n");
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.5: </B>This code creates three TSQueue objects and then adds and removes some items from these queues. We use thread_create_p instead of thread_create so that we can pass to the newly created thread a pointer to the queue it should use.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P><B>WARNING</B>: <B>Put shared objects on the heap, not the stack.</B> While nothing prevents you from writing a program that allocates a shared object as an automatic variable in a procedure or method, you should not write programs that do this. The compiler allocates automatic variables (sometimes called &#8220;local variables&#8221;, with good reason) on the stack during procedure invocation. If one thread passes a pointer or reference to one of its automatic variables to another thread and later returns from the procedure where the automatic variable was allocated, then that second thread now has a pointer into a region of the first thread&#8217;s stack that may be used for other purposes. To prevent this error, a few garbage-collected languages, such as Google&#8217;s Go, automatically convert all automatic data to being heap-allocated if the data can be referenced outside of the procedure. </P>
+<P>You might be tempted to argue that, for a particular program, you know that the procedure will never return until all of the threads with which it is sharing an object are done using that object, and that therefore sharing one of the procedure&#8217;s local variables is safe. The problem with this argument is that the code may change over time, introducing a dangerous and subtle bug. When sharing dynamically allocated variables, it is best to stay in the habit of sharing variables only from the heap &#8212; and never sharing variables from the stack &#8212; across threads. <A id=x1-53002r82 name=x1-53002r82></A></P><A id=x1-540004 name=x1-540004>

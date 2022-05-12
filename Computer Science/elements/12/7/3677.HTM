@@ -1,0 +1,15 @@
+<SPAN class=Keyword>
+<P></P>
+<P><SPAN class=keyword><B>idiv</B></SPAN><SPAN>&nbsp;</SPAN>&#8212; Integer division</P>
+<BLOCKQUOTE>
+<P>The<SPAN>&nbsp;</SPAN><SPAN class=keyword>idiv</SPAN><SPAN>&nbsp;</SPAN>instruction divides the contents of the 64 bit integer EDX:EAX (constructed by viewing EDX as the most significant four bytes and EAX as the least significant four bytes) by the specified operand value.</P>
+<P><SPAN class=extract>idiv &#25351;&#20196;&#30340;&#34987;&#38500;&#25968;&#26159; EDX:EAX &#36825;&#20010;&#25340;&#25509;&#36215;&#26469;&#30340; 64 &#20301;&#23492;&#23384;&#22120;&#65292;&#38500;&#25968;&#26159;&#35813;&#25351;&#20196;&#30340;&#21442;&#25968;</SPAN></P>
+<P>&nbsp;The quotient result of the division is stored into EAX, while the remainder is placed in EDX.</P>
+<P><SPAN class=extract>idiv &#25351;&#20196;&#30340;&#32467;&#26524;&#20250;&#34987;&#20445;&#23384;&#21040; EAX &#23492;&#23384;&#22120;&#20013;&#65292;&#20313;&#25968;&#20250;&#34987;&#20445;&#23384;&#21040; EDX &#23492;&#23384;&#22120;&#20013;&nbsp;</SPAN></P>
+<P><EM>Syntax</EM> 
+<P><SPAN class=keyword>idiv &lt;reg32&gt;</SPAN> 
+<P><SPAN class=keyword>idiv &lt;mem&gt;</SPAN></P>
+<P><EM>Examples</EM></P>
+<DIV class=hanging><SPAN class=keyword><SPAN class=extract>
+<DIV class=hanging><SPAN class=keyword>idiv %ebx</SPAN><SPAN>&nbsp;</SPAN>&#8212; divide the contents of EDX:EAX by the contents of EBX. Place the quotient in EAX and the remainder in EDX.</DIV></SPAN></SPAN></DIV>
+<DIV class=hanging><SPAN class=keyword>idivw (%ebx)</SPAN><SPAN>&nbsp;</SPAN>&#8212; divide the contents of EDX:EAS by the 32-bit value stored at the memory location in EBX. Place the quotient in EAX and the remainder in EDX.</DIV></BLOCKQUOTE></SPAN>

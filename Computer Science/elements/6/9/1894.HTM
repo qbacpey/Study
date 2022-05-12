@@ -1,0 +1,103 @@
+<STRONG><FONT color=blue>3.1 Process Management : </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3.1 Process Management : 3.1.2 UNIX Process Management</SPAN></FONT></H4><SPAN class=extract>UNIX takes a different approach to process management, one that is complex in theory and simple in practice. UNIX splits CreateProcess in two steps, called fork and exec, illustrated in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-570014"}'>3.4</A></SPAN>. <A id=x1-570014 name=x1-570014></A>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00208.gif" data-calibre-src="OEBPS/Images/image00208.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B><SPAN class=extract><B>Figure&nbsp;3.4: </B>The operation of the UNIX fork and exec system calls. UNIX fork makes a copy of the parent process; UNIX exec changes the child process to run the new program</SPAN></B>.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX fork"}'><SPAN class=extract><EM>&nbsp;</EM></P>
+<P></A><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX fork"}'>UNIX fork</A><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX fork"}'> creates a complete copy of the parent process, with one key exception. (We need some way to distinguish between which copy is the parent and which is the child.) The child process sets up privileges, priorities, and I/O for the program that is about to be started, e.g., by closing some files, opening others, reducing its priority if it is to run in the background, etc. Because the child runs exactly the same code as the parent, it can be trusted to set up the context for the new program correctly. </P>
+<P>Once the context is set, the child process calls </A><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX exec"}'>UNIX exec</A><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX fork"}'>. UNIX exec brings the new executable image into memory and starts it running. It may seem wasteful to make a complete copy of the parent process, just to overwrite that copy when we bring in the new executable image into memory using exec. It turns out that fork and exec can be implemented efficiently, using a set of techniques we will describe in Chapter&nbsp;8. </P>
+<P>With this design, UNIX fork takes no arguments and returns an integer. UNIX exec takes two arguments (the name of the program to run and an array of arguments to pass to the program). This is in place of the ten parameters needed for CreateProcess. In part because of the simplicity of UNIX fork and exec, this interface has remained nearly unchanged since UNIX was designed in the early 70&#8217;s. (Although the interface has not changed, the word fork is now a bit ambiguous. It is used for creating a new copy of a UNIX process, and in thread systems for creating a new thread. To disambiguate, we will always use the term &#8220;UNIX fork&#8221; to refer to UNIX&#8217;s copy process system call.)</P>
+<P></SPAN></A>&nbsp;</P>
+<H5 class=subsubsectionHead><A id=x1-580002 name=x1-580002></A><SPAN class=extract>
+<H5 class=subsubsectionHead>UNIX fork</H5>The steps for implementing UNIX fork in the kernel are: 
+<UL class=itemize1>
+<LI class=itemize>
+<P>Create and initialize the process control block (PCB) in the kernel </P>
+<LI class=itemize>
+<P>Create a new address space </P>
+<LI class=itemize>
+<P>Initialize the address space with a copy of the entire contents of the address space of the parent </P>
+<LI class=itemize>
+<P>Inherit the execution context of the parent (e.g., any open files) </P>
+<LI class=itemize>
+<P>Inform the scheduler that the new process is ready to run</P></LI></UL>
+<P>A strange aspect of UNIX fork is that the system call returns <EM>twice</EM>: once to the parent and once to the child. To the parent, UNIX returns the process ID of the child; to the child, it returns zero indicating success. Just as if you made a clone of yourself, you would need some way to tell who was the clone and who was the original, UNIX uses the return value from fork to distinguish the two copies. Some sample code to call fork is given in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-580015"}'>3.5</A>. <A id=x1-580015 name=x1-580015></A></P>
+<HR>
+<PRE class=code>&nbsp;int&nbsp;child_pid&nbsp;=&nbsp;fork();
+&nbsp;
+&nbsp;if&nbsp;(child_pid&nbsp;==&nbsp;0)&nbsp;{&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;child&nbsp;process.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("I&nbsp;am&nbsp;process&nbsp;#%d\n",&nbsp;getpid());
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;}&nbsp;else&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;parent&nbsp;process.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;#%d\n",&nbsp;child_pid);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;}
+&nbsp;
+&nbsp;Possible&nbsp;output:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;495
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;process&nbsp;495
+&nbsp;
+&nbsp;Another&nbsp;less&nbsp;likely&nbsp;but&nbsp;still&nbsp;possible&nbsp;output:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;process&nbsp;456
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;456</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;3.5: </B>Example UNIX code to fork a process, and some possible outputs of running the code. getpid is a system call to get the current process&#8217;s ID.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>If we run the program in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-580015"}'>3.5</A>, what happens? If you have access to a UNIX system, you can try it and see for yourself. UNIX fork returns twice, once in the child, with a return value of zero, and once in the parent with a return value of the child&#8217;s process ID. However, we do not know whether the parent will run next or the child. The parent had been running, and so it is likely that it will reach its print statement first. However, a timer interrupt could intervene between when the parent forks the process and when it reaches the print statement, so that the processor is reassigned to the child. Or we could be running on a multicore system, where both the parent and child are running simultaneously. In either case, the child could print its output before the parent. We will talk in much more depth about the implications of different orderings of concurrent execution in the next chapter. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>UNIX fork and the Chrome Web browser</I></B></SPAN> </P>
+<P>Although UNIX fork is normally paired with a call to exec, in some cases UNIX fork is useful on its own. A particularly interesting example is in Google&#8217;s Chrome web browser. When the user clicks on a link, Chrome forks a process to fetch and render the web page at the link, in a new tab on the browser. The parent process continues to display the original referring web page, while the child process runs the same browser, but in its own address space and protection boundary. The motivation for this design is to isolate the new link, so that if the web site is infected with a virus, it will not infect the rest of the browser. Closing the infected browser tab will then remove the link and the virus from the system. </P>
+<P>Some security researchers take this a step further. They set up their browsers and email systems to create a new <EM>virtual machine</EM> for every new link, running a copy of the browser in each virtual machine; even if the web site has a virus that corrupts the guest operating system running in the virtual machine, the rest of the system will remain unaffected. In this case, closing the virtual machine cleans the system of the virus. </P>
+<P>Interestingly, on Windows, Google Chrome does not use CreateProcess to fork new copies of the browser on demand. The difficulty is that if Chrome is updated while Chrome is running, CreateProcess will create a copy of the new version, and that may not interoperate correctly with the old version. Instead, they create a pool of helper processes that wait in the background for new links to render. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV></SPAN></H5>
+<H5 class=subsubsectionHead><A id=x1-590002 name=x1-590002></A><SPAN class=extract>
+<H5 class=subsubsectionHead>UNIX exec and wait</H5>The UNIX system call exec completes the steps needed to start running a new program. The child process typically calls UNIX exec once it has returned from UNIX fork and configured the execution environment for the new process. We will describe more about how this works when we discuss UNIX pipes in the next section. 
+<P>UNIX exec does the following steps: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Load the program prog into the current address space. </P>
+<LI class=itemize>
+<P>Copy arguments args into memory in the address space. </P>
+<LI class=itemize>
+<P>Initialize the hardware context to start execution at &#8220;start.&#8221;</P></LI></UL>
+<P>Note that exec does not create a new process! </P>
+<P>On the other side, often the parent process needs to pause until the child process completes, e.g., if the next step depends on the output of the previous step. In the shell example we started the chapter with, we need to wait for the two compilations to finish before it is safe to start the linker. </P>
+<P>UNIX has a system call, naturally enough called <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX wait"}'>wait</A></EM>, that pauses the parent until the child finishes, crashes, or is terminated. Since the parent could have created many child processes, wait is parameterized with the process ID of the child. With wait, a shell can create a new process to perform some step of its instructions, and then pause for that step to complete before proceeding to the next step. It would be hard to build a usable shell without wait. </P>
+<P>However, the call to wait is optional in UNIX. For example, the Chrome browser does not need to wait for its forked clones to finish. Likewise, most UNIX shells have an option to run operations in the background, signified by appending &#8216;&amp;&#8217; to the command line. (As with fork, the word wait is now a bit ambiguous. It is used for pausing the current UNIX process to wait for another process to complete; it is also used in thread synchronization, for waiting on a condition variable. To disambiguate, we will always use the term &#8220;UNIX wait&#8221; to refer to UNIX&#8217;s wait system call. Oddly, waiting for a thread to complete is called &#8220;thread join&#8221;, even though it is most analogous to UNIX wait. Windows is simpler, with a single function called &#8220;WaitForSingleObject&#8221; that can wait for process completion, thread completion, or on a condition variable.) </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Kernel handles and garbage collection</I></B></SPAN> </P>
+<P>As we discussed in the previous chapter, when a UNIX process finishes, it calls the system call exit. Exit can release various resources associated with the process, such as the user stack, heap, and code segments. It must be careful, however, in how it garbage collects the process control block (PCB). Even though the child process has finished, if it deletes the PCB, then the parent process will be left with a dangling pointer if later on it calls UNIX wait. Of course, we don&#8217;t know for sure if the parent will ever call wait, so to be safe, the PCB can only be reclaimed when both the parent and the child have finished or crashed. </P>
+<P>Generalizing, both Windows and UNIX have various system calls that return a handle to some kernel object; these handles are used in later calls as an ID. The process ID returned by UNIX fork is used in later calls to UNIX wait; we will see below that UNIX open returns a file descriptor that is used in other system calls. It is important to realize that these handles are <EM>not</EM> pointers to kernel data structures; otherwise, an erroneous user program could cause havoc in the kernel by making system calls with fake handles. Rather, they are specific to the process and checked for validity on each use. </P>
+<P>Further, in both Windows and UNIX, handles are reference counted. Whenever the kernel returns a handle, it bumps a reference counter, and whenever the process releases a handle (or exits), the reference counter is decremented. UNIX fork sets the process ID reference count to two, one for the parent and one for the child. The underlying data structure, the PCB, is reclaimed only when the reference count goes to zero, that is, when both the parent and child terminate. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P>Finally, as we outlined in the previous chapter, UNIX provides a facility for one process to send another an instant notification, or upcall. In UNIX, the notification is sent by calling <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX signal"}'>signal</A></EM>. Signals are used for terminating an application, suspending it temporarily for debugging, resuming after a suspension, timer expiration, and a host of other reasons. In the default case, where the receiving application did not specify a signal handler, the kernel implements a standard one on its behalf.</P></SPAN><A id=x1-59001r95 name=x1-59001r95></A></H5><A id=x1-600002 name=x1-600002></A>

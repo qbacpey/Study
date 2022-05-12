@@ -1,0 +1,36 @@
+<STRONG><FONT color=blue>: </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.4.1 Interrupt Vector Table</SPAN></FONT></H4>When an interrupt, processor exception or system call trap occurs, the operating system must take different actions depending on whether the event is a divide-by-zero exception, a file read system call, or a timer interrupt. How does the processor know what code to run? <A id=x1-410018 name=x1-410018></A>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00196.gif" data-calibre-src="OEBPS/Images/image00196.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.8: </B>An interrupt vector table lists the kernel routines to handle various hardware interrupts, processor exceptions, and system calls.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><SPAN class=extract>&nbsp;</P>
+<P>As Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-410018"}'>2.8</A> illustrates, the processor has a special register that points to an area of kernel memory called the <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:interrupt vector table"}'>interrupt vector table</A></EM>. The interrupt vector table is an array of pointers, with each entry pointing to the first instruction of a different handler procedure in the kernel. An <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:interrupt handler"}'>interrupt handler</A></EM> is the term used for the procedure called by the kernel on an interrupt. </P>
+<P></SPAN><SPAN>&nbsp;</P>
+<P>The format of the interrupt vector table is processor-specific. <SPAN class=extract>On the x86, for example, interrupt vector table entries 0 - 31 are for different types of processor exceptions (such as divide-by-zero); entries 32 - 255 are for different types of interrupts (timer, keyboard, and so forth); and, by convention, entry 64 points to the system call trap handler</SPAN>. <SPAN class=extract>The hardware determines which hardware device caused the interrupt, whether the trap instruction was executed, or what exception condition occurred</SPAN>. Thus, the hardware can select the right entry from the interrupt vector table and invoke the appropriate handler. </P>
+<P>Some other processors have a smaller number of entry points, instead putting a code indicating the cause of the interrupt into a special hardware register. In that case, the operating system software uses the code to index into the interrupt vector table. </P>
+<P><STRONG>&nbsp;</STRONG></P>
+<P><STRONG>EXAMPLE: Why is the interrupt vector table stored in kernel rather than user memory? </STRONG></P>
+<P><STRONG>ANSWER: </STRONG>If the interrupt vector table could be modified by application code, the application could potentially hijack the network by directing all network interrupts to its own code. Similarly, the hardware register that points to the interrupt vector table must be a protected register that can be set only when in kernel mode.</P>
+<P></SPAN>&nbsp;&#9633; </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left><SPAN class=sidebar_name><SPAN class=extract>
+<P width=0><STRONG><EM><SPAN class=sidebar_name>Multiprocessors and interrupt routing</SPAN> </EM></STRONG></P>
+<P>On a multiprocessor, which of the various processors should take an interrupt? Some early multiprocessors dedicated a single processor (&#8220;processor 0") to handle all external interrupts. If an event required a change to what one of the other processors was doing, processor 0 could send an interprocessor interrupt to trigger that processor to switch to a new process. </P>
+<P>For systems needing to do a large amount of input and output, such as a web server, directing all I/O through a single processor can become a bottleneck. In modern systems, interrupt routing is increasingly programmable, under control of the kernel. Each processor usually has its own hardware timer. Likewise, disk I/O events can be sent directly to the processor that requested the I/O operation rather than to a random processor. Modern processors can run substantially faster if their data is already loaded into the processor cache, versus if their code and data are in some other processor&#8217;s cache. </P>
+<P>Efficient delivery of network I/O packets is even more challenging. A high performance server might send and receive tens of thousands of packets per second, representing thousands of different connections. From a processing perspective, it is best to deliver incoming packets to the processor responsible for handling that connection; this requires the network interface hardware to re-direct the incoming packet based on the contents of its header (e.g., the IP address and port number of the client). Recent network controllers accomplish this by supporting multiple buffer descriptor rings for the same device, choosing which ring to use, and therefore which processor to interrupt, based on the header of the arriving packet. </P></SPAN></SPAN>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-41002r65 name=x1-41002r65></A>

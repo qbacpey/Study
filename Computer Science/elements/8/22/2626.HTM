@@ -1,0 +1,19 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Calling Convention : Callee : prologue</SPAN></FONT> 
+<P></P>
+<P>Before executing any function logic (i.e. prologue), the callee needs to </P>
+<P><SPAN class=extract>Callee prologue &#30340;&#31532;&#19968;&#27493;&#26159;&#23558; EBP &#21387;&#20837;&#26632;&#20013;</SPAN></P>
+<P><SPAN class=extract>Callee&nbsp;&#22312; prologue &#30340;&#31532;&#20960;&#27493;&#20250;&#23558; EBP &#21387;&#20837;&#26632;&#20013;&#65311;&#31532;&#19968;&#27493;</SPAN></P>
+<P><SPAN class=extract>EBP &#24212;&#24403;&#30001;&#35841;&#26469;&#36827;&#34892;&#20445;&#23384;&#65311;Callee</SPAN></P><SPAN class=extract>
+<P>Callee &#20250;&#23558; EBP &#35774;&#32622;&#20026;&#20160;&#20040;&#65311;&#26032;&#30340; ESP</P>
+<P></SPAN><SPAN class=extract>&nbsp;</P>
+<P>Callee &#20013;&#30340; EBP &#20195;&#34920;&#20102;&#20160;&#20040;&#65311;Callee &#26632;&#24103;&#30340;&#36215;&#22987;&#20301;&#32622;</P>
+<P></SPAN><SPAN class=extract>Callee prologue &#30340;&#31532;&#20108;&#27493;&#26159;&#20160;&#20040;&#65311;&#20026;&#26412;&#22320;&#21464;&#37327;&#20998;&#37197;&#20869;&#23384;&#31354;&#38388;</SPAN></P><SPAN class=extract>
+<P>Callee&nbsp;&#22312; prologue &#30340;&#31532;&#20960;&#27493;&#20250;&#20026;&#26412;&#22320;&#21464;&#37327;&#20998;&#37197;&#20869;&#23384;&#31354;&#38388;&#65311;&#31532;&#20108;&#27493;</P>
+<P></SPAN><SPAN class=extract>&nbsp;</P>
+<P>&#30001; Callee &#36127;&#36131;&#20445;&#23384;&#30340; GPR &#21253;&#25324;&#65306;EBX&#12289;EDI&#12289;ESI</P>
+<P></SPAN><SPAN class=extract>Callee prologue &#30340;&#31532;&#19977;&#27493;&#26159;&#20160;&#20040;&#65311;&#20445;&#23384;&#23492;&#23384;&#22120;&#21040;&#26632;&#20013;</SPAN></P>
+<P><SPAN class=extract>Callee&nbsp;&#22312; prologue &#30340;&#31532;&#20960;&#27493;&#20250;&#20026;&#23558;&#23492;&#23384;&#22120;&#20445;&#23384;&#21040;&#26632;&#20013;&#65311;&#31532;&#19977;&#27493;</SPAN></P>
+<P>1. Push EBP onto the stack and set ebp to be the new esp (i.e. stack pointer after pushing the ebp). This marks the start of a new stack frame. 
+<P>2. Allocate stack space for any local variables (i.e. decrement esp). 
+<P>3. Save callee-saved GPRs (ebx, edi, esi) onto the stack if used during the function call. 
+<P>Then the callee performs the function logic

@@ -1,0 +1,5 @@
+<STRONG><FONT color=blue>How does thread/process switching work in Pintos? : </FONT></STRONG>
+<H1><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> How does thread/process switching work in Pintos?</SPAN></FONT><A title="Permalink to this headline" class=headerlink href="https://uchicago-cs.github.io/mpcs52030/switch.html#how-does-thread-process-switching-work-in-pintos"></A></H1>
+<P>This page explains how thread switching, as well as process switching works in Pintos. We recommend reading it alongside the Pintos source code (the text below also includes several links to pertinent parts of the Pintos source code).</P>
+<P>We begin by reviewing how kernel threads are represented in memory, and then explain what happens when a kernel thread is interrupted (e.g., by a timer interrupt), first in the simple case where the thread isn&#8217;t preempted, and then in the case where we switch to a different thread. We build on this to then explain how context switching works with processes, after first explaining how we can go from userspace to kernelspace (and back again)</P>
+<DIV id=threads-in-memory class=section>

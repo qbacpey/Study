@@ -1,0 +1,14 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> <SPAN class=RefText>Calling Convention : Callee</SPAN></FONT></SPAN></FONT> 
+<P></P><SPAN class=extract>
+<P>Before executing any function logic (i.e. prologue), the callee needs to 
+<P>1. Push EBP onto the stack and set ebp to be the new esp (i.e. stack pointer after pushing the ebp). This marks the start of a new stack frame. 
+<P>2. Allocate stack space for any local variables (i.e. decrement esp). 
+<P>3. Save callee-saved GPRs (ebx, edi, esi) onto the stack if used during the function call. 
+<P>Then the callee performs the function logic</SPAN><SPAN class=extract></P>
+<P>Before returning (i.e. epilogue), the callee needs to 
+<P>1. Store the return value in eax. 
+<P>2. Restore callee-saved GPRs (if any) from the prologue. 
+<P>3. Deallocate local variables. While subtracting the correct amount will technically work, a less error prone way is to set esp to be the current ebp, e&#64256;ectively clearing the stack frame. </P>
+<P>4. Restore caller&#8217;s ebp from the stack. </P>
+<P>5. Return from the function by popping the return address pushed by the caller in its prologue and jumping to it.</P>
+<P></SPAN>

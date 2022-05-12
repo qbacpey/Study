@@ -1,0 +1,81 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : 4.3 Simple Thread API : 4.3.1 A Multi-Threaded Hello World</SPAN></FONT></H4><A id=x1-170016 name=x1-170016></A>
+<HR>
+
+<P></P><PRE class=code><FONT size=2>&nbsp;<BR>#include&nbsp;&lt;stdio.h&gt;
+&nbsp;#include&nbsp;"thread.h"
+&nbsp;
+&nbsp;static&nbsp;void&nbsp;go(int&nbsp;n);
+&nbsp;
+&nbsp;#define&nbsp;NTHREADS&nbsp;10
+&nbsp;static&nbsp;thread_t&nbsp;threads[NTHREADS];
+&nbsp;
+&nbsp;int&nbsp;main(int&nbsp;argc,&nbsp;char&nbsp;**argv)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;i;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;long&nbsp;exitValue;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;NTHREADS;&nbsp;i++){
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_create(&amp;(threads[i]),&nbsp;&amp;go,&nbsp;i);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;NTHREADS;&nbsp;i++){
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exitValue&nbsp;=&nbsp;thread_join(threads[i]);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("Thread&nbsp;%d&nbsp;returned&nbsp;with&nbsp;%ld\n",
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i,&nbsp;exitValue);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("Main&nbsp;thread&nbsp;done.\n");
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;}
+&nbsp;
+&nbsp;void&nbsp;go(int&nbsp;n)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("Hello&nbsp;from&nbsp;thread&nbsp;%d\n",&nbsp;n);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_exit(100&nbsp;+&nbsp;n);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Not&nbsp;reached
+&nbsp;}
+</FONT></PRE><PRE class=code><FONT size=2>&nbsp;%&nbsp;./threadHello
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;0
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;1
+&nbsp;Thread&nbsp;0&nbsp;returned&nbsp;100
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;3
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;4
+&nbsp;Thread&nbsp;1&nbsp;returned&nbsp;101
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;5
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;2
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;6
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;8
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;7
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;9
+&nbsp;Thread&nbsp;2&nbsp;returned&nbsp;102
+&nbsp;Thread&nbsp;3&nbsp;returned&nbsp;103
+&nbsp;Thread&nbsp;4&nbsp;returned&nbsp;104
+&nbsp;Thread&nbsp;5&nbsp;returned&nbsp;105
+&nbsp;Thread&nbsp;6&nbsp;returned&nbsp;106
+&nbsp;Thread&nbsp;7&nbsp;returned&nbsp;107
+&nbsp;Thread&nbsp;8&nbsp;returned&nbsp;108
+&nbsp;Thread&nbsp;9&nbsp;returned&nbsp;109
+&nbsp;Main&nbsp;thread&nbsp;done.</FONT>
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;4.6: </B>Example multi-threaded program using the simple threads API that prints &#8220;Hello&#8221; ten times. Also shown is the output of one possible run of this program.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+To illustrate how to use the simple threads API, Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-170016"}'>4.6</A> shows a very simple multi-threaded program written in &#8217;C&#8217;. The main function uses thread_create&nbsp;to create 10 threads. The interesting arguments are the second and third. 
+<UL class=itemize1>
+<LI class=itemize>
+<P>The second argument, go, is a function pointer &#8212; where the newly created thread should begin execution. </P>
+<LI class=itemize>
+<P>The third argument, i, is passed to that function.</P></LI></UL>
+<P>Thus, thread_create&nbsp;initializes the i&#8217;th thread&#8217;s state so that it is prepared to call the function go with the argument i. </P>
+<P>When the scheduler runs the i&#8217;th thread, that thread runs the function go with the value i as an argument and prints Hello from thread i. </P>
+<P><SPAN class=extract>The thread then returns the value (i + 100) by calling thread_exit. This call stores the specified value in a field in the thread_t object so that thread_join&nbsp;can retrieve it.</SPAN> </P>
+<P>The main function uses thread_join&nbsp;to wait for each of the threads it created. As each thread finishes, code in main reads the thread&#8217;s exit value and prints it. </P><B><SPAN class=extract>
+<P><B>EXAMPLE: </B>Why might the &#8220;Hello&#8221; message from thread 2 print <EM>after</EM> the &#8220;Hello&#8221; message for thread 5, even though thread 2 was created before thread 5? </P>
+<P><B>ANSWER: </B><B>Creating and scheduling threads are separate operations.</B> Although threads are usually scheduled in the order that they are created, there is no guarantee. Further, even if thread 2 started running before thread 5, it might be preempted before it reaches the printf call. </P>
+<P>Rather, the only assumption the programmer can make is that each of the threads runs on its own virtual processor with unpredictable speed. Any interleaving is possible. &#9633; </P>
+<P></SPAN></B><B>EXAMPLE: </B>Why must the &#8220;Thread returned&#8221; message from thread 2 print <EM>before</EM> the Thread returned message from thread 5? </P>
+<P><B>ANSWER: </B>Since the threads run on virtual processors with unpredictable speeds, the order in which the threads finish is indeterminate. However, <B>the main thread checks for thread completion in the order they were created.</B> It calls thread_join&nbsp;for thread i +1 only after thread_join&nbsp;for thread i has returned. &#9633; </P><B><SPAN class=extract>
+<P><B>EXAMPLE: </B>What is the <EM>minimum</EM> and <EM>maximum</EM> number of threads that could exist when thread 5 prints &#8220;Hello?&#8221; </P>
+<P><B>ANSWER: </B>When the program starts, a main thread begins running main. That thread creates NTHREADS = 10 threads. All of those could run and complete before thread 5 prints &#8220;Hello.&#8221; Thus, <B>the minimum is two threads</B> &#8212; the main thread and thread 5. On the other hand, all 10 threads could have been created, while 5 was the first to run. Thus, <B>the maximum is 11 threads.</B> &#9633; </P>
+<P></SPAN></B><A id=x1-17002r32 name=x1-17002r32></A>

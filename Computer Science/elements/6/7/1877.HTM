@@ -1,0 +1,48 @@
+<FONT color=blue><STRONG>: </STRONG>We will illustrate these interfaces by using them to implement a user-level job control system called a <EM>shell</EM>.</FONT>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3.3 Case Study: Implementing a Shell</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">The dozen UNIX system calls listed in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600027"}'>3.7</A><FONT style="BACKGROUND-COLOR: #ffffff"> are enough to build a flexible and powerful command line shell, one that runs entirely at user-level with no special permissions. As we mentioned, the process that creates the shell is responsible for providing it an open file descriptor for reading commands for its input (e.g., from the keyboard), called </FONT><EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX stdin"}'>stdin</A></EM><FONT style="BACKGROUND-COLOR: #ffffff"> and for writing output (e.g., to the display), called </FONT><EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX stdout"}'>stdout</A></EM><FONT style="BACKGROUND-COLOR: #ffffff">. </FONT><A id=x1-610018 name=x1-610018></A><FONT style="BACKGROUND-COLOR: #ffffff">
+<HR>
+</FONT>
+<P></P><PRE class=code>&nbsp;main()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;*prog&nbsp;=&nbsp;NULL;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;**args&nbsp;=&nbsp;NULL;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Read&nbsp;the&nbsp;input&nbsp;a&nbsp;line&nbsp;at&nbsp;a&nbsp;time,&nbsp;and&nbsp;parse&nbsp;each&nbsp;line&nbsp;into&nbsp;the&nbsp;program
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;name&nbsp;and&nbsp;its&nbsp;arguments.&nbsp;End&nbsp;loop&nbsp;if&nbsp;we&#8217;ve&nbsp;reached&nbsp;the&nbsp;end&nbsp;of&nbsp;the&nbsp;input.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(readAndParseCmdLine(&amp;prog,&nbsp;&amp;args))&nbsp;{
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Create&nbsp;a&nbsp;child&nbsp;process&nbsp;to&nbsp;run&nbsp;the&nbsp;command.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;child_pid&nbsp;=&nbsp;fork();
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(child_pid&nbsp;==&nbsp;0)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;child&nbsp;process.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Run&nbsp;program&nbsp;with&nbsp;the&nbsp;parent&#8217;s&nbsp;input&nbsp;and&nbsp;output.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exec(prog,&nbsp;args);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;NOT&nbsp;REACHED
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;parent;&nbsp;wait&nbsp;for&nbsp;the&nbsp;child&nbsp;to&nbsp;complete.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wait(child_pid);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;3.8: </B>Example code for a simple UNIX shell.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>Figure &nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-610018"}'>3.8</A> illustrates the code for the basic operation of a shell. The shell reads a command line from the input, and it forks a process to execute that command. UNIX fork automatically duplicates all open file descriptors in the parent, incrementing the kernel&#8217;s reference counts for those descriptors, so the input and output of the child is the same as the parent. The parent waits for the child to finish before it reads the next command to execute. </P>
+<P>Because the commands to read and write to an open file descriptor are the same whether the file descriptor represents a keyboard, screen, file, device, or pipe, UNIX programs do not need to be aware of where their input is coming from, or where their output is going. This is helpful in a number of ways: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>A program can be a file of commands.</B> Programs are normally a set of machine instructions, but on UNIX a program can be a file containing a list of commands for a shell to interpret. To disambiguate, shell programs signified in UNIX by putting &#8220;#!&nbsp;interpreter&#8221; as the first line of the file, where &#8220;interpreter&#8221; is the name of the shell executable. </P>
+<P>The UNIX C compiler works this way. When it is exec&#8217;ed, the kernel recognizes it as a shell file and starts the interpreter, passing it the file as input. The shell reads the file as a list of commands to invoke the pre-processor, parser, code generator and assembler in turn, exactly as if it was reading text input from the keyboard. When the last command completes, the shell interpreter calls exit to inform the kernel that the program is done. </P>
+<LI class=itemize>
+<P><B>A program can send its output to a file.</B> By changing the stdout file descriptor in the child, the shell can redirect the child&#8217;s output to a file. In the standard UNIX shell, this is signified with a &#8220;greater than&#8221; symbol. Thus, &#8220;ls &gt; tmp" lists the contents of the current directory into the file &#8220;tmp.&#8221; After the fork and before the exec, the shell can replace the stdout file descriptor for the child using dup2. Because the parent has been cloned, changing stdout for the child has no effect on the parent. </P>
+<LI class=itemize>
+<P><B>A program can read its input from a file.</B> Likewise, by using dup2 to change the stdin file descriptor, the shell can cause the child to read its input from a file. In the standard UNIX shell, this is signified with a &#8220;less than&#8221; symbol. Thus, &#8220;zork &lt; solution" plays the game &#8220;zork&#8221; with a list of instructions stored in the file &#8220;solution.&#8221; </P>
+<LI class=itemize>
+<P><B>The output of one program can be the input to another program.</B> The shell can use a pipe to connect two programs together, so that the output of one is the input of another. This is called a <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:producer-consumer communication"}'>producer-consumer</A></EM> relationship. For example, in the C-compiler, the output of the preprocessor is sent to the parser, and the output of the parser is sent to the code-generator and then to the assembler. In the standard UNIX shell, a pipe connecting two programs is signified by a &#8220;|&#8221; symbol, as in: &#8220;cpp file.c | cparse | cgen | as &gt; file.o&#8221;. In this case the shell creates four separate child processes, each connected by pipes to its predecessor and successor. Each of the phases can run in parallel, with the parent waiting for all of them to finish.</P></LI></UL><A id=x1-61002r106 name=x1-61002r106></A><A id=x1-620004 name=x1-620004></A>

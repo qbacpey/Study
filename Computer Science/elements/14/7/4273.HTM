@@ -1,0 +1,60 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 4.6.1 Creating a Thread</SPAN></FONT></H4><A id=x1-2400113 name=x1-2400113></A>
+<HR>
+
+<P></P><PRE class=code>&nbsp;<BR><FONT size=2>//&nbsp;func&nbsp;is&nbsp;a&nbsp;pointer&nbsp;to&nbsp;a&nbsp;procedure&nbsp;the&nbsp;thread&nbsp;will&nbsp;run.
+//&nbsp;arg&nbsp;is&nbsp;the&nbsp;argument&nbsp;to&nbsp;be&nbsp;passed&nbsp;to&nbsp;that&nbsp;procedure.
+&nbsp;void
+&nbsp;thread_create(thread_t&nbsp;*thread,&nbsp;void&nbsp;(*func)(int),&nbsp;int&nbsp;arg)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Allocate&nbsp;TCB&nbsp;and&nbsp;stack
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TCB&nbsp;*tcb&nbsp;=&nbsp;new&nbsp;TCB();
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread-&gt;tcb&nbsp;=&nbsp;tcb;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcb-&gt;stack_size&nbsp;=&nbsp;INITIAL_STACK_SIZE;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcb-&gt;stack&nbsp;=&nbsp;new&nbsp;Stack(INITIAL_STACK_SIZE);
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Initialize&nbsp;registers&nbsp;so&nbsp;that&nbsp;when&nbsp;thread&nbsp;is&nbsp;resumed,&nbsp;it&nbsp;will&nbsp;start&nbsp;running&nbsp;at
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;stub.&nbsp;&nbsp;The&nbsp;stack&nbsp;starts&nbsp;at&nbsp;the&nbsp;top&nbsp;of&nbsp;the&nbsp;allocated&nbsp;region&nbsp;and&nbsp;grows&nbsp;down.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcb-&gt;sp&nbsp;=&nbsp;tcb-&gt;stack&nbsp;+&nbsp;INITIAL_STACK_SIZE;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcb-&gt;pc&nbsp;=&nbsp;stub;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Create&nbsp;a&nbsp;stack&nbsp;frame&nbsp;by&nbsp;pushing&nbsp;stub&#8217;s&nbsp;arguments&nbsp;and&nbsp;start&nbsp;address
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;onto&nbsp;the&nbsp;stack:&nbsp;func,&nbsp;arg
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*(tcb-&gt;sp)&nbsp;=&nbsp;arg;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcb-&gt;sp--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*(tcb-&gt;sp)&nbsp;=&nbsp;func;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcb-&gt;sp--;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Create&nbsp;another&nbsp;stack&nbsp;frame&nbsp;so&nbsp;that&nbsp;thread_switch&nbsp;works&nbsp;correctly.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;This&nbsp;routine&nbsp;is&nbsp;explained&nbsp;later&nbsp;in&nbsp;the&nbsp;chapter.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_dummySwitchFrame(tcb);
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcb-&gt;state&nbsp;=&nbsp;READY;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;readyList.add(tcb);&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Put&nbsp;tcb&nbsp;on&nbsp;ready&nbsp;list
+&nbsp;}
+&nbsp;
+&nbsp;void stub(void&nbsp;(*func)(int),&nbsp;int&nbsp;arg)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(*func)(arg);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Execute&nbsp;the&nbsp;function&nbsp;func()
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_exit(0);&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;If&nbsp;func()&nbsp;does&nbsp;not&nbsp;call&nbsp;exit,&nbsp;&nbsp;call&nbsp;it&nbsp;here.
+&nbsp;}</FONT>
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;4.13: </B>Pseudo-code for thread creation. <SPAN class=extract>The specifics of initializing the stack and the conventions for passing arguments to the initial function are machine-dependent. On the Intel x86 architecture, the stack starts at high addresses and grows down, while arguments are passed on the stack. On other systems, the stack can grow upwards and/or arguments can be passed in registers</SPAN>. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-2600114"}'>4.14</A> provides pseudo-code for thread_dummySwitchFrame.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-2400113"}'>4.13</A> shows the pseudo-code to allocate a new thread. <SPAN class=extract>The goal of thread_create&nbsp;is to perform an asynchronous procedure call to func with arg as the argument to that procedure. When the thread runs, it will execute func(arg) concurrently with the calling thread</SPAN>. 
+<P><SPAN class=extract>&nbsp;</P>
+<P>There are three steps to creating a thread: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-24003x1 name=x1-24003x1></A>
+<P><B>Allocate per-thread state.</B> The first step in the thread constructor is to allocate space for the thread&#8217;s per-thread state: the TCB and stack. As we have mentioned, the TCB is the data structure the thread system uses to manage the thread. The stack is an area of memory for storing data about in-progress procedures; it is allocated in memory like any other data structure. </P>
+<LI class=enumerate><A id=x1-24005x2 name=x1-24005x2></A>
+<P><B>Initialize per-thread state.</B> To initialize the TCB, the thread constructor sets the new thread&#8217;s registers to what they need to be when the thread starts RUNNING. When the thread is assigned a processor, we want it to start running func(arg). However, instead of having the thread start in func, the constructor starts the thread in a dummy function, stub, which in turn calls func. </P>
+<P>We need this extra step in case the func procedure returns instead of calling thread_exit. Without the stub, func would return to whatever random location is stored at the top of the stack! Instead, func returns to stub and stub calls thread_exit&nbsp;to finish the thread. </P>
+<P>To start at the beginning of stub, the thread constructor sets up the stack as if stub was just called by normal code; the specifics will depend on the calling convention of the machine. In the pseudo-code, we push stub&#8217;s two arguments onto the stack: func and arg. When the thread starts running, the code in stub will access its arguments just like a normal procedure. </P>
+<P>In addition, we also push a dummy stack frame for thread_switch&nbsp;onto the stack; we defer an explanation of this detail until we discuss the implementation of thread switching. </P>
+<LI class=enumerate><A id=x1-24007x3 name=x1-24007x3></A>
+<P><B>Put TCB on ready list.</B> The last step in creating a thread is to set its state to READY&nbsp;and put the new TCB on the ready list, enabling the thread to be scheduled.</P></LI></OL></SPAN><A id=x1-24008r46 name=x1-24008r46></A>

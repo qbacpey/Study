@@ -1,0 +1,78 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : </FONT></STRONG>
+<H2 class=chapter_name><I>4. Concurrency and Threads</I></H2></A>
+<DIV class=chapterQuote>
+<P>Many hands make light work. &#8212;<I>John Heywood (1546)</I> </P>
+<DL>
+<DT>
+<DD></DD></DL>
+<P></P></DIV>
+<HR>
+<BR>
+<P>In the real world &#8212; outside of computers &#8212; different activities often proceed at the same time. Five jazz musicians play their instruments while reacting to each other; one car drives north while another drives south; one part of a drug molecule is attracted to a cell&#8217;s receptor, while another part is repelled; a humanoid robot walks, raises its arms, and turns its head; you fetch one article from the <EM>New York Times</EM> website while someone else fetches another; or millions of people make long distance phone calls on Mother&#8217;s Day. </P>
+<P><SPAN class=extract>We use the word <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:concurrency"}'>concurrency</A></EM> to refer to multiple activities that can happen at the same time.</SPAN> The real world is concurrent, and internally, modern computers are also concurrent. For example, a high-end server might have more than a dozen processors, 10 disks, and 4 network interfaces; a workstation might have a dozen active I/O devices including a screen, keyboard, mouse, camera, microphone, speaker, wireless network interface, wired network interface, printer, scanner, and disk drive. Today, even mobile phones often have multi-core processors. </P>
+<P>Correctly managing concurrency is a key challenge for operating system developers. To manage hardware resources, to provide responsiveness to users, and to run multiple applications simultaneously, the operating system needs a structured way of keeping track of the various actions it needs to perform. Over the next several chapters, we will present a set of abstractions for expressing and managing concurrency. These abstractions are in widespread use in commercial operating systems because they reduce implementation complexity, improve system reliability, and improve performance. </P>
+<P>Concurrency is also a concern for many application developers. Although the abstractions we discuss were originally developed to make it easier to write correct operating system code, they have become widely used in applications: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Network services need to be able to handle multiple requests from their clients; a Google that could handle only one search request at a time, or an Amazon that could only allow one book to be bought at a time, would be much less useful. </P>
+<LI class=itemize>
+<P>Most applications today have user interfaces; providing good responsiveness to users while simultaneously executing application logic is much easier with a structured approach to concurrency. </P>
+<LI class=itemize>
+<P>Parallel programs need to be able to map work onto multiple processors to get the performance benefits of multicore architectures. </P>
+<LI class=itemize>
+<P>Data management systems need concurrency to mask the latency of disk and network operations.</P></LI></UL>
+<P>From the programmer&#8217;s perspective, it is much easier to think sequentially than to keep track of many simultaneous activities. For example, when reading or writing the code for a procedure, you can identify an initial state and a set of pre-conditions, think through how each successive statement changes the state, and from that determine the post-conditions. How can you write a correct program with dozens of events happening at once? <A id=x1-100011 name=x1-100011></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00388.gif" data-calibre-src="OEBPS/Images/image00388.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B><SPAN class=extract><B>Figure&nbsp;4.1: </B>The operating system provides the illusion that programmers can create as many threads as they need, and each thread runs on its own dedicated virtual processor. In reality, of course, a machine only has a finite number of processors, and it is the operating system&#8217;s job to transparently multiplex threads onto the actual processors</SPAN></B>.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>The key idea is to write a concurrent program &#8212; one with many simultaneous activities &#8212; as a set of sequential streams of execution, or <EM>threads</EM>, that interact and share results in very precise ways. Threads let us define a set of tasks that run concurrently while the code for each task is sequential. Each thread behaves as if it has its own dedicated processor, as illustrated in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100011"}'>4.1</A>. As we will see later, using the thread abstraction often requires the programmer to write additional code for coordinating multiple threads accessing shared data structures; we will discuss this topic in much more detail in Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-390005"}'>5</A>. </P>
+<P>The thread abstraction lets the programmer create as many threads as needed without worrying about the exact number of physical processors, or exactly which processor is doing what at each instant. Of course, threads are only an abstraction: the physical hardware has a limited number of processors (and potentially only one!). <SPAN class=extract>The operating system&#8217;s job is to provide the illusion of a nearly infinite number of virtual processors even while the physical hardware is more limited. It sustains this illusion by transparently suspending and resuming threads so that at any given time only a subset of the threads are actively running.</SPAN> </P>
+<P>This chapter will define the thread abstraction, illustrate how a programmer can use the abstraction, and explain how the operating system can implement threads on top of a limited number of processors. Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-390005"}'>5</A> explains how to coordinate threads when they operate on shared data, and Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-780006"}'>6</A> covers advanced issues when programming with threads. Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1070007"}'>7</A> discusses the policy question: how should the operating system choose <EM>which</EM> thread to run next when there are more things to run than processors on which to run them. </P>
+<P><B>Chapter roadmap:</B> The rest of this chapter discusses these topics in detail: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Thread Use Cases.</B> What are threads useful for? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-110001"}'>4.1</A>) </P>
+<LI class=itemize>
+<P><B>Thread Abstraction.</B> What is the thread abstraction as seen by a programmer? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-130002"}'>4.2</A>) </P>
+<LI class=itemize>
+<P><B>Simple Thread API.</B> How can programmers use threads? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-160003"}'>4.3</A>) </P>
+<LI class=itemize>
+<P><B>Thread Data Structures.</B> What data structures does the operating system use to manage threads? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-190004"}'>4.4</A>) </P>
+<LI class=itemize>
+<P><B>Thread Life Cycle.</B> What states does a thread go through between initialization and completion? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-220005"}'>4.5</A>) </P>
+<LI class=itemize>
+<P><B>Implementing Kernel Threads.</B> How do we implement the thread abstraction inside the operating system kernel? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-230006"}'>4.6</A>) </P>
+<LI class=itemize>
+<P><B>Combining Kernel Threads and Single-Threaded User Processes.</B> How do we extend the implementation of kernel threads to support simple single-threaded processes? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-270007"}'>4.7</A>) </P>
+<LI class=itemize>
+<P><B>Implementing Multi-threaded Processes.</B> How do we implement the thread abstraction for multi-threaded applications? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-280008"}'>4.8</A>) </P>
+<LI class=itemize>
+<P><B>Alternative Abstractions.</B> What other abstractions can we use to express and implement concurrency? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-320009"}'>4.9</A>) </P></LI></UL>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Deja vu all over again?</I></B></SPAN> </P>
+<P>Threads are widely used, and several modern programming languages directly support writing programs with multiple threads. You may have programmed with threads before or have taken classes that talk about using threads. What is new here? </P>
+<P>The discussion in this book is designed to make sense even if you have never seen threads before. If you have seen threads before, great! But we still think you will find the discussion useful. </P>
+<P>Beyond describing the basic thread abstraction, we emphasize two points in this chapter and the following ones. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Implementation.</B> We will describe how operating systems implement threads both for their own use and for use by user-level applications. It is important to understand how threads really work so that you can understand their costs and performance characteristics and can use them effectively. </P>
+<LI class=itemize>
+<P><B>Practice.</B> We will present a methodology for writing correct multi-threaded programs. Concurrency is increasingly important in many programming tasks, but writing correct multi-threaded programs requires much more care and discipline than writing correct single-threaded programs. That said, following a few simple rules that we will describe can greatly simplify the process of writing robust multi-threaded code. </P></LI></UL>
+<P>Multithreaded programming has a well-deserved reputation for being difficult, but we believe the ideas in this chapter and the subsequent ones can help almost anyone become better at programming with threads. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-10002r1 name=x1-10002r1></A><A id=x1-110001 name=x1-110001>

@@ -1,0 +1,85 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 4.9.1 Asynchronous I/O and Event-Driven Programming</SPAN></H4>
+<H4 class=subsectionHead><SPAN class=extract><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:asynchronous I/O"}'><FONT size=3>Asynchronous I/O</FONT></A><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:asynchronous I/O"}'><FONT size=3> is a way to allow a single-threaded process to issue multiple concurrent I/O requests at the same time.</FONT></SPAN></A><FONT size=3> <SPAN class=extract>The process makes a system call to issue an I/O request but the call returns immediately, without waiting for the result.</SPAN> <SPAN class=extract>At a later time, the operating system provides the result to the process by either: (1) calling a signal handler, (2) placing the result in a queue in the process&#8217;s memory, or (3) storing the result in kernel memory until the process makes another system call to retrieve it. </SPAN></FONT></H4>
+<H4 class=subsectionHead><SPAN class=extract></SPAN><FONT size=4>An example use of asynchronous I/O is to overlap reading from disk with other computation in the same process. Reading from disk can take tens of milliseconds. In Linux, rather than issuing a read system call that blocks until the requested data has been read from disk, a process can issue an aio_read (asynchronous I/O read) system call; this call tells the operating system to initiate the read from disk and then to immediately return. Later, the process can call aio_error to determine if the disk read has finished and aio_return to retrieve the read&#8217;s results, as shown in Figure&nbsp;</FONT><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-3300116"}'><FONT size=4>4.16</FONT></A><FONT size=4>. </FONT><A id=x1-3300116 name=x1-3300116></A></H4>
+<HR>
+
+<P></P>
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00396.gif" data-calibre-src="OEBPS/Images/image00396.gif"></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left><SPAN class=extract>
+<P class=caption width=0><STRONG>Figure&nbsp;4.16: </STRONG>An asynchronous file read on Linux. The application calls aio_read to start the read; this system call returns immediately after the disk read is initialized. The application may then do other processing while the disk is completing the requested operation. The disk interrupts the processor when the operation is complete; this causes the kernel disk interrupt handler to run. The application at any time may ask the kernel if the results of the disk read are available, and then retrieve them with aio_return.</P>
+<P class=caption width=0></SPAN>&nbsp;</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><SPAN class=extract>&nbsp;</P>
+<P>One common design pattern lets a single thread interleave different I/O-bound tasks by waiting for different I/O events. Consider a web server with 10 active clients. Rather than creating one thread per client and having each thread do a blocking read on the network connection, an alternative is for the server to have one thread that processes, in turn, the next message to arrive from <EM>any</EM> client. </P>
+<P>For this, the server does a select call that blocks until <EM>any</EM> of the 10 network connections has data available to read. When the select call returns, it provides a list of connection with available data. The thread can then read from those connections, knowing that the read will always return immediately. After processing the data, the thread then calls select again to wait for the next data to arrive. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-3300217"}'>4.17</A> illustrates this design pattern.</P>
+<P></SPAN>&nbsp;<A id=x1-3300217 name=x1-3300217></A></P>
+<HR>
+
+<P></P>
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00397.gif" data-calibre-src="OEBPS/Images/image00397.gif"></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;4.17: </B>A server managing multiple concurrent connections using select. The server calls select to wait for data to arrive on any connection. The server then reads all available data, before returning to select. </P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><SPAN class=extract>&nbsp;</P>
+<P>Asynchronous I/O allows progress by many concurrent operating system requests. This approach gives rise to an <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:event-driven programming"}'>event-driven programming</A></EM> pattern where a thread spins in a loop; each iteration gets and processes the next I/O event. To process each event, the thread typically maintains for each task a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:continuation"}'>continuation</A></EM>, a data structure that keeps track of a task&#8217;s current state and next step. </P>
+<P>For example, handling a web request can involve a series of I/O steps: (a) make a network connection, (b) read a request from the network connection, (c) read the requested data from disk, and (d) write the requested data to the network connection. If a single thread is handling requests from multiple different clients at once, it must keep track of where it is in that sequence for each client. </P>
+<P>Further, the network may divide a client&#8217;s request into several packets so that the server needs to make several read calls to assemble the full packet. The server may be doing this request assembly for multiple clients at once. Therefore, it needs to keep several per-client variables (e.g., a request buffer, the number of bytes expected, and the number of bytes received so far). When a new message arrives, the thread uses the network connection&#8217;s port number to identify which client sent the request and retrieves the appropriate client&#8217;s variables using this port number/client ID. It can then process the data.</P>
+<P></SPAN>&nbsp;</P>
+<H5 class=subsubsectionHead><A id=x1-340001 name=x1-340001></A>Event-Driven Programming vs. Threads</H5><SPAN class=extract>Although superficially different, overlapping I/O is fundamentally the same whether using asynchronous I/O and event-driven programming or synchronous I/O and threads. In either case, the program blocks until the next task can proceed, restores the state of that task, executes the next step of that task, and saves the task&#8217;s state until it can take its next step. The differences are: (1) whether the state is stored in a continuation or TCB and (2) whether the state save/restore is done explicitly by the application or automatically by the thread system.</SPAN> 
+<P>Consider a simple server that collects incoming data from several clients into a set of per-client buffers. The pseudo-code for the event-driven and thread-per-client cases is similar: </P>
+<P><BR></P>
+<P></P><PRE class=code><FONT size=2>&nbsp;//&nbsp;Event-driven
+&nbsp;Hashtable&lt;Buffer*&gt;&nbsp;*hash;
+&nbsp;
+&nbsp;while(1)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;connection&nbsp;=&nbsp;use&nbsp;select()&nbsp;to&nbsp;find&nbsp;a&nbsp;readable&nbsp;connection&nbsp;ID
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buffer&nbsp;=&nbsp;hash.remove(connection);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;got&nbsp;=&nbsp;read(connection,&nbsp;tmpBuf, TMP_SIZE);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buffer-&gt;append(tmpBuf,&nbsp;got);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buffer&nbsp;=&nbsp;hash.put(connection,buffer);
+&nbsp;}
+ </FONT></PRE><PRE class=code><FONT size=2>&nbsp;//&nbsp;Thread-per-client
+&nbsp;Buffer&nbsp;*b;
+&nbsp;
+&nbsp;while(1)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;got&nbsp;=&nbsp;read(connection,&nbsp;tmpBuf,TMP_SIZE);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;buffer-&gt;append(tmpBuf,&nbsp;got);
+&nbsp;}</FONT>
+ </PRE>
+<P><BR></P><SPAN class=extract>
+<P>When these programs execute, the system performs nearly the same work, as shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-3400118"}'>4.18</A>. With events, the code uses select to determine which connection&#8217;s packet to retrieve next. With threads, the kernel transparently schedules each thread when data has arrived for it. </P>
+<P>The state in both cases is also similar. In the event-driven case, the application maintains a hash table containing the buffer state for each client. The server must do a lookup to find the buffer each time a packet arrives for a particular client. In the thread-per-client case, each thread has just one buffer, and the operating system keeps track of the different threads&#8217; states.</P>
+<P></SPAN>&nbsp;<A id=x1-3400118 name=x1-3400118></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00398.gif" data-calibre-src="OEBPS/Images/image00398.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;4.18: </B>Two alternate implementations of a server. In the upper picture, a single thread uses a hash table to keep track of connection state. In the lower picture, each thread keeps a pointer to the state for one connection.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>To compare the two approaches, consider again the various use cases for threads from Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-110001"}'>4.1</A>: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Performance: Coping with high-latency I/O devices.</B> Either approach &#8212; event-driven or threads &#8212; can overlap I/O and processing. Which provides better performance? </P>
+<P>The common wisdom has been that the event-driven approach was significantly faster for two reasons. First, the space and context switch overheads of this approach could be lower because a thread system must use generic code that allocates a stack for each thread&#8217;s state and that saves and restores all registers on each context switch, while the event-driven approach lets programmers allocate and save/restore just the state needed for each task. Second, some past operating systems had inefficient or unscalable implementations of their thread systems, making it important not to create too many threads for each process. </P>
+<P>Today, the comparison is less clear cut. Many systems now have large memories, so the cost of allocating a thread stack for each task is less critical. For example, allocating 1000 threads with an 8 KB stack per thread on a machine with 1 GB of memory would consume less than 1% of the machine&#8217;s memory. Also, most operating systems now have efficient and scalable threads libraries. For example, while the Linux 2.4 kernel had poor performance when processes had many threads, Linux 2.6 revamped the thread system, improving its scalability and absolute performance. </P>
+<P>Anecdotal evidence suggests that the performance gap between the two approaches has greatly narrowed. For some applications, highly optimized thread management code and synchronous I/O paths can out-perform less-optimized application code and asynchronous I/O paths. In most cases, the performance difference is small enough that other factors (e.g., code simplicity and ease of maintenance) are more important than raw performance. If performance is crucial for a particular application, then, as is often the case, there is no substitute for careful benchmarking before making your decision. </P>
+<LI class=itemize>
+<P><B>Performance: Exploiting multiple processors.</B> By itself, the event-driven approach does not help a program exploit multiple processors. In practice, event-driven and thread approaches are often combined: a program that uses n processors can have n threads, each of which uses the event-driven pattern to multiplex multiple I/O-bound tasks on each processor. </P>
+<LI class=itemize>
+<P><B>Responsiveness: Shifting work to run in the background.</B> While event-driven programming can be effective when tasks are usually short-lived, threads can be more convenient when there is a mixture of foreground and background tasks. At some cost in coding complexity, the event-driven model can be adapted to this case, e.g., by cutting long tasks into smaller chunks whose state can be explicitly saved when higher priority work is pending. </P>
+<LI class=itemize>
+<P><B>Program structure: Expressing logically concurrent tasks.</B> Whenever there are two viable programming styles, there are strong advocates for each approach. The situation is no different here, with some advocates of event-driven programming arguing that the synchronization required when threads share data makes threads more complex than events. Advocates for threads argue that they provide a more natural way to express the control flow of a program than having to explicitly store a computation&#8217;s state in a continuation. </P></LI></UL>
+<P><SPAN class=extract>In our opinion, there remain cases where both styles are appropriate, and we use both styles in our own programs. That said, for most I/O-intensive programs, threads are preferable: they are often more natural, reasonably efficient, and simpler when running on multiple processors.</SPAN> <A id=x1-34002r58 name=x1-34002r58></A>

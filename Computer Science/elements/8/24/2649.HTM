@@ -1,0 +1,8 @@
+<H3>Static and Dynamic Typing</H3>
+<P><EM>Typing</EM><SPAN>&nbsp;</SPAN>refers to changes in program structure that are due to the differences between data values: integers, characters, floating point numbers, strings, objects and so on. These differences can have many effects, for example:</P>
+<UL>
+<LI>memory layout (e.g. 4 bytes for an int, 8 bytes for a double, more for an object) 
+<LI>instructions executed (e.g. primitive operations to add small integers, library calls to add large ones) 
+<LI>program flow (simple subroutine calling conventions versus hash-dispatch for multi-methods)</LI></UL>
+<P><EM>Static typing</EM><SPAN>&nbsp;</SPAN>means that the executable form of a program generated at build time will vary depending upon the types of data values found in the program.<SPAN>&nbsp;</SPAN><EM>Dynamic typing</EM><SPAN>&nbsp;</SPAN>means that the generated code will always be the same, irrespective of type -- any differences in execution will be determined at run-time.</P>
+<P>Note that few real systems are either purely one or the other, it is just a question of which is the preferred strategy.

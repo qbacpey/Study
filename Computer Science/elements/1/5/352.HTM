@@ -1,0 +1,8 @@
+<SPAN class=headers><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.4.1 Interrupt Vector Table</SPAN></FONT></SPAN> 
+<P></P>
+<P>As Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-410018"}'>2.8</A> illustrates, the processor has a special register that points to an area of kernel memory called the <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:interrupt vector table"}'>interrupt vector table</A></EM>. The interrupt vector table is an array of pointers, with each entry pointing to the first instruction of a different handler procedure in the kernel. An <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:interrupt handler"}'>interrupt handler</A></EM> is the term used for the procedure called by the kernel on an interrupt.</P>
+<P></P>
+<P><SPAN class=extract>&#20013;&#26029;&#21521;&#37327;&#34920;&#65288;Interrupt Vector Table&#65289;&#25152;&#26377;&#30340;&#34920;&#39033;&#37117;&#25351;&#21521;&#19981;&#21516;&#30340;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;</SPAN></P>
+<P><SPAN class=extract>&#20013;&#26029;&#21521;&#37327;&#34920;&#21644;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#37117;&#20301;&#20110;&#20869;&#26680;&#20013;</SPAN></P>
+<P><SPAN class=extract>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#23454;&#38469;&#19978;&#23601;&#26159;&#20869;&#26680;&#29992;&#26469;&#22788;&#29702;&#20013;&#26029;&#30340;&#31243;&#24207;</SPAN></P>
+<P><SPAN class=extract>&#20013;&#26029;&#21521;&#37327;&#34920;&#30340;&#25152;&#22312;&#20301;&#32622;&#20445;&#23384;&#22312;&#19968;&#20010;&#29305;&#21035;&#30340;&#23492;&#23384;&#22120;&#20013;</SPAN>

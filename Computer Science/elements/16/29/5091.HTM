@@ -1,0 +1,15 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 4.8.1 Implementing Multi-Threaded Processes Using Kernel Threads</SPAN></FONT></H4>The simplest way to support multiple threads per process is to use the kernel thread implementation we have already described. When a kernel thread creates, deletes, suspends, or resumes a thread, it can use a simple procedure call. When a user-level thread accesses the thread library to do the same things, it uses a system call to ask the kernel to do the operation on its behalf. 
+<P>As shown earlier in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-2300212"}'>4.12</A>, a thread in a process has: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>A user-level stack for executing user code. </P>
+<LI class=itemize>
+<P>A kernel interrupt stack for when this thread makes system calls, causes a processor exception, or is interrupted. </P>
+<LI class=itemize>
+<P>A kernel TCB for saving and restoring the per-thread state.</P></LI></UL>
+<P><SPAN class=extract>To create a thread, the user library allocates a user-level stack for the thread and then does a system call into the kernel. The kernel allocates a TCB and interrupt stack, and arranges the state of the thread to start execution on the user-level stack at the beginning of the requested procedure. The kernel needs to store a pointer to the TCB in the process control block; if the process exits, the kernel must terminate any other threads running in the process.</SPAN> </P>
+<P><SPAN class=extract>After creating the thread, the kernel puts the new thread on the ready list, to be scheduled like any other thread, and returns unique identifier for the user program to use when referring to the newly created thread (e.g., for join).</SPAN> </P><SPAN class=extract>
+<P>Thread join, yield, and exit work the same way: by calling into the kernel to perform the requested function.</P>
+<P>&#31616;&#32780;&#35328;&#20043;&#23601;&#26159;&#65292;&#29992;&#25143;&#24211;&#22312;&#29992;&#25143;&#36827;&#31243;&#20869;&#23384;&#31354;&#38388;&#20013;&#20026;&#32447;&#31243;&#20998;&#37197;&#29992;&#25143;&#26632;&#20043;&#21518;&#65292;&#23601;&#25191;&#34892;&#31995;&#32479;&#35843;&#29992;&#65292;&#35753;&#20869;&#26680;&#24819;&#21019;&#24314;&#20869;&#26680;&#32447;&#31243;&#19968;&#26679;&#21019;&#24314;&#29992;&#25143;&#32447;&#31243;&nbsp;</P>
+<P></SPAN>

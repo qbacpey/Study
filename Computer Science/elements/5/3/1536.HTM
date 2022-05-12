@@ -1,0 +1,16 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> objdump -t</SPAN></FONT> 
+<P></P>
+<P>The other common output format, usually seen with ELF based files, looks like this:</P>
+<P></P>
+<P>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 00000000 l&nbsp;&nbsp;&nbsp; d&nbsp; .bss&nbsp;&nbsp; 00000000 .bss 
+<P>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 00000000 g&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; .text&nbsp; 00000000 fred</P>
+<P><SPAN class=extract>Here the first number is the symbol's value (sometimes refered to as its address)</SPAN>.&nbsp; <SPAN class=extract>The next field is actually a set of characters and spaces indicating the flag bits that are set on the symbol</SPAN>.&nbsp; These characters are described below.&nbsp; <SPAN class=extract>Next is the section with which the symbol is associated or *ABS* if the section is absolute (ie not connected with any section), or *UND* if the section is referenced in the file being dumped, but not defined there</SPAN>. 
+<P>&nbsp;<SPAN class=extract>After the section name comes another field, a number, which for common symbols is the alignment and for other symbol is the size</SPAN>.&nbsp; <SPAN class=extract>Finally the symbol's name is displayed. </SPAN>
+<P><SPAN class=extract></SPAN>The flag characters are divided into 7 groups as follows: 
+<P><SPAN class=extract>"l"&nbsp;"g"&nbsp;"u" "!" The symbol is a local (l), global (g), unique global (u), neither global nor local (a space) or both global and local (!).&nbsp; A symbol can be neither local or global for a variety of reasons, e.g., because it is used for debugging, but it is probably an indication of a bug if it is ever both local and global. Unique global symbols are a GNU extension to the standard set of ELF symbol bindings.&nbsp; For such a symbol&nbsp;the dynamic linker will make sure that in the entire process there is just one symbol with this name and&nbsp;type in use</SPAN>. 
+<P><SPAN class=extract>"w" The symbol is weak (w) or strong (a space)</SPAN>. 
+<P>"C" The symbol denotes a constructor (C) or an ordinary symbol (a space). 
+<P>"W" The symbol is a warning (W) or a normal symbol (a space).&nbsp; A warning symbol's name is a message to be displayed if the symbol following the warning symbol is ever referenced. 
+<P>"I" "i" The symbol is an indirect reference to another symbol (I), a function to be evaluated during relocprocessing (i) or a normal symbol (a space). 
+<P><SPAN class=extract>"d" "D" The symbol is a debugging symbol (d) or a dynamic symbol (D) or a normal symbol (a space)</SPAN>. 
+<P><SPAN class=extract>"F"&nbsp;"f" "O" The symbol is the name of a function (F) or a file (f) or an object (O) or just a normal symbol (aspace)</SPAN>.

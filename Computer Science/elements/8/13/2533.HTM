@@ -1,0 +1,30 @@
+<H5 class=subsubsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3.1 Process Management : 3.1.2 UNIX Process Management : UNIX exec and wait</SPAN></FONT></H5><SPAN class=extract>The UNIX system call exec completes the steps needed to start running a new program. The child process typically calls UNIX exec once it has returned from UNIX fork and configured the execution environment for the new process</SPAN>. We will describe more about how this works when we discuss UNIX pipes in the next section. 
+<P><SPAN class=extract>&nbsp;</P>
+<P>UNIX exec does the following steps: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Load the program prog into the current address space. </P>
+<LI class=itemize>
+<P>Copy arguments args into memory in the address space. </P>
+<LI class=itemize>
+<P>Initialize the hardware context to start execution at &#8220;start.&#8221;</P></LI></UL>
+<P>Note that exec does not create a new process</SPAN>! </P>
+<P><SPAN class=extract>On the other side, often the parent process needs to pause until the child process completes, e.g., if the next step depends on the output of the previous step. In the shell example we started the chapter with, we need to wait for the two compilations to finish before it is safe to start the linker</SPAN>. </P>
+<P><SPAN class=extract>UNIX has a system call, naturally enough called <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX wait"}'>wait</A></EM>, that pauses the parent until the child finishes, crashes, or is terminated. Since the parent could have created many child processes, wait is parameterized with the process ID of the child. With wait, a shell can create a new process to perform some step of its instructions, and then pause for that step to complete before proceeding to the next step. It would be hard to build a usable shell without wait</SPAN>. </P>
+<P><SPAN class=extract>However, the call to wait is optional in UNIX. For example, the Chrome browser does not need to wait for its forked clones to finish. Likewise, most UNIX shells have an option to run operations in the background, signified by appending &#8216;&amp;&#8217; to the command line</SPAN>. (<SPAN class=extract>As with fork, the word wait is now a bit ambiguous. It is used for pausing the current UNIX process to wait for another process to complete; it is also used in thread synchronization, for waiting on a condition variable. To disambiguate, we will always use the term &#8220;UNIX wait&#8221; to refer to UNIX&#8217;s wait system call. Oddly, waiting for a thread to complete is called &#8220;thread join&#8221;, even though it is most analogous to UNIX wait. Windows is simpler, with a single function called &#8220;WaitForSingleObject&#8221; that can wait for process completion, thread completion, or on a condition variable</SPAN>.) </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Kernel handles and garbage collection</I></B></SPAN> </P>
+<P><SPAN class=extract>As we discussed in the previous chapter, when a UNIX process finishes, it calls the system call exit. Exit can release various resources associated with the process, such as the user stack, heap, and code segments. It must be careful, however, in how it garbage collects the process control block (PCB). Even though the child process has finished, if it deletes the PCB, then the parent process will be left with a dangling pointer if later on it calls UNIX wait. Of course, we don&#8217;t know for sure if the parent will ever call wait, so to be safe, the PCB can only be reclaimed when both the parent and the child have finished or crashed</SPAN>. </P>
+<P><SPAN class=extract>Generalizing, both Windows and UNIX have various system calls that return a handle to some kernel object; these handles are used in later calls as an ID. The process ID returned by UNIX fork is used in later calls to UNIX wait; we will see below that UNIX open returns a file descriptor that is used in other system calls. It is important to realize that these handles are <EM>not</EM> pointers to kernel data structures; otherwise, an erroneous user program could cause havoc in the kernel by making system calls with fake handles. Rather, they are specific to the process and checked for validity on each use</SPAN>. </P>
+<P>Further, in both Windows and UNIX, handles are reference counted. Whenever the kernel returns a handle, it bumps a reference counter, and whenever the process releases a handle (or exits), the reference counter is decremented. UNIX fork sets the process ID reference count to two, one for the parent and one for the child. The underlying data structure, the PCB, is reclaimed only when the reference count goes to zero, that is, when both the parent and child terminate. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P><SPAN class=extract>Finally, as we outlined in the previous chapter, UNIX provides a facility for one process to send another an instant notification, or upcall. In UNIX, the notification is sent by calling <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX signal"}'>signal</A></EM>. Signals are used for terminating an application, suspending it temporarily for debugging, resuming after a suspension, timer expiration, and a host of other reasons. In the default case, where the receiving application did not specify a signal handler, the kernel implements a standard one on its behalf</SPAN>.

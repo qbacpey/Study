@@ -1,0 +1,44 @@
+<H1 id=firstHeading class="firstHeading mw-first-heading"><FONT size=6><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Process control block</SPAN></FONT></H1>
+<DIV id=bodyContent class=vector-body>
+<DIV lang=en id=mw-content-text class="mw-body-content mw-content-ltr" dir=ltr><SPAN class=extract>
+<P class=mw-parser-output>A<SPAN>&nbsp;</SPAN><B>process control block</B><SPAN>&nbsp;</SPAN>(<B>PCB</B>) is a data structure used by computer operating systems to store all the information about a process. </P>
+<P class=mw-parser-output>PCB &#20013;&#20648;&#23384;&#20102;&#20160;&#20040;&#65311;&#20851;&#20110;&#36827;&#31243;&#30340;&#25152;&#26377;&#20449;&#24687;</P>
+<P class=mw-parser-output>PCB &#30001;&#35841;&#26469;&#32500;&#25252;&#65311;&#25805;&#20316;&#31995;&#32479;</P></SPAN><SPAN class=extract>
+<P class=mw-parser-output>It is also known as a process descriptor. </P>
+<P class=mw-parser-output>PCB &#30340;&#21035;&#21517;&#26159;&#20160;&#20040;&#65311;&#36827;&#31243;&#25551;&#36848;&#31526;&#65288;process descriptor&#65289;</P>
+<P class=mw-parser-output></SPAN><SPAN class=extract>&nbsp;</P>
+<P class=mw-parser-output>When a process is created (initialized or installed), the operating system creates a corresponding process control block.</P>
+<P class=mw-parser-output>PCB &#20250;&#22312;&#20160;&#20040;&#26102;&#20505;&#34987;&#21019;&#24314;&#65311;&#36827;&#31243;&#34987;&#21019;&#24314;&#30340;&#26102;&#20505;</P>
+<P class=mw-parser-output></SPAN>This specifies the process state i.e. new, ready, running, waiting or terminated.</P>
+<H2 class=mw-parser-output><SPAN id=Role class=mw-headline><SPAN class=extract>
+<H2 class=mw-parser-output><SPAN id=Role class=mw-headline>Role</SPAN><SPAN class=mw-editsection><SPAN class=mw-editsection-bracket>[</SPAN><A title="Edit section: Role" href="https://en.wikipedia.org/w/index.php?title=Process_control_block&amp;action=edit&amp;section=1">edit</A><SPAN class=mw-editsection-bracket>]</SPAN></SPAN></H2>
+<P class=mw-parser-output>The role of the PCBs is central in<SPAN>&nbsp;</SPAN><A title="Scheduling (computing)" href="https://en.wikipedia.org/wiki/Scheduling_(computing)">process management</A>: they are accessed and/or modified by most utilities, particularly those involved with scheduling and resource management.</P></SPAN></SPAN><SPAN id=Structure class=mw-headline><SPAN class=extract>
+<H2 class=mw-parser-output><SPAN id=Structure class=mw-headline>Structure</SPAN><SPAN class=mw-editsection><SPAN class=mw-editsection-bracket>[</SPAN><A title="Edit section: Structure" href="https://en.wikipedia.org/w/index.php?title=Process_control_block&amp;action=edit&amp;section=2">edit</A><SPAN class=mw-editsection-bracket>]</SPAN></SPAN></H2>
+<P class=mw-parser-output>In<SPAN>&nbsp;</SPAN><A title="Computer multitasking" href="https://en.wikipedia.org/wiki/Computer_multitasking">multitasking</A><SPAN>&nbsp;</SPAN>operating systems, the PCB stores data needed for correct and efficient process management.<SUP id=cite_ref-OSConcepts_1-0 class=reference><A href="https://en.wikipedia.org/wiki/Process_control_block#cite_note-OSConcepts-1">[1]</A></SUP><SPAN>&nbsp;</SPAN>Though the details of these structures are system-dependent, common elements fall in three main categories:</P>
+<DIV class=mw-parser-output>
+<UL>
+<LI>Process identification 
+<LI>Process state 
+<LI>Process control</LI></UL></DIV>
+<P>Status tables exist for each relevant entity, like describing memory, I/O devices, files and processes.</P>
+<P>Memory tables, for example, contain information about the allocation of main and secondary (virtual) memory for each process, authorization attributes for accessing memory areas shared among different processes, etc. I/O tables may have entries stating the availability of a device or its assignment to a process, the status of I/O operations, the location of memory buffers used for them, etc.</P>
+<P><I>Process identification data</I><SPAN>&nbsp;</SPAN>include a unique identifier for the process (almost invariably an integer) and, in a multiuser-multitasking system, data such as the identifier of the parent process, user identifier, user group identifier, etc. The process id is particularly relevant since it is often used to cross-reference the tables defined above, e.g. showing which process is using which I/O devices, or memory areas.</P>
+<P><I>Process state data</I><SPAN>&nbsp;</SPAN>define the status of a process when it is suspended, allowing the OS to restart it later. This always includes the content of general-purpose CPU registers, the CPU process status word, stack and frame pointers, etc. During<SPAN>&nbsp;</SPAN><A title="Context switch" href="https://en.wikipedia.org/wiki/Context_switch">context switch</A>, the running process is stopped and another process runs. The kernel must stop the execution of the running process, copy out the values in hardware registers to its PCB, and update the hardware registers with the values from the PCB of the new process.</P>
+<P><I>Process control information</I><SPAN>&nbsp;</SPAN>is used by the OS to manage the process itself. This includes:</P>
+<UL>
+<LI>Process scheduling state&#8211;The state of the process in terms of "ready", "suspended", etc., and other scheduling information as well, such as priority value, the amount of time elapsed since the process gained control of the CPU or since it was suspended. Also, in case of a suspended process, event identification data must be recorded for the event the process is waiting for. 
+<LI>Process structuring information&#8211;the process's children id's, or the id's of other processes related to the current one in some functional way, which may be represented as a queue, a ring or other data structures 
+<LI>Interprocess communication information&#8211;flags, signals and messages associated with the communication among independent processes 
+<LI>Process Privileges&#8211;allowed/disallowed access to system resources 
+<LI>Process State&#8211;new, ready, running, waiting, dead 
+<LI>Process Number (PID)&#8211;unique identification number for each process (also known as<SPAN>&nbsp;</SPAN><A title="Process identifier" href="https://en.wikipedia.org/wiki/Process_identifier">Process ID</A>) 
+<LI>Program Counter (PC)&#8211;A pointer to the address of the next instruction to be executed for this process 
+<LI>CPU Registers&#8211;Register set where process needs to be stored for execution for running state 
+<LI>CPU Scheduling Information&#8211;information scheduling CPU time 
+<LI>Memory Management Information&#8211;page table, memory limits, segment table 
+<LI>Accounting Information&#8211;amount of<SPAN>&nbsp;</SPAN><A title="Central processing unit" href="https://en.wikipedia.org/wiki/Central_processing_unit">CPU</A><SPAN>&nbsp;</SPAN>used for process execution, time limits, execution ID etc. 
+<LI>I/O Status Information&#8211;list of I/O devices allocated to the process.</LI></UL></SPAN></SPAN></H2>
+<P>&nbsp;</P>
+<H2><SPAN id=Location class=mw-headline><SPAN class=extract>
+<H2><SPAN id=Location class=mw-headline>Location</SPAN><SPAN class=mw-editsection><SPAN class=mw-editsection-bracket>[</SPAN><A title="Edit section: Location" href="https://en.wikipedia.org/w/index.php?title=Process_control_block&amp;action=edit&amp;section=3">edit</A><SPAN class=mw-editsection-bracket>]</SPAN></SPAN></H2>
+<P>PCB must be kept in an area of memory protected from normal process access. In some operating systems the PCB is placed at the bottom of the process<SPAN>&nbsp;</SPAN><A title="Call stack" href="https://en.wikipedia.org/wiki/Call_stack">stack</A>.&#65288;<SPAN style="FONT-SIZE: 12px; FONT-FAMILY: sans-serif; WHITE-SPACE: normal; WORD-SPACING: 0px; TEXT-TRANSFORM: none; FLOAT: none; FONT-WEIGHT: 400; COLOR: rgb(32,33,34); FONT-STYLE: normal; TEXT-ALIGN: left; ORPHANS: 2; WIDOWS: 2; DISPLAY: inline !important; LETTER-SPACING: normal; BACKGROUND-COLOR: rgb(255,255,255); TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial"><FONT face="Microsoft YaHei">Linux<SPAN>&nbsp;</SPAN></FONT></SPAN>&#65289;<SUP id=cite_ref-2 class=reference><A href="https://en.wikipedia.org/wiki/Process_control_block#cite_note-2">[2]</A></SUP><BR></P></SPAN></SPAN><BR></H2>

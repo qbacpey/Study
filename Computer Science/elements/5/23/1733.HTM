@@ -1,0 +1,10 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Calling Convention : Caller</SPAN></FONT> 
+<P><SPAN class=extract>&nbsp; 
+<P>Before calling the function (i.e. prologue), the caller needs to 
+<P>1. Save caller-saved GPRs (EAX, ECX, EDX) onto the stack if needed after the function call. 
+<P>2. Push parameters onto the stack in reverse order (i.e. store &#64257;rst parameter at the lowest address). Add necessary padding before the parameters to ensure a 16-byte alignment. </P></SPAN>
+<P><SPAN class=extract>Then the caller calls the function by pushing the return address onto the stack and jumping to the function</SPAN>. </P><SPAN class=extract>
+<P>Once the function call returns (i.e. epilogue), the caller needs to 
+<P>1. Remove the parameters from the stack. 
+<P>2. Restore caller-saved GPRs (if any) from the prologue</P>
+<P></SPAN>.

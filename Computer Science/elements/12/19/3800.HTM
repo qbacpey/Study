@@ -1,0 +1,195 @@
+<STRONG><FONT style="BACKGROUND-COLOR: #7be1e1" color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : </FONT></STRONG>
+<H3 class=sectionHead><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : 4.3 Simple Thread API</SPAN></FONT></FONT></H3></A><A id=x1-160015 name=x1-160015></A><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P></P>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td colSpan=2 align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=multicolumn align=center noWrap><B><FONT style="BACKGROUND-COLOR: #7be1e1">Simple Threads API</FONT></B></DIV></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">void thread_create (thread, func, arg)</FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Create a new thread, storing information about it in thread. Concurrently with the calling thread, thread executes the function func with the argument arg. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">void thread_yield ()</FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The calling thread voluntarily gives up the processor to let some other thread(s) run. The scheduler can resume running the calling thread whenever it chooses to do so. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">int thread_join (thread)</FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Wait for thread to finish if it has not already done so; then return the value passed to thread_exit by that thread. Note that thread_join may be called only once for each thread. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">void thread_exit (ret)</FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Finish the current thread. Store the value ret in the current thread&#8217;s data structure. If another thread is already waiting in a call to thread_join, resume it. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE></DIV>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;4.5: </B>Simplified API for using threads.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+Figure </FONT><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-160015"}'><FONT style="BACKGROUND-COLOR: #7be1e1">4.5</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1"> shows a simple API for using threads. This simplified API is based on the POSIX standard pthreads API, but it omits some POSIX options and error handling for simplicity. Most other thread packages are quite similar; if you understand how to program with this API, you will find it easy to write code with most standard thread APIs. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">A good way to understand the simple threads API is that it provides a way to invoke an <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:asynchronous procedure call"}'>asynchronous procedure call</A></EM>. A normal procedure call passes a set of arguments to a function, runs the function immediately on the caller&#8217;s stack, and when the function is completed, returns control back to the caller with the result. An asynchronous procedure call separates the call from the return: with thread_create, the caller starts the function, but unlike a normal procedure call, the caller continues execution concurrently with the called function. Later, the caller can wait for the function completion (with thread_join). </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">In Chapter&nbsp;3, we saw similar concepts in the UNIX process abstraction. thread_create&nbsp;is analogous to UNIX process fork and exec, while thread_join&nbsp;is analogous to UNIX process wait. UNIX fork creates a new process that runs concurrently with the process calling fork; UNIX exec causes that process to run a specific program. UNIX wait allows the calling process to suspend execution until the completion of the new process. </FONT><A id=x1-16002r29 name=x1-16002r29></A></P>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">4.3.1 </FONT><A id=x1-170001 name=x1-170001></A><FONT style="BACKGROUND-COLOR: #7be1e1">A Multi-Threaded Hello World</FONT></H4><A id=x1-170016 name=x1-170016></A><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;#include&nbsp;&lt;stdio.h&gt;
+&nbsp;#include&nbsp;"thread.h"
+&nbsp;
+&nbsp;static&nbsp;void&nbsp;go(int&nbsp;n);
+&nbsp;
+&nbsp;#define&nbsp;NTHREADS&nbsp;10
+&nbsp;static&nbsp;thread_t&nbsp;threads[NTHREADS];
+&nbsp;
+&nbsp;int&nbsp;main(int&nbsp;argc,&nbsp;char&nbsp;**argv)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;i;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;long&nbsp;exitValue;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;NTHREADS;&nbsp;i++){
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_create(&amp;(threads[i]),&nbsp;&amp;go,&nbsp;i);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;NTHREADS;&nbsp;i++){
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exitValue&nbsp;=&nbsp;thread_join(threads[i]);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("Thread&nbsp;%d&nbsp;returned&nbsp;with&nbsp;%ld\n",
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;i,&nbsp;exitValue);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("Main&nbsp;thread&nbsp;done.\n");
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;}
+&nbsp;
+&nbsp;void&nbsp;go(int&nbsp;n)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("Hello&nbsp;from&nbsp;thread&nbsp;%d\n",&nbsp;n);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_exit(100&nbsp;+&nbsp;n);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Not&nbsp;reached
+&nbsp;}
+</FONT></PRE><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;%&nbsp;./threadHello
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;0
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;1
+&nbsp;Thread&nbsp;0&nbsp;returned&nbsp;100
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;3
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;4
+&nbsp;Thread&nbsp;1&nbsp;returned&nbsp;101
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;5
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;2
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;6
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;8
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;7
+&nbsp;Hello&nbsp;from&nbsp;thread&nbsp;9
+&nbsp;Thread&nbsp;2&nbsp;returned&nbsp;102
+&nbsp;Thread&nbsp;3&nbsp;returned&nbsp;103
+&nbsp;Thread&nbsp;4&nbsp;returned&nbsp;104
+&nbsp;Thread&nbsp;5&nbsp;returned&nbsp;105
+&nbsp;Thread&nbsp;6&nbsp;returned&nbsp;106
+&nbsp;Thread&nbsp;7&nbsp;returned&nbsp;107
+&nbsp;Thread&nbsp;8&nbsp;returned&nbsp;108
+&nbsp;Thread&nbsp;9&nbsp;returned&nbsp;109
+&nbsp;Main&nbsp;thread&nbsp;done.
+</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;4.6: </B>Example multi-threaded program using the simple threads API that prints &#8220;Hello&#8221; ten times. Also shown is the output of one possible run of this program.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+To illustrate how to use the simple threads API, Figure&nbsp;</FONT><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-170016"}'><FONT style="BACKGROUND-COLOR: #7be1e1">4.6</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1"> shows a very simple multi-threaded program written in &#8217;C&#8217;. The main function uses thread_create&nbsp;to create 10 threads. The interesting arguments are the second and third. </FONT>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The second argument, go, is a function pointer &#8212; where the newly created thread should begin execution. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The third argument, i, is passed to that function.</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Thus, thread_create&nbsp;initializes the i&#8217;th thread&#8217;s state so that it is prepared to call the function go with the argument i. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">When the scheduler runs the i&#8217;th thread, that thread runs the function go with the value i as an argument and prints Hello from thread i. The thread then returns the value (i + 100) by calling thread_exit. This call stores the specified value in a field in the thread_t object so that thread_join&nbsp;can retrieve it. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The main function uses thread_join&nbsp;to wait for each of the threads it created. As each thread finishes, code in main reads the thread&#8217;s exit value and prints it. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>EXAMPLE: </B>Why might the &#8220;Hello&#8221; message from thread 2 print <EM>after</EM> the &#8220;Hello&#8221; message for thread 5, even though thread 2 was created before thread 5? </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>ANSWER: </B><B>Creating and scheduling threads are separate operations.</B> Although threads are usually scheduled in the order that they are created, there is no guarantee. Further, even if thread 2 started running before thread 5, it might be preempted before it reaches the printf call. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Rather, the only assumption the programmer can make is that each of the threads runs on its own virtual processor with unpredictable speed. Any interleaving is possible. &#9633; </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>EXAMPLE: </B>Why must the &#8220;Thread returned&#8221; message from thread 2 print <EM>before</EM> the Thread returned message from thread 5? </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>ANSWER: </B>Since the threads run on virtual processors with unpredictable speeds, the order in which the threads finish is indeterminate. However, <B>the main thread checks for thread completion in the order they were created.</B> It calls thread_join&nbsp;for thread i +1 only after thread_join&nbsp;for thread i has returned. &#9633; </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>EXAMPLE: </B>What is the <EM>minimum</EM> and <EM>maximum</EM> number of threads that could exist when thread 5 prints &#8220;Hello?&#8221; </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>ANSWER: </B>When the program starts, a main thread begins running main. That thread creates NTHREADS = 10 threads. All of those could run and complete before thread 5 prints &#8220;Hello.&#8221; Thus, <B>the minimum is two threads</B> &#8212; the main thread and thread 5. On the other hand, all 10 threads could have been created, while 5 was the first to run. Thus, <B>the maximum is 11 threads.</B> &#9633; </FONT><A id=x1-17002r32 name=x1-17002r32></A></P>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">4.3.2 </FONT><A id=x1-180002 name=x1-180002></A><FONT style="BACKGROUND-COLOR: #7be1e1">Fork-Join Parallelism</FONT></H4><FONT style="BACKGROUND-COLOR: #7be1e1">Although the interface in Figure&nbsp;</FONT><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-160015"}'><FONT style="BACKGROUND-COLOR: #7be1e1">4.5</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1"> is simple, it is remarkably powerful. Many multi-threaded applications can be designed using only these thread operations and no additional synchronization. With <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:fork-join parallelism"}'>fork-join parallelism</A></EM>, a thread can create child threads to perform work (&#8220;fork&#8221;, or thread_create), and it can wait for their results (&#8220;join&#8221;). Data may be safely shared between threads, provided it is (a) written by the parent before the child thread starts or (b) written by the child and read by the parent after the join. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">If these sharing restrictions are followed, each thread executes independently and in a deterministic fashion, unaffected by the behavior of any other concurrently executing thread. The multiplexing of threads onto processors has no effect other than performance. </FONT><A id=x1-180017 name=x1-180017></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;//&nbsp;To&nbsp;pass&nbsp;two&nbsp;arguments,&nbsp;we&nbsp;need&nbsp;a&nbsp;struct&nbsp;to&nbsp;hold&nbsp;them.
+&nbsp;typedef&nbsp;struct&nbsp;bzeroparams&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unsigned&nbsp;char&nbsp;*buffer;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;length;
+&nbsp;};
+&nbsp;
+&nbsp;#define&nbsp;NTHREADS&nbsp;10
+&nbsp;
+&nbsp;void&nbsp;go&nbsp;(struct&nbsp;bzeroparams&nbsp;*p)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;memset(p-&gt;buffer,&nbsp;0,&nbsp;p-&gt;length);
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Zero&nbsp;a&nbsp;block&nbsp;of&nbsp;memory&nbsp;using&nbsp;multiple&nbsp;threads.
+&nbsp;void&nbsp;blockzero&nbsp;(unsigned&nbsp;char&nbsp;*p,&nbsp;int&nbsp;length)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;i;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_t&nbsp;threads[NTHREADS];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;struct&nbsp;bzeroparams&nbsp;params[NTHREADS];
+&nbsp;
+&nbsp;//&nbsp;For&nbsp;simplicity,&nbsp;assumes&nbsp;length&nbsp;is&nbsp;divisible&nbsp;by&nbsp;NTHREADS.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert((length&nbsp;%&nbsp;NTHREADS)&nbsp;==&nbsp;0);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;NTHREADS;&nbsp;i++)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params[i].buffer&nbsp;=&nbsp;p&nbsp;+&nbsp;i&nbsp;*&nbsp;length/NTHREADS;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params[i].length&nbsp;=&nbsp;length/NTHREADS;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_create_p(&amp;(threads[i]),&nbsp;&amp;go,&nbsp;&amp;params[i]);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;NTHREADS;&nbsp;i++)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_join(threads[i]);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+&nbsp;</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;4.7: </B>Routine to zero a contiguous region of memory in parallel using multiple threads. To pass two arguments (the pointer to the buffer and the length of the buffer) to the child thread, the program passes a pointer to a struct holding the two parameters.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>EXAMPLE: Parallel block zero.</B> A simple example of fork-join parallelism in operating systems is the procedure to zero a contiguous block of memory. To prevent unintentional data leakage, whenever a process exits, the operating system must zero the memory that had been allocated to the exiting process. Otherwise, a new process may be re-assigned the memory, enabling it to read potentially sensitive data. For example, an operating system&#8217;s remote login program might temporarily store a user&#8217;s password in memory, but the next process to use the same physical memory might be a memory-scanning program launched by a different, malicious user. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">For a large process, parallelizing the zeroing function can make sense. Zeroing 1 GB of memory takes about 50 milliseconds on a modern computer; by contrast, creating and starting a new thread takes a few tens of microseconds. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Figure&nbsp;</FONT><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-180017"}'><FONT style="BACKGROUND-COLOR: #7be1e1">4.7</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1"> illustrates the code for a parallel zero function using fork-join parallelism. The multi-threaded blockzero creates a set of threads and assigns each a disjoint portion of the memory region; the region is empty when all threads have completed their work. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">In practice, the operating system will often create a thread to run blockzero in the background. The memory of an exiting process does not need to be cleared until the memory is needed &#8212; that is, when the next process is created. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">To exploit this flexibility, the operating system can create a set of low priority threads to run blockzero. The kernel can then return immediately and resume running application code. Later on, when the memory is needed, the kernel can call thread_join. If the zero is complete by that point, the join will return immediately; otherwise, it will wait until the memory is safe to use. </FONT><A id=x1-18002r30 name=x1-18002r30></A></P><A id=x1-190004 name=x1-190004><BR><BR><FONT style="BACKGROUND-COLOR: #7be1e1">

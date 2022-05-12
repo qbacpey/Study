@@ -1,0 +1,94 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h2 class=chapter_name><I>5. Synchronizing Access to Shared Objects</I></H2></A>
+<DIV class=chapterQuote>
+<P>It is not enough to be industrious. So are the ants. The question is: What are we industrious about? &#8212;<I>Henry David Thoreau</I> </P>
+<DL>
+<DT>
+<DD></DD></DL>
+<P></P></DIV>
+<HR>
+<BR>
+<P>Multi-threaded programs extend the traditional, single-threaded programming model so that each thread provides a single sequential stream of execution composed of familiar instructions. If a program has <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:independent threads"}'>independent threads</A></EM> that operate on completely separate subsets of memory, we can reason about each thread separately. In this case, reasoning about independent threads differs little from reasoning about a series of independent, single-threaded programs. </P>
+<P>However, most multi-threaded programs have both <EM>per-thread state</EM> (e.g., a thread&#8217;s stack and registers) and <EM>shared state</EM> (e.g., shared variables on the heap). <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:cooperating threads"}'>Cooperating threads</A></EM> read and write shared state. </P>
+<P>Sharing state is useful because it lets threads communicate, coordinate work, and share information. For example, in the <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-110001"}'>Earth Visualizer</A> example in Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100004"}'>4</A>, once one thread finishes downloading a detailed image from the network, it shares that image data with a rendering thread that draws the new image on the screen. </P>
+<P>Unfortunately, when cooperating threads share state, writing correct multi-threaded programs becomes much more difficult. Most programmers are used to thinking &#8220;sequentially&#8221; when reasoning about programs. For example, we often reason about the series of states traversed by a program as a sequence of instructions is executed. However, this sequential model of reasoning does not work in programs with cooperating threads, for three reasons: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-39002x1 name=x1-39002x1></A>
+<P><B>Program execution depends on the possible interleavings of threads&#8217; access to shared state.</B> For example, if two threads write a shared variable, one thread with the value 1 and the other with the value 2, the final value of the variable depends on which of the threads&#8217; writes finishes last. </P>
+<P>Although this example is simple, the problem is severe because programs need to work for <EM>any possible interleaving</EM>. In particular, recall that thread programmers <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-150002"}'>should not make any assumptions about the relative speed at which their threads operate.</A> </P>
+<P>Worse, as programs grow, there is a combinatorial explosion in the number of possible interleavings. </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center><EM>How can we reason about all possible interleavings of threads&#8217; actions in a multi-million line program?</EM></DIV></TD></TR></TBODY></TABLE>
+<P><BR></P>
+<LI class=enumerate><A id=x1-39004x2 name=x1-39004x2></A>
+<P><B>Program execution can be nondeterministic.</B> Different runs of the same program may produce different results. For example, the scheduler may make different scheduling decisions, the processor may run at a different frequency, or another concurrently running program may affect the cache hit rate. Even common debugging techniques &#8212; such as running a program under a debugger, recompiling with the -g option instead of -O, or adding a printf &#8212; can change how a program behaves. </P>
+<P>Jim Gray, the 1998 ACM Turing Award winner, coined the term <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:Heisenbugs"}'>Heisenbugs</A></EM> for bugs that disappear or change behavior when you try to examine them. Multi-threaded programming is a common source of Heisenbugs. In contrast, <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:Bohrbugs"}'>Bohrbugs</A></EM> are deterministic and generally much easier to diagnose. </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center><EM>How can we debug programs with behaviors that change across runs?</EM></DIV></TD></TR></TBODY></TABLE>
+<P><BR></P>
+<LI class=enumerate><A id=x1-39006x3 name=x1-39006x3></A>
+<P><B>Compilers and processor hardware can reorder instructions.</B> Modern compilers and hardware reorder instructions to improve performance. This reordering is generally invisible to single-threaded programs; compilers and processors take care to ensure that dependencies within a single sequence of instructions &#8212; that is, within a thread &#8212; are preserved. However, reordering can become visible when multiple threads interact through accessing shared variables. </P>
+<P>For example, consider the following code to compute q as a function of p: </P>
+<P><BR></P><PRE class=code>&nbsp;//&nbsp;Thread&nbsp;1
+&nbsp;
+&nbsp;p&nbsp;=&nbsp;someComputation();
+&nbsp;pInitialized&nbsp;=&nbsp;true;
+&nbsp;</PRE><PRE class=code>&nbsp;//&nbsp;Thread&nbsp;2
+&nbsp;
+&nbsp;while(!pInitialized)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+&nbsp;q&nbsp;=&nbsp;anotherComputation(p);
+&nbsp;</PRE><BR>
+<P>Although it seems that p is always initialized before anotherComputation(p) is called, this is not the case. To maximize instruction level parallelism, the hardware or compiler may set pInitialized = true before the computation to compute p has completed, and anotherComputation(p) may be computed using an unexpected value. </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center><EM>How can we reason about thread interleavings when compilers and processor hardware may reorder a thread&#8217;s operations?</EM></DIV></TD></TR></TBODY></TABLE>
+<P><BR></P></LI></OL>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Why do compilers and processor hardware reorder operations?</I></B></SPAN> </P>
+<P>We often find that students are puzzled by the notion that a compiler might produce code, or a processor might execute code, in a way that is correct for a single thread but unpredictable for a multi-threaded program without synchronization. </P>
+<P>For compilers, the issue is simple. Modern processors have deep pipelines; they execute many instructions simultaneously by overlapping the instruction fetch, instruction decode, data fetch, arithmetic operation, and conditional branch of a sequence of instructions. The processor stalls when necessary &#8212; e.g., if the result of one instruction is needed by the next. Modern compilers will reorder instructions to reduce these stalls as much as possible, provided the reordering does not change the behavior of the program. </P>
+<P>The difficulty arises in what assumptions the compiler can make about the code. If the code is single-threaded, it is much easier to analyze possible dependencies between adjacent instructions, allowing more optimization. By contrast, variables in (unsynchronized) multi-threaded code can potentially be read or written by another thread at any point. As the example in the text demonstrated, the precise sequence of seemingly unrelated instructions can potentially affect the behavior of the program. To preserve semantics, instruction re-ordering may no longer be feasible, resulting in more processor stalls and slower code execution. </P>
+<P>As long as the programmer uses structured synchronization for protecting shared data, the compiler can reorder instructions as needed without changing program behavior, provided that the compiler does not reorder across synchronization operations. A compiler making the more conservative assumption that all memory is shared would produce slow code even when it was not necessary. </P>
+<P>For processor architectures, the issue is also performance. Certain optimizations are possible if the programmer is using structured synchronization but not otherwise. For example, modern processors buffer memory writes to allow instruction execution to continue while the memory is written in the background. If two adjacent instructions issue memory writes to different memory locations, they can occur in parallel and complete out of order. This optimization is safe on a single processor, but potentially unsafe if multiple processors are simultaneously reading and writing the same locations without intervening synchronization. Some processor architectures make the conservative assumption that optimizations should never change program behavior regardless of the programming style &#8212; in this case, they stall to prevent reordering. Others make a more optimistic assumption that the programmer is using structured synchronization. For your code to be portable, you should assume that the compiler and the hardware can reorder instructions except across synchronization operations. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P>Given these challenges, multi-threaded code can introduce subtle, non-deterministic, and non-reproducible bugs. This chapter describes a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:structured synchronization"}'>structured synchronization</A></EM> approach to sharing state in multi-threaded programs. Rather than scattering access to shared state throughout the program and attempting <EM>ad hoc</EM> reasoning about what happens when the threads&#8217; accesses are interleaved in various ways, a better approach is to: (1) structure the program to facilitate reasoning about concurrency, and (2) use a set of standard synchronization primitives to control access to shared state. This approach gives up some freedom, but if you consistently follow the rules we describe in this chapter, then reasoning about programs with shared state becomes much simpler. </P>
+<P>The first part of this chapter elaborates on the challenges faced by multi-threaded programmers and on why it is dangerous to try to reason about all possible thread interleavings in the general, unstructured case. The rest of the chapter describes how to structure shared objects in multi-threaded programs so that we can reason about them. First, we structure a multi-threaded program&#8217;s shared state as a set of <EM>shared objects</EM> that encapsulate the shared state as well as define and limit how the state can be accessed. Second, to avoid <EM>ad hoc</EM> reasoning about the possible interleavings of access to the state variables within a shared object, we describe how shared objects can use a small set of <EM>synchronization primitives</EM> &#8212; locks and condition variables &#8212; to coordinate access to their state by different threads. Third, to simplify reasoning about the code in shared objects, we describe a set of <EM>best practices</EM> for writing the code that implements each shared object. Finally, we dive into the details of how to implement synchronization primitives. </P>
+<P>Multi-threaded programming has a reputation for being difficult. We agree that it takes care, but this chapter provides a set of simple rules that anyone can follow to implement objects that can be safely shared by multiple threads. </P>
+<P><B>Chapter roadmap:</B> </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Challenges.</B> Why is it difficult to reason about multi-threaded programs with unstructured use of shared state? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-400001"}'>5.1</A>) </P>
+<LI class=itemize>
+<P><B>Structuring Shared Objects.</B> How should we structure access to shared state by multiple threads? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-460002"}'>5.2</A>) </P>
+<LI class=itemize>
+<P><B>Locks: Mutual Exclusion.</B> How can we enforce a logical sequence of operations on shared state? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-490003"}'>5.3</A>) </P>
+<LI class=itemize>
+<P><B>Condition Variables: Waiting for a Change.</B> How does a thread wait for a change in shared state? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540004"}'>5.4</A>) </P>
+<LI class=itemize>
+<P><B>Designing and Implementing Shared Objects.</B> Given locks and condition variables, what is a good way to write and reason about the code for shared objects? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-580005"}'>5.5</A>) </P>
+<LI class=itemize>
+<P><B>Three Case Studies.</B> We illustrate our methodology by using it to develop solutions to three concurrent programming challenges. (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-620006"}'>5.6</A>) </P>
+<LI class=itemize>
+<P><B>Implementing Synchronization Primitives.</B> How are locks and condition variables implemented? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-660007"}'>5.7</A>) </P>
+<LI class=itemize>
+<P><B>Semaphores Considered Harmful.</B> What other synchronization primitives are possible, and how do they relate to locks and condition variables? (Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-740008"}'>5.8</A>)</P></LI></UL><A id=x1-39007r64 name=x1-39007r64></A><A id=x1-400001 name=x1-400001>

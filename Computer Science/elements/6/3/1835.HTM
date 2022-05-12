@@ -1,0 +1,18 @@
+<H4><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> x86 Assembly Guide : Size Directives</SPAN></FONT></H4>
+<P><SPAN>In general, the intended size of the data item at a given memory address can be inferred from the assembly code instruction in which it is referenced. For example, in all of the above instructions, the size of the memory regions could be inferred from the size of the register operand. When we were loading a 32-bit register, the assembler could infer that the region of memory we were referring to was 4 bytes wide. When we were storing the value of a one byte register to memory, the assembler could infer that we wanted the address to refer to a single byte in memory.</SPAN> </P>
+<P></P>
+<P><SPAN><SPAN class=extract><SPAN>However, in some cases the size of a referred-to memory region is ambiguous. Consider the instruction<SPAN>&nbsp;</SPAN></SPAN><SPAN class=Keyword>mov [ebx], 2</SPAN><SPAN>. Should this instruction move the value 2 into the single byte at address<SPAN>&nbsp;</SPAN></SPAN><SPAN class=Keyword>EBX</SPAN><SPAN>? Perhaps it should move the 32-bit integer representation of 2 into the 4-bytes starting at address<SPAN>&nbsp;</SPAN></SPAN><SPAN class=Keyword>EBX</SPAN><SPAN>. Since either is a valid possible interpretation, the assembler must be explicitly directed as to which is correct. The size directives<SPAN>&nbsp;</SPAN></SPAN><SPAN class=Keyword>BYTE PTR</SPAN><SPAN>,<SPAN>&nbsp;</SPAN></SPAN><SPAN class=Keyword>WORD PTR</SPAN><SPAN>, and<SPAN>&nbsp;</SPAN></SPAN><SPAN class=Keyword>DWORD PTR</SPAN><SPAN><SPAN>&nbsp;</SPAN>serve this purpose, indicating sizes of 1, 2, and 4 bytes respectively</SPAN></SPAN></SPAN><SPAN>.</SPAN> </P>
+<P></P>
+<P><SPAN>For example:</SPAN> </P>
+<BLOCKQUOTE>
+<TABLE cellSpacing=0 cellPadding=0 border=0>
+<TBODY>
+<TR>
+<TD><SPAN class=Keyword><FONT style="BACKGROUND-COLOR: #7be1e1">mov BYTE PTR [ebx], 2</FONT></SPAN></TD>
+<TD><SPAN class=comment><FONT style="BACKGROUND-COLOR: #7be1e1">; Move 2 into the single byte at the address stored in EBX.</FONT></SPAN></TD></TR>
+<TR>
+<TD><SPAN class=Keyword><FONT style="BACKGROUND-COLOR: #7be1e1">mov WORD PTR [ebx], 2</FONT></SPAN></TD>
+<TD><SPAN class=comment><FONT style="BACKGROUND-COLOR: #7be1e1">; Move the 16-bit integer representation of 2 into the 2 bytes starting at the address in EBX.</FONT></SPAN></TD></TR>
+<TR>
+<TD><SPAN class=Keyword><FONT style="BACKGROUND-COLOR: #7be1e1">mov DWORD PTR [ebx], 2&nbsp;&nbsp;&nbsp;&nbsp;</FONT></SPAN></TD>
+<TD><SPAN class=comment><FONT style="BACKGROUND-COLOR: #7be1e1">; Move the 32-bit integer representation of 2 into the 4 bytes starting at the address in EBX</FONT></SPAN></TD></TR></TBODY></TABLE></BLOCKQUOTE>

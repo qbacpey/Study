@@ -1,0 +1,748 @@
+<STRONG><FONT style="BACKGROUND-COLOR: #7be1e1" color=blue>: </FONT></STRONG>
+<H2 class=chapter_name><I><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3. The Programming Interface</SPAN></FONT></FONT></I></H2></A>
+<DIV class=chapterQuote>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">From a programmer&#8217;s point of view, the user is a peripheral that types when you issue a read request. &#8212;<I>Peter Williams</I> </FONT></P>
+<DL>
+<DT><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT>
+<DD><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></DD></DL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+<BR></FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The previous chapter concerned the mechanisms needed in the operating system kernel to implement the process abstraction. A process is an instance of a program &#8212; the kernel provides an efficient sandbox for executing untrusted code at user-level, running user code directly on the processor. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">This chapter concerns how we choose to use the process abstraction: what functionality does the operating system provide applications, and what should go where &#8212; what functionality should be put in the operating system kernel, what should be put into user-level libraries, and how should the operating system itself be organized? </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">There are as many answers to this as there are operating systems. Describing the full programming interface and internal organization for even a single operating system would take an entire book. Instead, in this chapter we explore a subset of the programming interface for UNIX, the foundation of Linux, MacOS, iOS, and Android. We also touch on how the same issues are addressed in Windows. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">First, we need to answer &#8220;what&#8221; &#8212; what functions do we need an operating system to provide applications? </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Process management.</B> Can a program create an instance of another program? Wait for it to complete? Stop or resume another running program? Send it an asynchronous event? </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Input/output.</B> How do processes communicate with devices attached to the computer and through them to the physical world? Can processes communicate with each other? </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Thread management.</B> Can we create multiple activities or threads that share memory or other resources within a process? Can we stop and start threads? How do we synchronize their use of shared data structures? </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Memory management.</B> Can a process ask for more (or less) memory space? Can it share the same physical memory region with other processes? </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>File systems and storage.</B> How does a process store the user&#8217;s data persistently so that it can survive machine crashes and disk failures? How does the user name and organize their data? </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Networking and distributed systems.</B> How do processes communicate with processes on other computers? How do processes on different computers coordinate their actions despite machine crashes and network problems? </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Graphics and window management.</B> How does a process control pixels on its portion of the screen? How does a process make use of graphics accelerators? </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Authentication and security.</B> What permissions does a user or a program have, and how are these permissions kept up to date? On what basis do we know the user (or program) is who they say they are?</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">In this chapter, we focus on just the first two of these topics: process management and input/output. We will cover thread management, memory management, and file systems in detail in later chapters in this book. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Remarkably, we can describe a functional interface for process management and input/output with just a dozen system calls, and the rest of the system call interface with another dozen. Even more remarkably, these calls are nearly unchanged from the original UNIX design. Despite being first designed and implemented in the early 1970&#8217;s, most of these calls are still in wide use in systems today! </FONT><A id=x1-540011 name=x1-540011></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<CENTER><FONT style="BACKGROUND-COLOR: #7be1e1"><img alt="" src="file:///[PrimaryStorage]Images/image00206.gif" data-calibre-src="OEBPS/Images/image00206.gif"> </FONT></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.1: </B>Operating system functionality can be implemented in user-level programs, in user-level libraries, in the kernel itself, or in a user-level server invoked by the kernel.</FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Second, we need to answer &#8220;where&#8221; &#8212; for any bit of functionality the operating system provides to user programs, we have several options for where it lives, illustrated in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540011"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.1</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">We can put the functionality in a user-level program. In both Windows and UNIX, for example, there is a user program for managing a user&#8217;s login and another for managing a user&#8217;s processes. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">We can put the functionality in a user-level library linked in with each application. In Windows and MacOS, user interface widgets are part of user-level libraries, included in those applications that need them. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">We can put the functionality in the operating system kernel, accessed through a system call. In Windows and UNIX, low-level process management, the file system and the network stack are all implemented in the kernel. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">We can access the function through a system call, but implement the function in a standalone server process invoked by the kernel. In many systems, the window manager is implemented as a separate server process.</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">How do we make this choice? It is important to realize that the choice can be (mostly) transparent to both the user and the application programmer. The user wants a system that works; the programmer wants a clean, convenient interface that does the job. As long as the operating system provides that interface, where each function is implemented is up to the operating system, based on a tradeoff between flexibility, reliability, performance, and safety. </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Flexibility.</B> It is much easier to change operating system code that lives outside of the kernel, without breaking applications using the old interface. If we create a new version of a library, we can just link that library in with new applications, and over time convert old applications to use the new interface. However, if we need to change the system call interface, we must either simultaneously change both the kernel and all applications, or we must continue to support both the old and the new versions until all old applications have been converted. Many applications are written by third party developers, outside of the control of the operating system vendor. Thus, changing the system call interface is a huge step, often requiring coordination across many companies. </FONT><A id=x1-540022 name=x1-540022></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<CENTER><FONT style="BACKGROUND-COLOR: #7be1e1"><img alt="" src="file:///[PrimaryStorage]Images/image00207.gif" data-calibre-src="OEBPS/Images/image00207.gif"> </FONT></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.2: </B>The kernel system call interface can be seen as a &#8220;thin waist,&#8221; enabling independent evolution of applications and hardware.</FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">One of the key ideas in UNIX, responsible for much of its success, was to design its system call interface to be simple and powerful, so that almost all of the innovation in the system could happen in user code without changing the interface to the operating system. The UNIX system call interface is also highly portable &#8212; the operating system can be ported to new hardware without needing to rewrite application code. As shown in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540022"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.2</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">, the kernel can be seen as a &#8220;thin waist,&#8221; enabling innovation at the application-level, and in the hardware, without requiring simultaneous changes in the other parts of the system. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>The Internet and the &#8220;thin waist&#8221;</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The Internet is another example of the benefit of designing interfaces to be simple and portable. The Internet defines a packet-level protocol that can run on top of virtually any type of network hardware and can support almost any type of network application. Creating the World Wide Web required no changes to the Internet packet delivery mechanism; likewise, the introduction of wireless networks required changes in hardware devices and in the operating system, but no changes in network applications. Although the Internet&#8217;s &#8220;thin waist&#8221; can sometimes lead to inefficiencies, the upside is to foster innovation in both applications and hardware by decoupling changes in one from changes in the other. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Safety.</B> However, resource management and protection are the responsibility of the operating system kernel. As Chapter&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-310002"}'><FONT style="BACKGROUND-COLOR: #7be1e1">2</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1"> explained, protection checks cannot be implemented in a user-level library because application code can skip any checks made by the library. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Reliability.</B> Improved reliability is another reason to keep the operating system kernel minimal. Kernel code needs the power to set up hardware devices, such as the disk, and to control protection boundaries between applications. However, kernel modules are typically not protected from one another, and so a bug in kernel code (whether sensitive or not) may corrupt user or kernel data. This has led some systems to use a philosophy of &#8220;what can be at user level, should be.&#8221; An extreme version of approach is to isolate privileged, but less critical, parts of the operating system such as the file system or the window system, from the rest of the kernel. This is called a <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:microkernel"}'>microkernel</A></EM> design. In a microkernel, the kernel itself is kept small, and instead most of the functionality of a traditional operating system kernel is put into a set of user-level processes, or servers, accessed from user applications via interprocess communication. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Performance.</B> Finally, transferring control into the kernel is more expensive than a procedure call to a library, and transferring control to a user-level file system server via the kernel is still even more costly. Hardware designers have attempted to reduce the cost of these boundary crossings, but their performance remains a problem. Microsoft Windows NT, a precursor to Windows 7, was initially designed as a microkernel, but over time, much of its functionality has been migrated back into the kernel for performance reasons. </FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>Application-level sandboxing and operating system functionality</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Applications that support executing third-party code or scripts in a restricted sandbox must address many of these same questions, with the sandbox playing the role of the operating system kernel. In terms of functionality: Can the scripting code start a new instance of itself? Can it do input/output? Can it perform work in the background? Can it store data persistently, and if it can, how does it name that data? Can it communicate data over the network? How does it authenticate actions? </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">For example, in web browsers, HTML5 not only allows scripts to draw on the screen, communicate with servers, and save and read cookies, it also has recently added programming interfaces for offline storage and cross-document communication. The Flash media player provides scripts with the ability to do asynchronous operations, file storage, network communication, memory management, and authentication. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Just as with system calls, these interfaces must be carefully designed to be bulletproof against malicious use. A decade ago, email viruses became widespread because scripts could be embedded in documents that were executed on opening; the programming interfaces for these scripts would allow them to discover the list of correspondents known to the current email user and to send them email, thereby propagating and expanding the virus with a single click. The more fully featured the interface, the more convenient it is for developers, and the more likely that some aspect of the interface will be abused by a hacker. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">There are no easy answers! We will investigate the question of how to design the system call interface and where to place operating system functionality through case studies of UNIX and other systems. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Chapter roadmap:</B> </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Process management.</B> What is the system call interface for process management? (Section&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-550001"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.1</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">) </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Input/output.</B> What is the system call interface for performing I/O and interprocess communication? (Section&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600002"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.2</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">) </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Case study: Implementing a shell.</B> We will illustrate these interfaces by using them to implement a user-level job control system called a <EM>shell</EM>. (Section&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-610003"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.3</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">) </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Case study: Interprocess communication.</B> How does the communication between a client and server work? (Section&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-620004"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.4</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">) </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Operating system structure.</B> Can we use the process abstraction to simplify the construction of the operating system itself and to make it more secure, more reliable, and more flexible? (Section&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-650005"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.5</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">)</FONT></P></LI></UL><A id=x1-54003r88 name=x1-54003r88></A><A id=x1-550001 name=x1-550001>
+<H3 class=sectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.1 Process Management</FONT></H3></A><FONT style="BACKGROUND-COLOR: #7be1e1">On a modern computer, when a user clicks on a file or application icon, the application starts up. How does this happen and who is called? Of course, we could implement everything that needs to happen in the kernel &#8212; draw the icon for every item in the file system, map mouse positions to the intended icon, catch the mouse click, and start the process. In early batch processing systems, the kernel was in control by necessity. Users submitted jobs, and the operating system took it from there, instantiating the process when it was time to run the job. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">A different approach is to allow user programs to create and manage their own processes. This has fostered a blizzard of innovation. Today, programs that create and manage processes include window managers, web servers, web browsers, shell command line interpreters, source code control systems, databases, compilers, and document preparation systems. We could go on, but you get the idea. If creating a process is something a process can do, then anyone can build a new version of any of these applications, without recompiling the kernel or forcing anyone else to use it. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">An early motivation for user-level process management was to allow developers to write their own shell command line interpreters. A <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:shell"}'>shell</A></EM> is a job control system; both Windows and UNIX have a shell. Many tasks involve a sequence of steps to do something, each of which can be its own program. With a shell, you can write down the sequence of steps, as a sequence of programs to run to do each step. Thus, you can view it as a very early version of a scripting system. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">For example, to compile a C program from multiple source files, you might type: </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><BR></FONT></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;cc&nbsp;-c&nbsp;sourcefile1.c
+   &nbsp;cc&nbsp;-c&nbsp;sourcefile2.c
+   &nbsp;ln&nbsp;-o&nbsp;program&nbsp;sourcefile1.o&nbsp;sourcefile2.o</FONT></PRE><BR>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">If we put those commands into a file, the shell reads the file and executes it, creating, in turn, a process to compile sourcefile1.c, a process to compile sourcefile2, and a process to link them together. Once a shell script is a program, we can create other programs by combining scripts together. In fact, on UNIX, the C compiler is itself a shell program! The compiler first invokes a process to expand header include files, then a separate process to parse the output, another process to generate (text) assembly code, and yet another to convert assembly into executable machine instructions. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>There is an app for that</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">User-level process management is another way of saying &#8220;there is an app for that.&#8221; Instead of a single program that does everything, we can create specialized programs for each task, and mix and match what we need. The formatting system for this textbook uses over fifty separate programs. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The web is a good example of the power of composing complex applications from more specialized services. A web page does not need to do everything itself: it can mash up the results of many different web pages, and it can invoke process creation on the local server to generate part of the page. The flexibility to create processes was extremely important early on in the development of the web. HTML was initially just a way to describe the formatting for static information, but it included a way to escape to a process, e.g., to do a lookup in a database or to authenticate a user. Over time, HTML has added support for many different features that were first prototyped via execution by a separate process. And of course, HTML can still execute a process for any format not supported by the standard. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV><A id=x1-55001r71 name=x1-55001r71></A>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.1.1 </FONT><A id=x1-560001 name=x1-560001></A><FONT style="BACKGROUND-COLOR: #7be1e1">Windows Process Management</FONT></H4><FONT style="BACKGROUND-COLOR: #7be1e1">One approach to process management is to just add a system call to create a process, and other system calls for other process operations. This turns out to be simple in theory and complex in practice. In Windows, there is a routine called, unsurprisingly, CreateProcess, in simplified form below: </FONT>
+<P><BR></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;boolean&nbsp;CreateProcess(char&nbsp;*prog,&nbsp;char&nbsp;*args);
+</FONT></PRE><BR>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">We call the process creator the <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:parent process"}'>parent</A></EM> and the process being created, the <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:child process"}'>child</A></EM>. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">What steps does CreateProcess take? As we explained in the previous chapter, the kernel needs to: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Create and initialize the process control block (PCB) in the kernel. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Create and initialize a new address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Load the program prog into the address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Copy arguments args into memory in the address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Initialize the hardware context to start execution at &#8220;start&#8221;. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Inform the scheduler that the new process is ready to run.</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Unfortunately, there are quite a few aspects of the process that the parent might like to control, such as: its privileges, where it sends its input and output, what it should store its files, what to use as a scheduling priority, and so forth. We cannot trust the child process itself to set its own privileges and priority, and it would be inconvenient to expect every application to include code for figuring out its context. So the real interface to CreateProcess is quite a bit more complicated in practice, given in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-560013"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.3</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. </FONT><A id=x1-560013 name=x1-560013></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;//&nbsp;Start&nbsp;the&nbsp;child&nbsp;process
+&nbsp;if&nbsp;(!CreateProcess(NULL,&nbsp;&nbsp;&nbsp;//&nbsp;No&nbsp;module&nbsp;name&nbsp;(use&nbsp;command&nbsp;line)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;argv[1],&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Command&nbsp;line
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Process&nbsp;handle&nbsp;not&nbsp;inheritable
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Thread&nbsp;handle&nbsp;not&nbsp;inheritable
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FALSE,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Set&nbsp;handle&nbsp;inheritance&nbsp;to&nbsp;FALSE
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;No&nbsp;creation&nbsp;flags
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Use&nbsp;parent&#8217;s&nbsp;environment&nbsp;block
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Use&nbsp;parent&#8217;s&nbsp;starting&nbsp;directory
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;si,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Pointer&nbsp;to&nbsp;STARTUPINFO&nbsp;structure
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;pi&nbsp;)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Pointer&nbsp;to&nbsp;PROCESS_INFORMATION&nbsp;structure
+&nbsp;)</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.3: </B>Excerpt from an example of how to use the Windows CreateProcess system call. The first two arguments specify the program and its arguments; the rest concern aspects of the process runtime environment.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><A id=x1-56002r96 name=x1-56002r96></A>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.1.2 </FONT><A id=x1-570002 name=x1-570002></A><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX Process Management</FONT></H4><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX takes a different approach to process management, one that is complex in theory and simple in practice. UNIX splits CreateProcess in two steps, called fork and exec, illustrated in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-570014"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.4</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. </FONT><A id=x1-570014 name=x1-570014></A><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<CENTER><FONT style="BACKGROUND-COLOR: #7be1e1"><img alt="" src="file:///[PrimaryStorage]Images/image00208.gif" data-calibre-src="OEBPS/Images/image00208.gif"> </FONT></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.4: </B>The operation of the UNIX fork and exec system calls. UNIX fork makes a copy of the parent process; UNIX exec changes the child process to run the new program.</FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P><EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX fork"}'><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX fork</FONT></A></EM><FONT style="BACKGROUND-COLOR: #7be1e1"> creates a complete copy of the parent process, with one key exception. (We need some way to distinguish between which copy is the parent and which is the child.) The child process sets up privileges, priorities, and I/O for the program that is about to be started, e.g., by closing some files, opening others, reducing its priority if it is to run in the background, etc. Because the child runs exactly the same code as the parent, it can be trusted to set up the context for the new program correctly. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Once the context is set, the child process calls <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX exec"}'>UNIX exec</A></EM>. UNIX exec brings the new executable image into memory and starts it running. It may seem wasteful to make a complete copy of the parent process, just to overwrite that copy when we bring in the new executable image into memory using exec. It turns out that fork and exec can be implemented efficiently, using a set of techniques we will describe in Chapter&nbsp;8. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">With this design, UNIX fork takes no arguments and returns an integer. UNIX exec takes two arguments (the name of the program to run and an array of arguments to pass to the program). This is in place of the ten parameters needed for CreateProcess. In part because of the simplicity of UNIX fork and exec, this interface has remained nearly unchanged since UNIX was designed in the early 70&#8217;s. (Although the interface has not changed, the word fork is now a bit ambiguous. It is used for creating a new copy of a UNIX process, and in thread systems for creating a new thread. To disambiguate, we will always use the term &#8220;UNIX fork&#8221; to refer to UNIX&#8217;s copy process system call.) </FONT></P>
+<H5 class=subsubsectionHead><A id=x1-580002 name=x1-580002></A><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX fork</FONT></H5><FONT style="BACKGROUND-COLOR: #7be1e1">The steps for implementing UNIX fork in the kernel are: </FONT>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Create and initialize the process control block (PCB) in the kernel </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Create a new address space </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Initialize the address space with a copy of the entire contents of the address space of the parent </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Inherit the execution context of the parent (e.g., any open files) </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Inform the scheduler that the new process is ready to run</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">A strange aspect of UNIX fork is that the system call returns <EM>twice</EM>: once to the parent and once to the child. To the parent, UNIX returns the process ID of the child; to the child, it returns zero indicating success. Just as if you made a clone of yourself, you would need some way to tell who was the clone and who was the original, UNIX uses the return value from fork to distinguish the two copies. Some sample code to call fork is given in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-580015"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.5</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. </FONT><A id=x1-580015 name=x1-580015></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;int&nbsp;child_pid&nbsp;=&nbsp;fork();
+&nbsp;
+&nbsp;if&nbsp;(child_pid&nbsp;==&nbsp;0)&nbsp;{&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;child&nbsp;process.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("I&nbsp;am&nbsp;process&nbsp;#%d\n",&nbsp;getpid());
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;}&nbsp;else&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;parent&nbsp;process.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;#%d\n",&nbsp;child_pid);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;}
+&nbsp;
+&nbsp;Possible&nbsp;output:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;495
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;process&nbsp;495
+&nbsp;
+&nbsp;Another&nbsp;less&nbsp;likely&nbsp;but&nbsp;still&nbsp;possible&nbsp;output:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;process&nbsp;456
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;456</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.5: </B>Example UNIX code to fork a process, and some possible outputs of running the code. getpid is a system call to get the current process&#8217;s ID.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">If we run the program in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-580015"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.5</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">, what happens? If you have access to a UNIX system, you can try it and see for yourself. UNIX fork returns twice, once in the child, with a return value of zero, and once in the parent with a return value of the child&#8217;s process ID. However, we do not know whether the parent will run next or the child. The parent had been running, and so it is likely that it will reach its print statement first. However, a timer interrupt could intervene between when the parent forks the process and when it reaches the print statement, so that the processor is reassigned to the child. Or we could be running on a multicore system, where both the parent and child are running simultaneously. In either case, the child could print its output before the parent. We will talk in much more depth about the implications of different orderings of concurrent execution in the next chapter. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>UNIX fork and the Chrome Web browser</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Although UNIX fork is normally paired with a call to exec, in some cases UNIX fork is useful on its own. A particularly interesting example is in Google&#8217;s Chrome web browser. When the user clicks on a link, Chrome forks a process to fetch and render the web page at the link, in a new tab on the browser. The parent process continues to display the original referring web page, while the child process runs the same browser, but in its own address space and protection boundary. The motivation for this design is to isolate the new link, so that if the web site is infected with a virus, it will not infect the rest of the browser. Closing the infected browser tab will then remove the link and the virus from the system. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Some security researchers take this a step further. They set up their browsers and email systems to create a new <EM>virtual machine</EM> for every new link, running a copy of the browser in each virtual machine; even if the web site has a virus that corrupts the guest operating system running in the virtual machine, the rest of the system will remain unaffected. In this case, closing the virtual machine cleans the system of the virus. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Interestingly, on Windows, Google Chrome does not use CreateProcess to fork new copies of the browser on demand. The difficulty is that if Chrome is updated while Chrome is running, CreateProcess will create a copy of the new version, and that may not interoperate correctly with the old version. Instead, they create a pool of helper processes that wait in the background for new links to render. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV>
+<H5 class=subsubsectionHead><A id=x1-590002 name=x1-590002></A><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX exec and wait</FONT></H5><FONT style="BACKGROUND-COLOR: #7be1e1">The UNIX system call exec completes the steps needed to start running a new program. The child process typically calls UNIX exec once it has returned from UNIX fork and configured the execution environment for the new process. We will describe more about how this works when we discuss UNIX pipes in the next section. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX exec does the following steps: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Load the program prog into the current address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Copy arguments args into memory in the address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Initialize the hardware context to start execution at &#8220;start.&#8221;</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Note that exec does not create a new process! </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">On the other side, often the parent process needs to pause until the child process completes, e.g., if the next step depends on the output of the previous step. In the shell example we started the chapter with, we need to wait for the two compilations to finish before it is safe to start the linker. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX has a system call, naturally enough called <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX wait"}'>wait</A></EM>, that pauses the parent until the child finishes, crashes, or is terminated. Since the parent could have created many child processes, wait is parameterized with the process ID of the child. With wait, a shell can create a new process to perform some step of its instructions, and then pause for that step to complete before proceeding to the next step. It would be hard to build a usable shell without wait. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">However, the call to wait is optional in UNIX. For example, the Chrome browser does not need to wait for its forked clones to finish. Likewise, most UNIX shells have an option to run operations in the background, signified by appending &#8216;&amp;&#8217; to the command line. (As with fork, the word wait is now a bit ambiguous. It is used for pausing the current UNIX process to wait for another process to complete; it is also used in thread synchronization, for waiting on a condition variable. To disambiguate, we will always use the term &#8220;UNIX wait&#8221; to refer to UNIX&#8217;s wait system call. Oddly, waiting for a thread to complete is called &#8220;thread join&#8221;, even though it is most analogous to UNIX wait. Windows is simpler, with a single function called &#8220;WaitForSingleObject&#8221; that can wait for process completion, thread completion, or on a condition variable.) </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>Kernel handles and garbage collection</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">As we discussed in the previous chapter, when a UNIX process finishes, it calls the system call exit. Exit can release various resources associated with the process, such as the user stack, heap, and code segments. It must be careful, however, in how it garbage collects the process control block (PCB). Even though the child process has finished, if it deletes the PCB, then the parent process will be left with a dangling pointer if later on it calls UNIX wait. Of course, we don&#8217;t know for sure if the parent will ever call wait, so to be safe, the PCB can only be reclaimed when both the parent and the child have finished or crashed. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Generalizing, both Windows and UNIX have various system calls that return a handle to some kernel object; these handles are used in later calls as an ID. The process ID returned by UNIX fork is used in later calls to UNIX wait; we will see below that UNIX open returns a file descriptor that is used in other system calls. It is important to realize that these handles are <EM>not</EM> pointers to kernel data structures; otherwise, an erroneous user program could cause havoc in the kernel by making system calls with fake handles. Rather, they are specific to the process and checked for validity on each use. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Further, in both Windows and UNIX, handles are reference counted. Whenever the kernel returns a handle, it bumps a reference counter, and whenever the process releases a handle (or exits), the reference counter is decremented. UNIX fork sets the process ID reference count to two, one for the parent and one for the child. The underlying data structure, the PCB, is reclaimed only when the reference count goes to zero, that is, when both the parent and child terminate. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Finally, as we outlined in the previous chapter, UNIX provides a facility for one process to send another an instant notification, or upcall. In UNIX, the notification is sent by calling <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX signal"}'>signal</A></EM>. Signals are used for terminating an application, suspending it temporarily for debugging, resuming after a suspension, timer expiration, and a host of other reasons. In the default case, where the receiving application did not specify a signal handler, the kernel implements a standard one on its behalf. </FONT><A id=x1-59001r95 name=x1-59001r95></A></P><A id=x1-600002 name=x1-600002>
+<H3 class=sectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.2 Input/Output</FONT></H3></A><FONT style="BACKGROUND-COLOR: #7be1e1">Computer systems have a wide diversity of input and output devices: keyboard, mouse, disk, USB port, Ethernet, WiFi, display, hardware timer, microphone, camera, accelerometer, and GPS, to name a few. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">To deal with this diversity, we could specialize the application programming interface for each device, customizing it to the device&#8217;s specific characteristics. After all, a disk device is quite different from a network and both are quite different from a keyboard: a disk is addressed in fixed sized chunks, while a network sends and receives a stream of variable sized packets, and the keyboard returns individual characters as keys are pressed. While the disk only returns data when asked, the network and keyboard provide data unprompted. Early computer systems took the approach of specializing the interface to the device, but it had a significant downside: every time a new type of hardware device is invented, the system call interface has to be upgraded to handle that device. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">One of the primary innovations in UNIX was to regularize all device input and output behind a single common interface. In fact, UNIX took this one giant step further: it uses this same interface for reading and writing files and for interprocess communication. This approach was so successful that it is almost universally followed in systems today. We will sketch the interface in this section, and then in the next section, show how to use it to build a shell. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The basic ideas in the UNIX I/O interface are: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Uniformity.</B> All device I/O, file operations, and interprocess communication use the same set of system calls: open, close, read and write. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Open before use.</B> Before an application does I/O, it must first call open on the device, file, or communication channel. This gives the operating system a chance to check access permissions and to set up any internal bookkeeping. Some devices, such as a printer, only allow one application access at a time &#8212; the open call can return an error if the device is in use. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Open returns a handle to be used in later calls to read, write and close to identify the file, device or channel; this handle is somewhat misleadingly called a <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:file descriptor"}'>file descriptor</A></EM>, even when it refers to a device or channel so there is no file involved. For convenience, the UNIX shell starts applications with open file descriptors for reading and writing to the terminal. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Byte-oriented.</B> All devices, even those that transfer fixed-size blocks of data, are accessed with byte arrays. Similarly, file and communication channel access is in terms of bytes, even though we store data structures in files and send data structures across channels. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Kernel-buffered reads.</B> Stream data, such as from the network or keyboard, is stored in a kernel buffer and returned to the application on request. This allows the UNIX system call read interface to be the same for devices with streaming reads as those with block reads, such as disks and Flash memory. In both cases, if no data is available to be returned immediately, the read call blocks until it arrives, potentially giving up the processor to some other task with work to do. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Kernel-buffered writes.</B> Likewise, outgoing data is stored in a kernel buffer for transmission when the device becomes available. In the normal case, the system call write copies the data into the kernel buffer and returns immediately. This decouples the application from the device, allowing each to go at its own speed. If the application generates data faster than the device can receive it (as is common when spooling data to a printer), the write system call blocks in the kernel until there is enough room to store the new data in the buffer. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Explicit close.</B> When an application is done with the device or file, it calls close. This signals to the operating system that it can decrement the reference-count on the device, and garbage collect any unused kernel data structures.</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>Open vs. creat vs. stat</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">By default, the UNIX open system call returns an error if the application tries to open a file that does not exist; as an option (not shown above), a parameter can tell the kernel to instead create the file if it does not exist. Since UNIX also has system calls for creating a file (creat) and for testing whether a file exists (stat), it might seem as if open could be simplified to always assume that the file already exists. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">However, UNIX often runs in a multi-user, multi-application environment, and in that setting the issue of system call design can become more subtle. Suppose instead of the UNIX interface, we had completely separate functions for testing if a file exists, creating a file, and opening the file. Assuming that the user has permission to test, open, or create the file, does this code work? </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><BR></FONT></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;if&nbsp;(!exists(file))&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;If&nbsp;the&nbsp;file&nbsp;doesn&#8217;t&nbsp;exist&nbsp;create&nbsp;it.
+   &nbsp;//&nbsp;Are&nbsp;we&nbsp;guaranteed&nbsp;the&nbsp;file&nbsp;doesn&#8217;t&nbsp;exist?
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;create(file);
+   &nbsp;}
+   &nbsp;//&nbsp;Are&nbsp;we&nbsp;guaranteed&nbsp;the&nbsp;file&nbsp;does&nbsp;exist?
+   &nbsp;open(file);</FONT></PRE><BR>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The problem is that on a multi-user system, some other user might have created the file in between the call to test for its existence, and the call to create the file. Thus, call to create must also test the existence of the file. Likewise, some other user might have deleted the file between the call to create and the call to open. So open also needs the ability to test if the file is there, and if not to create the file (if that is the user&#8217;s intent). </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX addresses this with an all-purpose, atomic open: test if the file exists, optionally create it if it does not, and then open it. Because system calls are implemented in the kernel, the operating system can make open (and all other I/O systems calls) non-interruptible with respect to other system calls. If another user tries to delete a file while the kernel is executing an open system call on the same file, the delete will be delayed until the open completes. The open will return a file descriptor that will continue to work until the application closes the file. The delete will remove the file from the file system, but the file system does not actually reclaim its disk blocks until the file is closed. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">For interprocess communication, we need a few more concepts: </FONT><A id=x1-600016 name=x1-600016></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<CENTER><FONT style="BACKGROUND-COLOR: #7be1e1"><img alt="" src="file:///[PrimaryStorage]Images/image00209.gif" data-calibre-src="OEBPS/Images/image00209.gif"> </FONT></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.6: </B>A pipe is a temporary kernel buffer connecting a process producing data with a process consuming the data.</FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Pipes.</B> A <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX pipe"}'>UNIX pipe</A></EM> is a kernel buffer with two file descriptors, one for writing (to put data into the pipe) and one for reading (to pull data out of the pipe), as illustrated in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600016"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.6</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. Data is read in exactly the same sequence it is written, but since the data is buffered, the execution of the producer and consumer can be decoupled, reducing waiting in the common case. The pipe terminates when either endpoint closes the pipe or exits. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The Internet has a similar facility to UNIX pipes called TCP (Transmission Control Protocol). Where UNIX pipes connect processes on the same machine, TCP provides a bi-directional pipe between two processes running on different machines. In TCP, data is written as a sequence of bytes on one machine and read out as the same sequence on the other machine. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Replace file descriptor.</B> By manipulating the file descriptors of the child process, the shell can cause the child to read its input from, or send its output to, a file or a pipe instead of from a keyboard or to the screen. This way, the child process does not need to be aware of who is providing or consuming its I/O. The shell does this redirection using a special system call named dup2(from, to) that replaces the to file descriptor with a copy of the from file descriptor. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Wait for multiple reads.</B> For client-server computing, a server may have a pipe open to multiple client processes. Normally, read will block if there is no data to be read, and it would be inefficient for the server to poll each pipe in turn to check if there is work for it to do. The UNIX system call select(fd[], number) addresses this. Select allows the server to wait for input from any of a set of file descriptors; it returns the file descriptor that has data, but it does not read the data. Windows has an equivalent function, called WaitForMultipleObjects.</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600027"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.7</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1"> summarizes the dozen UNIX system calls discussed in this section. </FONT><A id=x1-600027 name=x1-600027></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td colSpan=2 align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=multicolumn align=center noWrap><B><FONT style="BACKGROUND-COLOR: #7be1e1">Creating and managing processes</FONT></B></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">. </FONT></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">fork () </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Create a child process as a clone of the current process. The fork call returns to both the parent and child. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">exec (prog, args) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Run the application prog in the current process. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">exit () </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Tell the kernel the current process is complete, and its data structures should be garbage collected. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">wait (processID) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Pause until the child process has exited. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">signal (processID, type) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Send an interrupt of a specified type to a process. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td colSpan=2 align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=multicolumn align=center noWrap><B><FONT style="BACKGROUND-COLOR: #7be1e1">I/O operations</FONT></B></DIV></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">fileDesc open (name) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Open a file, channel, or hardware device, specified by name; returns a file descriptor that can be used by other calls. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">pipe (fileDesc[2]) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Create a one-directional pipe for communication between two processes. Pipe returns two file descriptors, one for reading and one for writing. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">dup2 (fromFileDesc, toFileDesc) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Replace the toFileDesc file descriptor with a copy of fromFileDesc. Used for replacing stdin or stdout or both in a child process before calling exec. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">int read (fileDesc, buffer, size) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Read up to size bytes into buffer, from the file, channel, or device. Read returns the number of bytes actually read. For streaming devices this will often be less than size. For example, a read from the keyboard device will (normally) return all of its queued bytes. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">int write (fileDesc, buffer, size) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Analogous to read, write up to size bytes into kernel output buffer for a file, channel, or device. Write normally returns immediately but may stall if there is no space in the kernel buffer. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">fileDesc select (fileDesc[], arraySize) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Return when any of the file descriptors in the array fileDesc[] have data available to be read. Returns the file descriptor that has data pending. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">close (fileDescriptor) </FONT></P></TD>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1">Tell the kernel the process is done with this file, channel, or device. </FONT></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE></DIV>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.7: </B>List of UNIX system calls discussed in this section.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><A id=x1-60003r103 name=x1-60003r103></A><A id=x1-610003 name=x1-610003>
+<H3 class=sectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.3 Case Study: Implementing a Shell</FONT></H3></A><FONT style="BACKGROUND-COLOR: #7be1e1">The dozen UNIX system calls listed in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-600027"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.7</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1"> are enough to build a flexible and powerful command line shell, one that runs entirely at user-level with no special permissions. As we mentioned, the process that creates the shell is responsible for providing it an open file descriptor for reading commands for its input (e.g., from the keyboard), called <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX stdin"}'>stdin</A></EM> and for writing output (e.g., to the display), called <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX stdout"}'>stdout</A></EM>. </FONT><A id=x1-610018 name=x1-610018></A><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;main()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;*prog&nbsp;=&nbsp;NULL;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;**args&nbsp;=&nbsp;NULL;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Read&nbsp;the&nbsp;input&nbsp;a&nbsp;line&nbsp;at&nbsp;a&nbsp;time,&nbsp;and&nbsp;parse&nbsp;each&nbsp;line&nbsp;into&nbsp;the&nbsp;program
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;name&nbsp;and&nbsp;its&nbsp;arguments.&nbsp;End&nbsp;loop&nbsp;if&nbsp;we&#8217;ve&nbsp;reached&nbsp;the&nbsp;end&nbsp;of&nbsp;the&nbsp;input.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(readAndParseCmdLine(&amp;prog,&nbsp;&amp;args))&nbsp;{
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Create&nbsp;a&nbsp;child&nbsp;process&nbsp;to&nbsp;run&nbsp;the&nbsp;command.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;child_pid&nbsp;=&nbsp;fork();
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(child_pid&nbsp;==&nbsp;0)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;child&nbsp;process.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Run&nbsp;program&nbsp;with&nbsp;the&nbsp;parent&#8217;s&nbsp;input&nbsp;and&nbsp;output.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exec(prog,&nbsp;args);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;NOT&nbsp;REACHED
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;parent;&nbsp;wait&nbsp;for&nbsp;the&nbsp;child&nbsp;to&nbsp;complete.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wait(child_pid);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.8: </B>Example code for a simple UNIX shell.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Figure &nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-610018"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.8</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1"> illustrates the code for the basic operation of a shell. The shell reads a command line from the input, and it forks a process to execute that command. UNIX fork automatically duplicates all open file descriptors in the parent, incrementing the kernel&#8217;s reference counts for those descriptors, so the input and output of the child is the same as the parent. The parent waits for the child to finish before it reads the next command to execute. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Because the commands to read and write to an open file descriptor are the same whether the file descriptor represents a keyboard, screen, file, device, or pipe, UNIX programs do not need to be aware of where their input is coming from, or where their output is going. This is helpful in a number of ways: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>A program can be a file of commands.</B> Programs are normally a set of machine instructions, but on UNIX a program can be a file containing a list of commands for a shell to interpret. To disambiguate, shell programs signified in UNIX by putting &#8220;#!&nbsp;interpreter&#8221; as the first line of the file, where &#8220;interpreter&#8221; is the name of the shell executable. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The UNIX C compiler works this way. When it is exec&#8217;ed, the kernel recognizes it as a shell file and starts the interpreter, passing it the file as input. The shell reads the file as a list of commands to invoke the pre-processor, parser, code generator and assembler in turn, exactly as if it was reading text input from the keyboard. When the last command completes, the shell interpreter calls exit to inform the kernel that the program is done. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>A program can send its output to a file.</B> By changing the stdout file descriptor in the child, the shell can redirect the child&#8217;s output to a file. In the standard UNIX shell, this is signified with a &#8220;greater than&#8221; symbol. Thus, &#8220;ls &gt; tmp" lists the contents of the current directory into the file &#8220;tmp.&#8221; After the fork and before the exec, the shell can replace the stdout file descriptor for the child using dup2. Because the parent has been cloned, changing stdout for the child has no effect on the parent. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>A program can read its input from a file.</B> Likewise, by using dup2 to change the stdin file descriptor, the shell can cause the child to read its input from a file. In the standard UNIX shell, this is signified with a &#8220;less than&#8221; symbol. Thus, &#8220;zork &lt; solution" plays the game &#8220;zork&#8221; with a list of instructions stored in the file &#8220;solution.&#8221; </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>The output of one program can be the input to another program.</B> The shell can use a pipe to connect two programs together, so that the output of one is the input of another. This is called a <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:producer-consumer communication"}'>producer-consumer</A></EM> relationship. For example, in the C-compiler, the output of the preprocessor is sent to the parser, and the output of the parser is sent to the code-generator and then to the assembler. In the standard UNIX shell, a pipe connecting two programs is signified by a &#8220;|&#8221; symbol, as in: &#8220;cpp file.c | cparse | cgen | as &gt; file.o&#8221;. In this case the shell creates four separate child processes, each connected by pipes to its predecessor and successor. Each of the phases can run in parallel, with the parent waiting for all of them to finish.</FONT></P></LI></UL><A id=x1-61002r106 name=x1-61002r106></A><A id=x1-620004 name=x1-620004>
+<H3 class=sectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.4 Case Study: Interprocess Communication</FONT></H3></A><FONT style="BACKGROUND-COLOR: #7be1e1">For many of the same reasons it makes sense to construct complex applications from simpler modules, it often makes sense to create applications that can specialize on a specific task, and then combine those applications into more complex structures. We gave an example above with the C compiler, but many parts of the operating system are structured this way. For example, instead of every program needing to know how to coordinate access to a printer, UNIX has a printer server, a specialized program for managing the printer queue. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">For this to work, we need a way for processes to communicate with each other. Three widely used forms of interprocess communication are: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Producer-consumer.</B> In this model, programs are structured to accept as input the output of other programs. Communication is one-way: the producer only writes, and the consumer only reads. As we explained above, this allows chaining: a consumer can be, in turn, a producer for a different process. Much of the success of UNIX was due to its ability to easily compose many different programs together in this fashion. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Client-server.</B> An alternative model is to allow two-way communication between processes, as in client-server computing. The server implements some specialized task, such as managing the printer queue or managing the display. Clients send requests to the server to do some task, and when the operation is complete, the server replies back to the client. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>File system.</B> Another way programs can be connected together is through reading and writing files. A text editor can import an image created by a drawing program, and the editor can in turn write an HTML file that a web server can read to know how to display a web page. A key distinction is that, unlike the first two modes, communication through the file system can be separated in <EM>time</EM>: the writer of the file does not need to be running at the same time as the file reader. Therefore, data needs to be stored persistently on disk or other stable storage, and the data needs to be named so that you can find the file when needed later on. </FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">All three models are widely used both on a single system and over a network. For example, the Google MapReduce utility operates over a network in a producer-consumer fashion: the output of the map function is sent to the machines running the reduce function. The web is an example of client-server computing, and many enterprises and universities run centralized file servers to connect a text editor on one computer with a compiler running on another. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">As persistent storage, file naming, and distributed computing are each complex topics in their own right, we defer the discussions of those topics to later chapters. Here we focus on interprocess communication, where both processes are running simultaneously on the same machine. </FONT><A id=x1-62001r98 name=x1-62001r98></A></P>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.4.1 </FONT><A id=x1-630001 name=x1-630001></A><FONT style="BACKGROUND-COLOR: #7be1e1">Producer-Consumer Communication</FONT></H4><A id=x1-630019 name=x1-630019></A><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<CENTER><FONT style="BACKGROUND-COLOR: #7be1e1"><img alt="" src="file:///[PrimaryStorage]Images/image00210.gif" data-calibre-src="OEBPS/Images/image00210.gif"> </FONT></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.9: </B>Interprocess communication between a producer application and a consumer. The producer uses the write system call to put data into the buffer; the consumer uses the read system call to take data out of the buffer.</FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-630019"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.9</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1"> illustrates how two processes communicate through the operating system in a producer-consumer relationship. Via the shell, we establish a pipe between the producer and the consumer. As one process computes and produces a stream of output data, it issues a sequence of write system calls on the pipe into the kernel. Each write can be of variable size. Assuming there is room in the kernel buffer, the kernel copies the data into the buffer, and returns immediately back to the producer. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">At some point later, the operating system will schedule the consumer process to run. (On a multicore system, the producer and consumer could be running at the same time.) The consumer issues a sequence of read calls. Because the pipe is just a stream of bytes, the consumer can read the data out in any convenient chunking &#8212; the consumer can read in 1 KB chunks, while the producer wrote its data in 4 KB chunks, or vice versa. Each system call read made by the consumer returns the next successive chunk of data out of the kernel buffer. The consumer process can then compute on its input, sending its output to the display, a file, or onto the next consumer. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The kernel buffer allows each process to run at its own pace. There is no requirement that each process have equivalent amounts of work to do. If the producer is faster than the consumer, the kernel buffer fills up, and when the producer tries to write to a full buffer, the kernel stalls the process until there is room to store the data. Equivalently, if the consumer is faster than the producer, the buffer will empty and the next read request will stall until the producer creates more data. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">In UNIX, when the producer finishes, it closes its side of the pipe, but there may still be data queued in the kernel for the consumer. Eventually, the consumer reads the last of the data, and the read system call will return an &#8220;end of file&#8221; marker. Thus, to the consumer, there is no difference between reading from a pipe and reading from a file. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Using kernel buffers to decouple the execution of the producer and consumer reduces the number and cost of context switches. Modern computers make extensive use of hardware caches to improve performance, but caches are ineffective if a program only runs for a short period of time before it must yield the processor to another task. The kernel buffer allows the operating system to run each process long enough to benefit from reuse, rather than alternating between the producer and consumer on each system call. </FONT><A id=x1-63002r109 name=x1-63002r109></A></P>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.4.2 </FONT><A id=x1-640002 name=x1-640002></A><FONT style="BACKGROUND-COLOR: #7be1e1">Client-Server Communication</FONT></H4><A id=x1-6400110 name=x1-6400110></A><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<CENTER><FONT style="BACKGROUND-COLOR: #7be1e1"><img alt="" src="file:///[PrimaryStorage]Images/image00211.gif" data-calibre-src="OEBPS/Images/image00211.gif"> </FONT></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.10: </B>Interprocess communication between a client process and a server process. Once the client and server are connected, the client sends a request to the server by writing it into a kernel buffer. The server reads the request out of the buffer, and returns the result by writing it into a separate buffer read by the client.</FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+We can generalize the above to illustrate client-server communication, shown in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6400110"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.10</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. Instead of a single pipe, we create two, one for each direction. To make a request, the client writes the data into one pipe, and reads the response from the other. The server does the opposite: it reads requests from the first pipe, performs whatever is requested (provided the client has permission to make the request), and writes the response onto the second pipe. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The client and server code are shown in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6400211"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.11</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. To simplify the code, we assume that the requests and responses are fixed-size. </FONT><A id=x1-6400211 name=x1-6400211></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;Client:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;request[RequestSize];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;reply[ReplySize]
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;..compute..
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Put&nbsp;the&nbsp;request&nbsp;into&nbsp;the&nbsp;buffer.
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Send&nbsp;the&nbsp;buffer&nbsp;to&nbsp;the&nbsp;server.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;write(output,&nbsp;request,&nbsp;RequestSize);
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Wait&nbsp;for&nbsp;response.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;read(input,&nbsp;reply,&nbsp;ReplySize);
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;..compute..
+&nbsp;
+&nbsp;Server:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;request[RequestSize];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;reply[ReplySize];
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Loop&nbsp;waiting&nbsp;for&nbsp;requests.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(1)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Read&nbsp;incoming&nbsp;command.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;read(input,&nbsp;request,&nbsp;RequestSize);
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Do&nbsp;operation.
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Send&nbsp;result.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;write(output,&nbsp;reply,&nbsp;ReplySize);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.11: </B>Example code for client-server interaction.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>Streamlining client-server communication</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Client-server communication is a common pattern in many systems, and so one can ask: how can we improve its performance? One step is to recognize that both the client and the server issue a write immediately followed by a read, to wait for the other side to reply; at the cost of adding a system call, these can be combined to eliminate two kernel crossings per round trip. Further, the client will always need to wait for the server, so it makes sense for it to donate its processor to run the server code, reducing delay. Microsoft added support for this optimization to Windows in the early 1990&#8217;s when it converted to a microkernel design (explained a bit later in this chapter). However, as we noted earlier, modern computer architectures make extensive use of caches, so for this to work we need code and data for both the client and the server to be able to be in cache simultaneously. We will talk about mechanisms to accomplish that in a later chapter. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">We can take this streamlining even further. On a multicore system, it is possible or even likely that both the client and server each have their own processor. If the kernel sets up a shared memory region accessible to both the client and the server and no other processes, then the client and server can (safely) pass requests and replies back and forth, as fast as the memory system will allow, without ever traversing into the kernel or relinquishing their processors. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Frequently, we want to allow many clients to talk to the same server. For example, there is one server to manage the print queue, although there can be many processes that want to be able to print. For this, the server uses the select system call to identify the pipe containing the request, as shown in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6400312"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.12</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. The client code is unchanged. </FONT><A id=x1-6400312 name=x1-6400312></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;Server:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;request[RequestSize];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;char&nbsp;reply[ReplySize];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FileDescriptor&nbsp;clientInput[NumClients];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FileDescriptor&nbsp;clientOutput[NumClients];
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Loop&nbsp;waiting&nbsp;for&nbsp;a&nbsp;request&nbsp;from&nbsp;any&nbsp;client.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(fd&nbsp;=&nbsp;select(clientInput,&nbsp;NumClients)&nbsp;{
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Read&nbsp;incoming&nbsp;command&nbsp;from&nbsp;a&nbsp;specific&nbsp;client.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;read(clientInput[fd],&nbsp;request,&nbsp;RequestSize);
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Do&nbsp;operation.
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Send&nbsp;result.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;write(clientOutput[fd],&nbsp;reply,&nbsp;ReplySize);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.12: </B>Server code for communicating with multiple clients.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><A id=x1-64004r108 name=x1-64004r108></A><A id=x1-650005 name=x1-650005>
+<H3 class=sectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.5 Operating System Structure</FONT></H3></A><FONT style="BACKGROUND-COLOR: #7be1e1">We started this chapter with a list of functionality that users and applications need from the operating system. We have shown that by careful design of the system call interface, we can offload some of the work of the operating system to user programs, such as to a shell or to a print server. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">In the rest of this chapter, we ask how should we organize the remaining parts of the operating system. There are many dependencies among the modules inside the operating system, and there is often quite frequent interaction between these modules: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Many parts of the operating system depend on synchronization primitives for coordinating access to shared data structures with the kernel. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The virtual memory system depends on low-level hardware support for address translation, support that is specific to a particular processor architecture. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Both the file system and the virtual memory system share a common pool of blocks of physical memory. They also both depend on the disk device driver. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The file system can depend on the network protocol stack if the disk is physically located on a different machine.</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">This has led operating system designers to wrestle with a fundamental tradeoff: by centralizing functionality in the kernel, performance is improved and it makes it easier to arrange tight integration between kernel modules. However, the resulting systems are less flexible, less easy to change, and less adaptive to user or application needs. We discuss these tradeoffs by describing several options for the operating system architecture. </FONT><A id=x1-65001r111 name=x1-65001r111></A></P>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.5.1 </FONT><A id=x1-660001 name=x1-660001></A><FONT style="BACKGROUND-COLOR: #7be1e1">Monolithic Kernels</FONT></H4><A id=x1-6600113 name=x1-6600113></A><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P></P>
+<CENTER><FONT style="BACKGROUND-COLOR: #7be1e1"><img alt="" src="file:///[PrimaryStorage]Images/image00212.gif" data-calibre-src="OEBPS/Images/image00212.gif"></FONT></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.13: </B>In a monolithic operating system kernel, most of the operating system functionality is linked together inside the kernel. Kernel modules directly call into other kernel modules to perform needed functions. For example, the virtual memory system uses buffer management, synchronization, and the hardware abstraction layer.</FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+Almost all widely used commercial operating systems, such as Windows, MacOS, and Linux, take a similar approach to the architecture of the kernel &#8212; a monolithic design. As shown in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6600113"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.13</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">, with a <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:monolithic kernel"}'>monolithic kernel</A></EM>, most of the operating system functionality runs inside the operating system kernel. In truth, the term is a bit of a misnomer, because even in so-called monolithic systems, there are often large segments of what users consider the operating system that runs outside the kernel, either as utilities like the shell, or in system libraries, such as libraries to manage the user interface. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Internal to a monolithic kernel, the operating system designer is free to develop whatever interfaces between modules that make sense, and so there is quite a bit of variation from operating system to operating system in those internal structures. However, two common themes emerge across systems: to improve portability, almost all modern operating systems have both a hardware abstraction layer and dynamically loaded device drivers. </FONT></P>
+<H5 class=subsubsectionHead><A id=x1-670001 name=x1-670001></A><FONT style="BACKGROUND-COLOR: #7be1e1">Hardware Abstraction Layer</FONT></H5><FONT style="BACKGROUND-COLOR: #7be1e1">A key goal of operating systems is to be portable across a wide variety of hardware platforms. To accomplish this, especially within a monolithic system, requires careful design of the <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:hardware abstraction layer"}'>hardware abstraction layer</A></EM>. The hardware abstraction layer (HAL) is a portable interface to machine configuration and processor-specific operations within the kernel. For example, within the same processor family, such as an Intel x86, different computer manufacturers will require different machine-specific code to configure and manage interrupts and hardware timers. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Operating systems that are portable across processor families, say between an ARM and an x86 or between a 32-bit and a 64-bit x86, will need processor-specific code for process and thread context switches. The interrupt, processor exception, and system call trap handling is also processor-specific; all systems have those functions, but the specific implementation will vary. As we will see in Chapter&nbsp;8, machines differ quite a bit in their architecture for managing virtual address spaces; most kernels provide portable abstractions on top of the machine-dependent routines, such as to translate virtual addresses to physical addresses or to copy memory from applications to kernel memory and vice versa. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">With a well-defined hardware abstraction layer in place, most of the operating system is machine- and processor-independent. Thus, porting an operating system to a new computer is just a matter of creating new implementations of these low-level HAL routines and re-linking. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>The hardware abstraction layer in Windows</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">As a concrete example, Windows has a two-pronged strategy for portability. To allow the same Windows kernel binary to be used across personal computers manufactured by different vendors, the kernel is dynamically linked at boot time with a set of library routines specifically written for each hardware configuration. This isolates the kernel from the specifics of the motherboard hardware. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Windows also runs across a number of different processor architectures. Typically, a different kernel binary is produced for each type of processor, with any needed processor-specific code; sometimes, conditional execution is used to allow a kernel binary to be shared across closely related processor designs. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV>
+<H5 class=subsubsectionHead><A id=x1-680001 name=x1-680001></A><FONT style="BACKGROUND-COLOR: #7be1e1">Dynamically Installed Device Drivers</FONT></H5><FONT style="BACKGROUND-COLOR: #7be1e1">A similar consideration leads to operating systems that can easily accommodate a wide variety of physical I/O devices. Although there are only a handful of different instruction set architectures in wide use today, there are a huge number of different types of physical I/O devices, manufactured by a large number of companies. There is diversity in the hardware interfaces to devices as well as in the hardware chip sets for managing the devices. A recent survey found that approximately 70% of the code in the Linux kernel was in device-specific software. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">To keep the rest of the operating system kernel portable, we want to decouple the operating system source code from the specifics of each device. For instance, suppose a manufacturer creates a new printer &#8212; what steps does the operating system manufacturer need to take to accommodate that change? </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The key innovation, widely adopted today, is a <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:dynamically loadable device driver"}'>dynamically loadable device driver</A></EM>. A dynamically loadable device driver is software to manage a specific device, interface, or chipset, added to the operating system kernel after the kernel starts running, to handle the devices that are present on a particular machine. The device manufacturer typically provides the driver code, using a standard interface supported by the kernel. The operating system kernel calls into the driver whenever it needs to read or write data to the device. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The operating system boots with a small number of device drivers &#8212; e.g., for the disk (to read the operating system binary into memory). For the devices physically attached to the computer, the computer manufacturer bundles those drivers into a file it stores along with the bootloader. When the operating system starts up, it queries the I/O bus for which devices are attached to the computer and then loads those drivers from the file on disk. Finally, for any network-attached devices, such as a network printer, the operating system can load those drivers over the Internet. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">While dynamically loadable device drivers solve one problem, they pose a different one. Errors in a device driver can corrupt the operating system kernel and application data structures; just as with a regular program, errors may not be caught immediately, so that user may be unaware that their data is being silently modified. Even worse, a malicious attacker can use device drivers to introduce a computer virus into the operating system kernel, and thereby silently gain control over the entire computer. Recent studies have found that 90% of all system crashes were due to bugs in device drivers, rather than in the operating system itself. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Operating system developers have taken five approaches to dealing with this issue: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Code inspection.</B> Operating system vendors typically require all device driver code to be submitted in advance for inspection and testing, before being allowed into the kernel. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Bug tracking.</B> After every system crash, the operating system can collect information about the system configuration and the current kernel stack, and sends this information back to a central database for analysis. Microsoft does this on a wide scale. With hundreds of millions of installed computers, even a low rate of failure can yield millions of bug reports per day. Many crashes happen inside the device driver itself, but even those that do not can sometimes be tracked down. For example, if failures are correlated with the presence of a particular device driver, or increase after the release of a new version of the driver, that can indicate the source of a problem. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>User-level device drivers.</B> Both Apple and Microsoft strongly encourage new device drivers to run at user-level rather than in the kernel. Each device driver runs in a separate user-level process, using system calls to manipulate the physical device. This way, a buggy driver can only affect its own internal data structures and not the rest of the operating system kernel; if the device driver crashes, the kernel can restart it easily. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Although user-level device drivers are becoming more common, it can be time-consuming to port existing device drivers to run at user-level. Unfortunately, there is a huge amount of existing device driver code that directly addresses internal kernel data structures; drawing a boundary around these drivers has proven difficult. Of course, supporting legacy drivers is less of a problem as completely new hardware and operating system platforms, such as smartphones and tablets, are developed. </FONT><A id=x1-6800114 name=x1-6800114></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<CENTER><FONT style="BACKGROUND-COLOR: #7be1e1"><img alt="" src="file:///[PrimaryStorage]Images/image00213.gif" data-calibre-src="OEBPS/Images/image00213.gif"> </FONT></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.14: </B>Legacy device drivers can run inside a guest operating system on top of a virtual machine in order to isolate the effect of implementation errors in driver code.</FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Virtual machine device drivers.</B> To handle legacy device drivers, one approach that has gained some traction is to run device driver code inside a guest operating system running on a virtual machine, as shown in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-6800114"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.14</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. The guest operating system loads the device drivers as if it was running directly on the real hardware, but when the devices attempt to access the physical hardware, the underlying virtual machine monitor regains control to ensure safety. Device drivers can still have bugs, but they can only corrupt the guest operating system and not other applications running on the underlying virtual machine monitor. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Driver sandboxing.</B> A further challenge for both user-level device drivers and virtual machine drivers is performance. Some device drivers need frequent interaction with hardware and the rest of the kernel. Some researchers have proposed running device drivers in their own restricted execution environment inside the kernel. This requires lightweight sandboxing techniques, a topic we will return to at the end of Chapter&nbsp;8.</FONT></P></LI></UL><A id=x1-68002r116 name=x1-68002r116></A>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.5.2 </FONT><A id=x1-690002 name=x1-690002></A><FONT style="BACKGROUND-COLOR: #7be1e1">Microkernel</FONT></H4><FONT style="BACKGROUND-COLOR: #7be1e1">An alternative to the monolithic kernel approach is to run as much of the operating system as possible in one or more user-level servers. The window manager on most operating systems works this way: individual applications draw items on their portion of the screen by sending requests to the window manager. The window manager adjudicates which application window is in front or in back for each pixel on the screen, and then renders the result. If the system has a hardware graphics accelerator present, the window manager can use it to render items more quickly. Some systems have moved other parts of the operating system into user-level servers: the network stack, the file system, device drivers, and so forth. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The difference between a monolithic and a microkernel design is often transparent to the application programmer. The location of the service can be hidden in a user-level library &#8212; calls go to the library, which casts the requests either as system calls or as reads and writes to the server through a pipe. The location of the server can also be hidden inside the kernel &#8212; the application calls the kernel as if the kernel implements the service, but instead the kernel reformats the request into a pipe that the server can read. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">A microkernel design offers considerable benefit to the operating system developer, as it easier to modularize and debug user-level services than kernel code. Aside from a potential reliability improvement, however, microkernels offer little in the way of visible benefit to end users and can slow down overall performance by inserting extra steps between the application and the services it needs. Thus, in practice, most systems adopt a hybrid model where some operating system services are run at user-level and some are in the kernel, depending on the specific tradeoff between code complexity and performance. </FONT><A id=x1-69001r115 name=x1-69001r115></A></P><A id=x1-700006 name=x1-700006>
+<H3 class=sectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.6 Summary and Future Directions</FONT></H3></A><FONT style="BACKGROUND-COLOR: #7be1e1">In this chapter, we have seen how system calls can be used by applications to create and manage processes, perform I/O, and communicate with other processes. Every operating system has its own unique system call interface; describing even a single interface in depth would be beyond the scope of this book. In this chapter, we focused parts of the UNIX interface because it is both compact and powerful. A key aspect of the UNIX interface are that creating a process (with fork) is separate from starting to run a program in that process (with exec); another key feature is the use of kernel buffers to decouple reading and writing data through the kernel. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Operating systems use the system call interface to provide services to applications and to aid in the internal structuring of the operating system itself. Almost all general-purpose computer systems today have a user-level shell and/or a window manager that can start and manage applications on behalf of the user. Many systems also implement parts of the operating system as user-level services accessed through kernel pipes. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">As we noted, a trend is for applications to become mini-operating systems in their own right, with multiple users, resource sharing and allocation, untrusted third-party code, processor and memory management, and so forth. The system call interfaces for Windows and UNIX were not designed with this in mind, and an interesting question is how they will change to accommodate this future of powerful meta-applications. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">In addition to the fine-grained sandboxing and process creation we described at the end of the last chapter, a trend is to re-structure the system call interface to make resource allocation decisions explicit and visible to applications. Traditionally, operating systems make resource allocation decisions &#8212; when to schedule a process or a thread, how much memory to give a particular application, where and when to store its disk blocks, when to send its network packets &#8212; transparently to the application, with a goal of improving end user and overall system performance. Applications are unaware of how many resources they have, appearing to run by themselves, isolated on their own (virtual) machine. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Of course, the reality is often quite different. An alternate model is for operating systems to divide resources among applications and then allow each application to decide for itself how best to use those resources. One can think of this as a type of federalism. If both the operating system and applications are governments doing their own resource allocation, they are likely to get in each other&#8217;s way if they are not careful. As a simple example, consider how a garbage collector works; it assumes it has a fixed amount of memory to manage. However, as other applications start or stop, it can gain or lose memory, and if the operating system does this reallocation transparently, the garbage collector has no hope of adapting. We will see examples of this same design pattern in many different areas of operating system design. </FONT><A id=Q1-1-123 name=Q1-1-123></A><A id=Q1-1-124 name=Q1-1-124></A></P><A id=x1-710006 name=x1-710006>
+<H3 class=likesectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">Exercises</FONT></H3></A>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<OL class=problems>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">Can UNIX fork return an error? Why or why not?<BR><B>Note:</B> You can answer this question by looking at the manual page for fork, but before you do that, think about what the fork system call does. If you were designing this call, would you need to allow fork to return an error? </FONT>
+<P></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">Can UNIX exec return an error? Why or why not?<BR><B>Note:</B> You can answer this question by looking at the manual page for exec, but before you do that, think about what the exec system call does. If you were designing this call, would you need to allow it to return an error? </FONT>
+<P></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">What happens if we run the following program on UNIX? </FONT>
+<P><BR></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;main()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(fork()&nbsp;&gt;=&nbsp;0)
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+   &nbsp;}</FONT></PRE><BR>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">Explain what must happen for UNIX wait to return immediately (and successfully). </FONT>
+<P></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">Suppose you were the instructor of a very large introductory programming class. Explain (in English) how you would use UNIX system calls to automate testing of submitted homework assignments. </FONT>
+<P></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">What happens if you run &#8220;exec csh&#8221; in a UNIX shell? Why? </FONT>
+<P></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">What happens if you run &#8220;exec ls&#8221; in a UNIX shell? Why? </FONT>
+<P></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">How many processes are created if the following program is run? <BR></FONT><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;main(int&nbsp;argc,&nbsp;char&nbsp;**&nbsp;argv)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forkthem(5)
+   &nbsp;}
+   &nbsp;void&nbsp;forkthem(int&nbsp;n)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(n&nbsp;&gt;&nbsp;0)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fork();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forkthem(n-1);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;}</FONT></PRE><BR>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">Consider the following program: </FONT>
+<P><BR></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;main&nbsp;(int&nbsp;argc,&nbsp;char&nbsp;**&nbsp;argv)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;child&nbsp;=&nbsp;fork();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;x&nbsp;=&nbsp;5;
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(child&nbsp;==&nbsp;0)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;+=&nbsp;5;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;child&nbsp;=&nbsp;fork();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;+=&nbsp;10;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if(child)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;+=&nbsp;5;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;}</FONT></PRE><BR>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">How many different copies of the variable x are there? What are their values when their process finishes? </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<LI>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">What is the output of the following programs? (Please try to solve the problem without compiling and running the programs.) </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;//&nbsp;Program&nbsp;1
+   &nbsp;main()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;val&nbsp;=&nbsp;5;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;pid;
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(pid&nbsp;=&nbsp;fork())
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wait(pid);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;val++;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("%d\n",&nbsp;val);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;val;
+   &nbsp;}</FONT></PRE><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;//&nbsp;Program&nbsp;2:
+   &nbsp;main()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;val&nbsp;=&nbsp;5;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;pid;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(pid&nbsp;=&nbsp;fork())
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wait(pid);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;else
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exit(val);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;val++;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("%d\n",&nbsp;val);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;val;
+   &nbsp;}</FONT></PRE>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">Implement a simple Linux shell in C capable of executing a sequence of programs that communicate through a pipe. For example, if the user types ls | wc, your program should fork off the two programs, which together will calculate the number of files in the directory. For this, you will need to use several of the Linux system calls described in this chapter: fork, exec, open, close, pipe, dup2, and wait. <B>Note:</B> You will to replace stdin and stdout in the child process with the pipe file descriptors; that is the role of dup2. </FONT>
+<P></P>
+<LI><FONT style="BACKGROUND-COLOR: #7be1e1">Extend the shell implemented above to support foreground and background tasks, as well as job control: suspend, resume, and kill. </FONT></LI></OL><A id=Q1-1-126 name=Q1-1-126></A><A id=Q1-1-127 name=Q1-1-127></A><A id=Q1-1-128 name=Q1-1-128></A><A id=Q1-1-129 name=Q1-1-129></A><A id=Q1-1-130 name=Q1-1-130></A><A id=Q1-1-131 name=Q1-1-131></A><A id=Q1-1-132 name=Q1-1-132></A><A id=Q1-1-133 name=Q1-1-133></A><A id=Q1-1-134 name=Q1-1-134></A><A id=Q1-1-135 name=Q1-1-135></A><A id=Q1-1-136 name=Q1-1-136></A><A id=Q1-1-137 name=Q1-1-137></A><A id=Q1-1-138 name=Q1-1-138></A><A id=Q1-1-139 name=Q1-1-139></A>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT>
+<DIV style="break-after: always; -webkit-column-break-after: always"><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></DIV><BR><BR><BR>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P><A id=x1-720006 name=x1-720006></A>

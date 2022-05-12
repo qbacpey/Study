@@ -1,0 +1,161 @@
+<strong><font color="blue">How does thread/process switching work in Pintos? : </font></strong><h2>Switching between kernelspace and userspace<A title="Permalink to this headline" class=headerlink href="https://uchicago-cs.github.io/mpcs52030/switch.html#switching-between-kernelspace-and-userspace"></A></H2>
+<P>Note: The following section assumes knowledge of how paging and segmentation works (although not necessarily in an x86 architecture)</P>
+<P>To understand how context switching works with user processes, we first need to understand how we can go from running a process to running kernel code (which will have more privileges than the user process&#8217;s code). Understanding this is useful not just for context switches, but for understanding other aspects of the OS, like interrupt handling and system calls (since, in both these cases, the user process must temporarily yield control to the kernel to handle the interrupt or system call).</P>
+<P>First of all, the x86 architecture has four Privilege Levels (PL), numbered from 0 to 3. When PL=0, we are running in the &#8220;Supervisor&#8221; level, which allows running all instructions. A PL greater than 0 (typically 3) is the &#8220;User&#8221; level and does not allow certain operations (like I/O, updating certain registers, etc.). For now, we can assume that the &#8220;current PL&#8221; is stored in a CPU register (this is not entirely accurate, but will be enough for now, specially since the actual way that PLs are handled in an x86 architecture is pretty elaborate).</P>
+<P>Now, let&#8217;s look at how physical and virtual memory is laid out. Pintos only uses 64MB of physical memory, laid out like this:</P>
+<DIV class=highlight-default>
+<DIV class=highlight><PRE><SPAN></SPAN><SPAN class=mh>0x04000000</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>            <SPAN class=n>page</SPAN> <SPAN class=n>pool</SPAN>             <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>             <SPAN class=p>(</SPAN><SPAN class=mi>63</SPAN> <SPAN class=n>MB</SPAN><SPAN class=p>)</SPAN>              <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+            <SPAN class=n>vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv</SPAN>
+
+            <SPAN class=o>^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+<SPAN class=mh>0x00100000</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+<SPAN class=mh>0x000A0000</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>        <SPAN class=n>Kernel</SPAN> <SPAN class=n>code</SPAN> <SPAN class=o>+</SPAN> <SPAN class=n>data</SPAN>        <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+<SPAN class=mh>0x00020000</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+<SPAN class=mh>0x0000D000</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>       <SPAN class=n>initial</SPAN> <SPAN class=n>kernel</SPAN> <SPAN class=n>thread</SPAN>      <SPAN class=o>|</SPAN>
+<SPAN class=mh>0x0000E000</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+<SPAN class=mh>0x00007E00</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>            <SPAN class=n>Boot</SPAN> <SPAN class=n>loader</SPAN>           <SPAN class=o>|</SPAN>
+<SPAN class=mh>0x00007C00</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+         <SPAN class=mi>0</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+</PRE></DIV></DIV>
+<P>The above figure omits some parts of memory that are not relevant to this discussion. The full memory map can be found in<SPAN>&nbsp;</SPAN><A class="reference external" href="https://uchicago-cs.github.io/pintos/pintos_6.html#SEC95"><FONT color=#0066cc>A.1.4 Physical Memory Map</FONT></A>)</P>
+<P>A process&#8217;s virtual memory looks like this (let&#8217;s assume it has already been loaded; we&#8217;ll discuss loading later on):</P>
+<DIV class=highlight-default>
+<DIV class=highlight><PRE><SPAN></SPAN><SPAN class=mh>0xFFFFFFFF</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>              <SPAN class=n>Unused</SPAN>              <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+            <SPAN class=n>vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv</SPAN>
+
+            <SPAN class=o>^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+<SPAN class=mh>0xC4000000</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>    <SPAN class=n>Mapped</SPAN> <SPAN class=n>to</SPAN> <SPAN class=n>Physical</SPAN> <SPAN class=n>Memory</SPAN>     <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+<SPAN class=mh>0xC0000000</SPAN> <SPAN class=o>+----------------------------------+</SPAN> <SPAN class=n>PHYS_BASE</SPAN>
+           <SPAN class=o>|</SPAN>            <SPAN class=n>user</SPAN> <SPAN class=n>stack</SPAN>            <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                 <SPAN class=o>|</SPAN>                <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                 <SPAN class=o>|</SPAN>                <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                 <SPAN class=n>V</SPAN>                <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>          <SPAN class=n>grows</SPAN> <SPAN class=n>downward</SPAN>          <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>           <SPAN class=n>grows</SPAN> <SPAN class=n>upward</SPAN>           <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                 <SPAN class=o>^</SPAN>                <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                 <SPAN class=o>|</SPAN>                <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                 <SPAN class=o>|</SPAN>                <SPAN class=o>|</SPAN>
+           <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN> <SPAN class=n>uninitialized</SPAN> <SPAN class=n>data</SPAN> <SPAN class=n>segment</SPAN> <SPAN class=p>(</SPAN><SPAN class=n>BSS</SPAN><SPAN class=p>)</SPAN> <SPAN class=o>|</SPAN>
+           <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>     <SPAN class=n>initialized</SPAN> <SPAN class=n>data</SPAN> <SPAN class=n>segment</SPAN>     <SPAN class=o>|</SPAN>
+           <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>           <SPAN class=n>code</SPAN> <SPAN class=n>segment</SPAN>           <SPAN class=o>|</SPAN>
+<SPAN class=mh>0x08048000</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+           <SPAN class=o>|</SPAN>                                  <SPAN class=o>|</SPAN>
+         <SPAN class=mi>0</SPAN> <SPAN class=o>+----------------------------------+</SPAN>
+</PRE></DIV></DIV>
+<P>The memory below<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">PHYS_BASE</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>is<SPAN>&nbsp;</SPAN><EM>userspace</EM><SPAN>&nbsp;</SPAN>(the memory used by the user process) and the memory above<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">PHYS_BASE</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>is<SPAN>&nbsp;</SPAN><EM>kernelspace</EM><SPAN>&nbsp;</SPAN>(the memory used by the kernel which, in Pintos, is just a direct mapping to the full 64MB of physical memory).</P>
+<P>Note: The terms &#8220;userspace&#8221; and &#8220;kernelspace&#8221; (and &#8220;user land&#8221; and &#8220;kernel land&#8221;) are also often used to refer to &#8220;running with user privileges (PL=3)&#8221; and &#8220;running with supervisor privileges (PL=0)&#8221;.</P>
+<P>However, the above memory map makes it seem like every user process has unfettered access to the entire physical memory (which would seem to defeat the memory protection provided by virtual memory). However, all the mappings above<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">PHYS_BASE</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>are configured to require PL=0: if a user process (running at PL=3) tries to access them, a page fault will happen.</P>
+<P>The<SPAN>&nbsp;</SPAN><EM>program loader</EM><SPAN>&nbsp;</SPAN>is the part of the OS in charge of taking an executable file, and loading it into memory, creating a virtual memory map like the one above. In Pintos, the program loader is already provided for you, although you will have to tweak it in the projects. It does the following:</P>
+<OL class="arabic simple">
+<LI>It creates a new kernel thread (<A class="reference external" href="actualprogramloader.https://github.com/uchicago-cs/pintos/blob/master/src/userprog/process.c#L42"><FONT color=#0066cc>source code</FONT></A>). In fact, Pintos has a 1-1 mapping between user processes and kernel threads (and does not allow for multiple threads within a process). This thread is placed on the ready list and will eventually run. 
+<LI>Once the thread starts running, it creates a page table with no mappings between 0 and 3GB, and with the physical memory mappings between 3GB and 3GB+64MB (requiring PL=0 to access the memory addresses in that range) 
+<LI>The program loaded then reads the actual program from an ELF executable file. In particular, it loads a text (code) segment and a data segment, allocating pages from the page pool for them, and creating mappings between virtual memory and physical memory for these pages. 
+<LI>It sets up the stack for the process (you will be doing this in Project 2) 
+<LI>It obtains the &#8220;entry point&#8221; from the ELF file (i.e., &#8220;where does the program start running?&#8221;)</LI></OL>
+<P>At this point, we could just use the x86<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">JMP</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>instruction to jump directly to the entry point. However, we&#8217;re running in PL=0, and we want the process to run in PL=3. While, conceptually, all we need to do is something like &#8220;Switch to PL=3 and JMP&#8221;, the actual mechanism is more complicated than that, involving the x86 segmentation functionality.</P>
+<P>In particular, the x86 architecture has six CPU registers known as<SPAN>&nbsp;</SPAN><EM>segment selectors</EM>:</P>
+<UL class=simple>
+<LI><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">cs</FONT></SPAN></CODE>: Code Segment 
+<LI><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">ss</FONT></SPAN></CODE>: Stack Segment 
+<LI><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">ds</FONT></SPAN></CODE>: Data Segment 
+<LI><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">es</FONT></SPAN></CODE>,<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">fs</FONT></SPAN></CODE>,<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">gs</FONT></SPAN></CODE>: More data segments.</LI></UL>
+<P>The value of<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">cs</FONT></SPAN></CODE>,<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">ss</FONT></SPAN></CODE>,<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">ds</FONT></SPAN></CODE>, etc. is a<SPAN>&nbsp;</SPAN><EM>selector</EM>: an index into a table of segment descriptors, where a descriptor contains information about a single segment (including, for example, the base and limit of that segment). In x86 there are two tables: the<SPAN>&nbsp;</SPAN><A class="reference external" href="http://wiki.osdev.org/Global_Descriptor_Table"><FONT color=#0066cc>Global Descriptor Table</FONT></A><SPAN>&nbsp;</SPAN>(shared by all processes) and the Local Descriptor Table (one per process), and a selector can point to an entry in either table.</P>
+<P>However, modern x86 operating systems don&#8217;t create distinct segments per process. Instead, they create<SPAN>&nbsp;</SPAN><EM>global segment descriptors</EM><SPAN>&nbsp;</SPAN>(in the GDT) which define segments as big as the entire virtual memory space. So, they do not use segmentation (in the sense of creating clearly delimited code, data and stack segments per process), but they do use the x86 segmentation functionality because it will be required for switching between Privilege Levels. In particular, the x86 GDT/LDT includes a field that specifies the Privilege Level at which we are running when using a given segment. So, if<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">cs</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>contains a selector for a segment with PL=0, we will be able to run instructions that require PL=0.</P>
+<P>So, a modern x86 operating system will often have a GDT with two code segments (one for PL=0 and another for PL=3), and two data segments (one for PL=0 and another for PL=3). The data segments are also used for the stack segment. In Pintos, the GDT looks like this:</P>
+<TABLE class=table border=0>
+<COLGROUP>
+<COL width="14%">
+<COL width="27%">
+<COL width="10%">
+<COL width="24%">
+<COL width="24%"></COLGROUP>
+<TBODY vAlign=top>
+<TR class=row-odd>
+<TD>Index</TD>
+<TD>Description</TD>
+<TD>PL</TD>
+<TD>Base</TD>
+<TD>Limit</TD></TR>
+<TR class=row-even>
+<TD>0</TD>
+<TD colSpan=4>Empty</TD></TR>
+<TR class=row-odd>
+<TD>1</TD>
+<TD>Kernel Code</TD>
+<TD>0</TD>
+<TD>0x00000000</TD>
+<TD>0xFFFFFFFF</TD></TR>
+<TR class=row-even>
+<TD>2</TD>
+<TD>Kernel Data</TD>
+<TD>0</TD>
+<TD>0x00000000</TD>
+<TD>0xFFFFFFFF</TD></TR>
+<TR class=row-odd>
+<TD>3</TD>
+<TD>User Code</TD>
+<TD>3</TD>
+<TD>0x00000000</TD>
+<TD>0xFFFFFFFF</TD></TR>
+<TR class=row-even>
+<TD>4</TD>
+<TD>User Data</TD>
+<TD>3</TD>
+<TD>0x00000000</TD>
+<TD>0xFFFFFFFF</TD></TR>
+<TR class=row-odd>
+<TD>5</TD>
+<TD>TSS</TD>
+<TD colSpan=3>Pointer to Task State Segment</TD></TR></TBODY></TABLE>
+<P>Note: selectors are actually addresses in memory, not 0, 1, 2, 3, etc. but we will use indexes for simplicity. You can ignore the TSS entry for now.</P>
+<P>When the computer boots, Pintos sets up the GDT just with entries 0, 1, 2 and runs in PL=0. Later on, we set up the complete GDT (<A class="reference external" href="https://github.com/uchicago-cs/pintos/blob/master/src/userprog/gdt.c#L33-L54"><FONT color=#0066cc>source code</FONT></A>).</P>
+<P>So, earlier we said that we could think of the &#8220;current PL&#8221; as being stored in a CPU register, and that was partially true. In fact,<SPAN>&nbsp;</SPAN><STRONG>our Privilege Level is determined by the current segment selectors</STRONG>. For example, if<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">cs</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>is set to 1, it means I can run privileged instructions. Similarly, if<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">ds</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>is set to 4, I wouldn&#8217;t be able to access pages that require PL=0.</P>
+<P>So, back to the program loader (which is part of the kernel and, thus, would be running with code segment 1 and data segment 2). We&#8217;ve set everything up, and now we need to jump to the program&#8217;s entry point, while also switching<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">cs</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>to segment 3 and all other selectors to segment 4. This is done by<SPAN>&nbsp;</SPAN><EM>simulating</EM><SPAN>&nbsp;</SPAN>a return from interrupt (<A class="reference external" href="https://github.com/uchicago-cs/pintos/blob/master/src/userprog/process.c#L69-L75"><FONT color=#0066cc>source code</FONT></A>). Remember that, as we saw earlier, an interrupt causes the CPU to automatically push the following registers into the stack:</P>
+<UL class=simple>
+<LI><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">ss</FONT></SPAN></CODE>: Stack Segment Selector 
+<LI><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">esp</FONT></SPAN></CODE>: Stack pointer 
+<LI><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">eflags</FONT></SPAN></CODE>: CPU flags 
+<LI><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">cs</FONT></SPAN></CODE>: Code Segment Selector 
+<LI><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">eip</FONT></SPAN></CODE>: Instruction Pointer</LI></UL>
+<P>Which are then restored when we run the x86 instruction<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">IRET</FONT></SPAN></CODE>. So, to perform the operation &#8220;jump and change the Privilege Level&#8221;, all we need to do is create an interrupt stack frame with the entry point of the program in<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><FONT face="Courier New"><SPAN class=pre>eip```and</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>the</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>PL=3</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>segments</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>in</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>``ss</SPAN></FONT></CODE><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">cs</FONT></SPAN></CODE>. In Pintos, the interrupt frame we create (before calling<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">IRET</FONT></SPAN></CODE>) contains the above registers, as well the OS-added ones that we referred to earlier when explaining interrupts. This includes the value of<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">ds</FONT></SPAN></CODE>, which will be<SPAN>&nbsp;</SPAN><A class="reference external" href="https://github.com/uchicago-cs/pintos/blob/master/src/threads/intr-stubs.S#L57"><FONT color=#0066cc>restored</FONT></A><SPAN>&nbsp;</SPAN>in<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">intr_exit</FONT></SPAN></CODE>.</P>
+<P>However, this mechanism won&#8217;t work if we want to switch from PL=3 to PL=0 (e.g., when an interrupt or a system call happens). This is because<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">IRET</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>will not allow returning from one privilege level to a more privileged level (it must always involve returning to a privilege level equal or less privileged than the current one). This makes sense: otherwise, a user process could grant itself PL=0 privileges by running IRET in the manner described above.</P>
+<P>Instead, when an interrupt or system call happens, the interrupt descriptor table specifies the code segment to use when processing the interrupt (and it is usually set to be the kernel segment). The interrupt entry point then<SPAN>&nbsp;</SPAN><A class="reference external" href="https://github.com/uchicago-cs/pintos/blob/master/src/threads/intr-stubs.S#L29-L31"><FONT color=#0066cc>sets the data segment selectors</FONT></A><SPAN>&nbsp;</SPAN>to the kernel ones.</P>
+<P>However, we also need to switch to the stack for the kernel thread associated with this process. In x86, we use a<SPAN>&nbsp;</SPAN><A class="reference external" href="http://wiki.osdev.org/Task_State_Segment"><FONT color=#0066cc>Task State Segment</FONT></A>. This was a data structure that was originally designed to keep track of each task in the operating system, meaning there would be one TSS per task. The TSS stores many values, including the new value of<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">esp</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>when a user process yields control to the kernel. This is something we need to keep track of because, when running in the kernel, we want to use the kernel thread&#8217;s stack, not the user process&#8217;s stack.</P>
+<P>However, modern x86 operating systems do not use one TSS per process and, instead create only one TSS (since we only need to store the stack pointer of the kernel thread corresponding to the current user process). When an interrupt happens, the CPU checks the TSS and sets<SPAN>&nbsp;</SPAN><CODE class="docutils literal"><SPAN class=pre><FONT face="Courier New">esp</FONT></SPAN></CODE><SPAN>&nbsp;</SPAN>to the stack pointer stored in the TSS.</P></DIV>
+<DIV id=switching-between-processes class=section>

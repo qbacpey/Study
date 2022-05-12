@@ -1,0 +1,31 @@
+<STRONG><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Trap</SPAN></FONT></STRONG></P>
+<P><STRONG>Traps</STRONG><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><STRONG>interrupts</STRONG><SPAN>&nbsp;</SPAN>are closely related. Traps are a type of<SPAN>&nbsp;</SPAN><STRONG>exception</STRONG>, and exceptions are similar to interrupts. </P>
+<P></P>
+<P>Intel x86 defines two overlapping categories, vectored events (<STRONG>interrupts</STRONG><SPAN>&nbsp;</SPAN>vs<SPAN>&nbsp;</SPAN><STRONG>exceptions</STRONG>), and exception classes (<STRONG>faults</STRONG><SPAN>&nbsp;</SPAN>vs<SPAN>&nbsp;</SPAN><STRONG>traps</STRONG><SPAN>&nbsp;</SPAN>vs<SPAN>&nbsp;</SPAN><STRONG>aborts</STRONG>).</P>
+<P>All of the quotes in this post are from the April 2016 version of the<SPAN>&nbsp;</SPAN><A href="http://www.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html" rel=noreferrer>Intel Software Developer Manual</A>. For the (definitive and complex) x86 perspective, I recommend reading the SDM's chapter on Interrupt and Exception handling.</P>
+<H1>Vectored Events</H1>
+<P><SPAN class=extract>Vectored Events (<STRONG>interrupts</STRONG><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><STRONG>exceptions</STRONG>) cause the processor to jump into an interrupt handler after saving much of the processor's state (enough such that execution can continue from that point later)</SPAN>.</P>
+<P><SPAN class=extract>Exceptions and interrupts have an ID, called a vector, that determines which interrupt handler the processor jumps to</SPAN>. Interrupt handlers are described within the Interrupt Descriptor Table.</P>
+<H2>Interrupts</H2>
+<BLOCKQUOTE>
+<P><STRONG><SPAN class=extract><STRONG>Interrupts</STRONG><SPAN>&nbsp;</SPAN>occur at random times during the execution of a program, in response to signals from hardware</SPAN></STRONG>. System hardware uses interrupts to handle events external to the processor, such as requests to service peripheral devices. <SPAN class=extract>Software can also generate interrupts by executing the INT n instruction</SPAN>.</P></BLOCKQUOTE>
+<H2>Exceptions</H2>
+<BLOCKQUOTE>
+<P><STRONG>Exceptions</STRONG><SPAN>&nbsp;</SPAN>occur when the processor detects an error condition while executing an instruction, such as division by zero. <SPAN class=extract>The processor detects a variety of error conditions including protection violations, page faults, and internal machine faults</SPAN>.</P></BLOCKQUOTE>
+<H1>Exception Classifications</H1>
+<BLOCKQUOTE>
+<P><STRONG><SPAN class=extract><STRONG>Exceptions</STRONG><SPAN>&nbsp;</SPAN>are classified as<SPAN>&nbsp;</SPAN><STRONG>faults</STRONG>,<SPAN>&nbsp;</SPAN><STRONG>traps</STRONG>, or<SPAN>&nbsp;</SPAN><STRONG>aborts</STRONG><SPAN>&nbsp;</SPAN>depending on the way they are reported and whether the instruction that caused the exception can be restarted without loss of program or task continuity</SPAN></STRONG>.</P></BLOCKQUOTE>
+<H3>Summary:<SPAN>&nbsp;</SPAN><STRONG>traps</STRONG><SPAN>&nbsp;</SPAN>increment the instruction pointer,<SPAN>&nbsp;</SPAN><STRONG>faults</STRONG><SPAN>&nbsp;</SPAN>do not, and<SPAN>&nbsp;</SPAN><STRONG>aborts</STRONG><SPAN>&nbsp;</SPAN>'explode'.</H3>
+<H1>Trap</H1>
+<BLOCKQUOTE>
+<P><SPAN class=extract>A<SPAN>&nbsp;</SPAN><STRONG>trap</STRONG><SPAN>&nbsp;</SPAN>is an exception that is reported immediately following the execution of the trapping instruction. Traps allow execution of a program or task to be continued without loss of program continuity. The return address for the trap handler points to the instruction to be executed after the trapping instruction</SPAN>.</P></BLOCKQUOTE>
+<H2>Fault</H2>
+<BLOCKQUOTE>
+<P>A<SPAN>&nbsp;</SPAN><STRONG>fault</STRONG><SPAN>&nbsp;</SPAN>is an exception that can generally be corrected and that, once corrected, allows the program to be restarted with no loss of continuity. When a fault is reported, the processor restores the machine state to the state prior to the beginning of execution of the faulting instruction. <SPAN class=extract>The return address (saved contents of the CS and EIP registers) for the fault handler points to the faulting instruction, rather than to the instruction following the faulting instruction</SPAN>.</P></BLOCKQUOTE><SPAN class=extract>
+<P>Example: A page fault is often recoverable. A piece of an application's address space may have been swapped out to disk from ram. The application will trigger a page fault when it tries to access memory that was swapped out. The kernel can pull that memory from disk to ram, and hand control back to the application. The application will continue where it left off (at the faulting instruction that was accessing swapped out memory), but this time the memory access should succeed without faulting.</P>
+<P>An illegal-instruction fault handler that emulates floating-point or other missing instructions would have to manually increment the return address to get the trap-like behaviour it needs, after seeing if the faulting instruction was one it could handle. x86<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">#UD</FONT></CODE><SPAN>&nbsp;</SPAN>is a "fault", not a "trap". (The handler would need a pointer to the faulting instruction to figure out which instruction it was.)</P></SPAN>
+<H2>Abort</H2>
+<BLOCKQUOTE>
+<P>An<SPAN>&nbsp;</SPAN><STRONG>abort</STRONG><SPAN>&nbsp;</SPAN>is an exception that does not always report the precise location of the instruction causing the exception and does not allow a restart of the program or task that caused the exception. Aborts are used to report severe errors, such as hardware errors and inconsistent or illegal values in system tables.</P></BLOCKQUOTE>
+<H1>Edge Cases</H1>
+<P><SPAN class=extract>Software invoked interrupts (triggered by the INT instruction) behave in a trap-like manner. The instruction completes before the processor saves its state and jumps to the interrupt handler</SPAN>.

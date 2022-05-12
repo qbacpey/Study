@@ -1,0 +1,20 @@
+<SPAN class=Keyword>&nbsp;<SPAN class=keyword><B>imul</B></SPAN><SPAN>&nbsp;</SPAN>&#8212; Integer multiplication 
+<P></P>
+<BLOCKQUOTE>
+<P>The<SPAN>&nbsp;</SPAN><SPAN class=keyword>imul</SPAN><SPAN>&nbsp;</SPAN>instruction has two basic formats: two-operand (first two syntax listings above) and three-operand (last two syntax listings above).</P>
+<P><SPAN class=extract>&#26080;&#35770;&#26159;&#21738;&#19968;&#31181;&#26684;&#24335; iml &#30340;&#32467;&#26524;&#25805;&#20316;&#31526;&#24517;&#39035;&#26159;&#23492;&#23384;&#22120;&nbsp;</SPAN></P>
+<P><SPAN class=extract>&#26080;&#35770;&#26159;&#21738;&#19968;&#31181;&#26684;&#24335; iml &#30340;&#32467;&#26524;&#25805;&#20316;&#31526;&#19968;&#23450;&#26159;&#20854;&#26368;&#21518;&#19968;&#20010;&#25805;&#20316;&#31526;</SPAN></P>
+<P><SPAN class=extract>&#19977;&#20803; imul &#25351;&#20196;&#30340;&#31532;&#19968;&#20010;&#25805;&#20316;&#31526;&#24517;&#39035;&#26159;&#24120;&#25968;</SPAN></P>
+<P><SPAN class=extract>&#20108;&#20803; imul &#25351;&#20196;&#65288;<SPAN class=keyword>imul (%ebx), %eax</SPAN>&#65289;&#20250;&#23558;&#20004;&#20010;&#25805;&#20316;&#31526;&#30340;&#20540;&#30456;&#20056;&#24182;&#20445;&#23384;&#21040;&#26368;&#21518;&#19968;&#20010;&#25805;&#20316;&#31526;&#20013;</SPAN></P>
+<P><SPAN class=extract>&#19977;&#20803; imul &#25351;&#20196;&#65288;<SPAN class=keyword>imul $25, %edi, %esi</SPAN>&#65289;&#20250;&#23558;&#21069;&#20004;&#20010;&#25805;&#20316;&#31526;&#30340;&#20540;&#30456;&#20056;&#24182;&#20445;&#23384;&#21040;&#26368;&#21518;&#19968;&#20010;&#25805;&#20316;&#31526;&#20013;</SPAN></P>
+<P>The two-operand form multiplies its two operands together and stores the result in the second operand. The result (i.e. second) operand must be a register.</P>
+<P>The three operand form multiplies its second and third operands together and stores the result in its last operand. Again, the result operand must be a register. Furthermore, the first operand is restricted to being a constant value.</P>
+<P><EM>Syntax</EM> 
+<P><SPAN class=keyword>imul &lt;reg32&gt;, &lt;reg32&gt;</SPAN> 
+<P><SPAN class=keyword>imul &lt;mem&gt;, &lt;reg32&gt;</SPAN> 
+<P><SPAN class=keyword>imul &lt;con&gt;, &lt;reg32&gt;, &lt;reg32&gt;</SPAN> 
+<P><SPAN class=keyword>imul &lt;con&gt;, &lt;mem&gt;, &lt;reg32&gt;</SPAN></P>
+<P><EM>Examples</EM> 
+<P></P>
+<DIV class=hanging><SPAN class=keyword>imul (%ebx), %eax</SPAN><SPAN>&nbsp;</SPAN>&#8212; multiply the contents of EAX by the 32-bit contents of the memory at location EBX. Store the result in EAX.</DIV>
+<DIV class=hanging><SPAN class=keyword>imul $25, %edi, %esi</SPAN><SPAN>&nbsp;</SPAN>&#8212; ESI is set to EDI * 25</DIV></BLOCKQUOTE></SPAN>

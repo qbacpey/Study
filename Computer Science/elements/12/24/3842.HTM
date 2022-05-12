@@ -1,0 +1,564 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>7.5 Queueing Theory</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Suppose you build a new web service, and the week before you are to take it live, you test it to see whether it will have reasonable response time. If your tests show that the performance is terrible, what then? Is it because the implementation is too slow? Perhaps you have the wrong scheduler? Quick, let&#8217;s re-implement that linked list with a hash table! And add more levels to the multi-level feedback queue! Our advice: don&#8217;t panic. In this section, we consider a third possibility, an effect that often trumps all of the others: response time depends non-linearly on the rate that tasks arrive at a system. Understanding this relationship is the topic of </FONT><EM>queueing theory</EM><FONT style="BACKGROUND-COLOR: #ffffff">. </FONT>
+<P>Fortunately, if you have ever waited in line (and who hasn&#8217;t?), you have an intuitive understanding of queueing theory. Its concepts apply whenever there is a queue waiting for a turn, whether it is tasks waiting for a processor, web requests waiting for a turn at a web server, restaurant patrons waiting for a table, cars waiting at a busy intersection, or people waiting in line at the supermarket. </P>
+<P>While queueing theory is capable of providing precise predictions for complex systems, our interest is providing you the tools to be able to do back of the envelope calculations for where the time goes in a real system. For performance debugging, coarse estimates are often enough. For this reason, we make two simplifying assumptions for this discussion. First, we assume the system is work-conserving, so that all tasks that arrive are eventually serviced; this will normally be the case except in extreme overload conditions, a topic we will discuss in the next section of this chapter. Second, although the scheduling policy can affect a system&#8217;s queueing behavior, we will keep things simple and assume FIFO scheduling. <A id=x1-123001r199 name=x1-123001r199></A></P>
+<H4 class=subsectionHead>7.5.1 <A id=x1-1240001 name=x1-1240001></A>Definitions</H4>Because queueing theory is concerned with the root causes of system performance, and not just its observable effects, we need to introduce a bit more terminology. A simple abstract queueing system is illustrated by Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12400116"}'>7.16</A>. In any queueing system, tasks arrive, wait their turn, get service, and leave. If tasks arrive faster than they can be serviced, the queue grows. The queue shrinks when the service rate exceeds the arrival rate. 
+<P>To begin, we will consider single-queue, single-server, work-conserving systems. Later, we will introduce more complexity such as multiple queues, multiple servers, and finite queues that can discard some requests. <A id=x1-12400116 name=x1-12400116></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00431.gif" data-calibre-src="OEBPS/Images/image00431.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.16: </B>An abstract queueing system. Tasks arrive, wait their turn in the queue, get service, and leave.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Server.</B> A server is anything that performs tasks. A web server is obviously a server, performing web requests, but so is the processor on a client machine, since it executes application tasks. The cashier at a supermarket and a waiter in a restaurant are also servers. </P>
+<LI class=itemize>
+<P><B>Queueing delay (W) and number of tasks queued (Q).</B> The queueing delay, or wait time, is the total time a task must wait to be scheduled. In a time slicing system, a task might need to wait multiple times for the same server to complete its task; in this case the queueing delay includes all of the time a task spends waiting until it is completed. </P>
+<LI class=itemize>
+<P><B>Service time (S).</B> The service time S, or execution time, is the time to complete a task assuming no waiting. </P>
+<LI class=itemize>
+<P><B>Response time (R).</B> The response time is the queueing delay (how long you wait in line) plus the service time (how long it takes once you get to the front of the line). </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>R </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; W + S </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>In the web server example we started with, the poor performance can be due to either factor &#8212; the system could be too slow even when no one is waiting, or the system could be too slow because each request spends most of its time waiting for service. </P>
+<P>We can improve the response time by improving either factor. We can reduce the queueing delay by buying more servers (for example, by having more processors than ready threads or more cashiers than customers), and we can reduce service time by buying a faster server or by engineering a faster implementation. </P>
+<LI class=itemize>
+<P><B>Arrival rate (&#955;) and arrival process.</B> The arrival rate &#955; is the average rate at which new tasks arrive. </P>
+<P>More generally, the arrival process describes when tasks arrive including both the average arrival rate and the pattern of those arrivals such as whether arrivals are bursty or spread evenly over time. As we will see, burstiness can have a large impact on queueing behavior. </P>
+<LI class=itemize>
+<P><B>Service rate (&#956;).</B> The service rate &#956; is the number of tasks the server can complete per unit of time when there is work to do. Notice that the service rate &#956; is the inverse of the service time S. </P>
+<LI class=itemize>
+<P><B>Utilization (U).</B> The utilization is the fraction of time the server is busy (0 &#8804; U &#8804; 1). In a work-conserving system, utilization is determined by the ratio of the average arrival rate to the service rate: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>U </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; &#955; / &#956; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; if &#955; &lt; &#956; </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; if &#955; &#8805; &#956;) </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>Notice that if &#955; &gt; &#956;, tasks arrive more quickly than they can be serviced. Such an overload condition is unstable; in a work-conserving system, the queue length and queueing delay grow without bound. </P>
+<LI class=itemize>
+<P><B>Throughput (X).</B> Throughput is the number of tasks processed by the system per unit of time. When the system is busy, the server processes tasks at the rate of &#956;, so we have: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>X </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; U &#956; </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>Combining this equation with the previous one, we can see that when the average arrival rate &#955; is less than the service rate &#956;, the system throughput matches the arrival rate. We can also see that the throughput can never exceed &#956; no matter how quickly tasks arrive. </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>X </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; &#955; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; if U &lt; 1 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; &#956; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; if U = 1 </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<LI class=itemize>
+<P><B>Number of tasks in the system (N).</B> The average number of tasks in the system is just the number queued plus the number receiving service: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>N </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; Q + U </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR></LI></UL><A id=x1-124002r215 name=x1-124002r215></A>
+<H4 class=subsectionHead>7.5.2 <A id=x1-1250002 name=x1-1250002></A>Little&#8217;s Law</H4><EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:Little"}'>Little&#8217;s Law</A></EM> is a theorem proved by John Little in 1961 that applies to any <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:stable system"}'>stable system</A></EM> where the arrival rate matches the departure rate. It defines a very general relationship between the average throughput, response time, and the number of tasks in the system: 
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>N </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; X R </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>Although this relationship is simple and intuitive, it is powerful because the &#8220;system&#8221; can be anything with arriving and departing tasks, provided the system is stable &#8212; regardless of the arrival process, number of servers, or queueing order. </P>
+<P><B>EXAMPLE: </B>Suppose we have a queueing system like the one shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12400116"}'>7.16</A> and we observe over the course of an hour that an average of 100 requests arrive and depart each second and that the average request is completed 50 ms after it arrives. On average, how many requests are being handled by the system? </P>
+<P><B>ANSWER: </B>Since the arrival rate matches the departure rate, the system is stable and we can use Little&#8217;s Law. We have a throughput X = 100 requests/second and a response time R = 50 ms = 0.05 seconds: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>N </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; X R </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 100 requests/second &#215; 0.05 seconds </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>5 requests</B> </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>In this system there are, on average, 5 requests waiting in the queue or being served. &#9633; </P>
+<P>We can also zoom in to see what is happening at the server, ignoring the queue. The server itself is a system, and Little&#8217;s Law applies there, too. </P>
+<P><B>EXAMPLE: </B>Suppose we have a server that processes one request at a time and we observe that an average of 100 requests arrive and depart each second and that the average request completes 5 ms after it arrives. What is the average utilization of the server? </P>
+<P><B>ANSWER: </B>The utilization of the server is the fraction of time the server is busy processing a request. Because the server handles one request at a time, its utilization equals the average number of requests in the server-only system. Using Little&#8217;s Law: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>U </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; N </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; X R </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 100 requests/second &#215; 0.005 seconds </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>0.5 requests</B> </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>The average utilization is 0.5 or 50%. &#9633; 
+<P>We can also look at the subsystem comprising just the queue. </P>
+<P><B>EXAMPLE: </B>For the system described in the previous two examples, how long does an average request spend in the queue, and on average how many requests are in the queue? </P>
+<P><B>ANSWER: </B>We know that an average task takes 50 ms to get through the queue and server and that it spends 5 ms at the server, so it must spend 45 ms in the queue. Similarly, we know that on average the system holds 5 tasks with 0.5 of them in the server, so the average queue length is 4.5 tasks. </P>
+<P>We can get the same result with Little&#8217;s Law. One hundred tasks pass through the queue per second and spend an average of 45 ms in the queue, so the average number of tasks in the queue is: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>N </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; X R </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 100 requests/second &#215; 0.045 seconds </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>4.5 requests</B> </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>&#9633; 
+<P>Although Little&#8217;s Law is useful, remember that it only provides information about the system&#8217;s averages over time. </P>
+<P><B>EXAMPLE: </B>One thing might puzzle you. In the previous example, if the average number of tasks in the queue is 4.5 and processing a request takes 5 ms, how can the average queueing delay for a request be 45 ms rather than 4.5 &#215; 5 ms = 22.5 ms? </P>
+<P><B>ANSWER: </B>The <EM>average</EM> number of requests in the queue is 4.5. Sometimes there are more; sometimes there are fewer. Queues will grow during bursts of arrivals, and they will shrink when tasks are arriving slowly. </P>
+<P>In fact, from the 0.5 server utilization rate calculated above, we know that the queue is empty half the time. To make up for the empty periods, there <EM>must</EM> be periods with longer-than-average queue lengths. </P>
+<P>Unfortunately, the queues tend to be full during busy periods and they tend to be empty during idle periods, so relatively few requests enjoy short or empty queues and relatively many suffer long queues. So, the average request sees a longer queue than the average queue length over time might suggest, and the (per-request) average queueing delay exceeds the (time) average queue length times the (per-request) average service time. &#9633; </P>
+<P>Not only can we apply Little&#8217;s Law to a simple queueing system or its subcomponents, we can apply it to more complex systems, even those whose internal structure we do not fully understand. </P>
+<P><B>EXAMPLE: </B>Suppose there is a complex web service like Google, Facebook, or Amazon, and we know that the average request takes 100 milliseconds and that the service handles an average of 10,000 queries per second. How many requests are pending in the system on average? </P>
+<P><B>ANSWER: </B>Applying Little&#8217;s Law: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>N </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; X R </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 10000 requests/second &#215; 0.1 seconds </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>1000 requests</B> </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>Note that this is true regardless of the internal structure of the web service. It may have many load balancers, processors, network switches, and databases, each with separate queues, and each with different queueing policies, but in aggregate in steady state the number of requests being handled must be equal to the product of the response time and the throughput. &#9633; <A id=x1-125001r217 name=x1-125001r217></A></P>
+<H4 class=subsectionHead>7.5.3 <A id=x1-1260003 name=x1-1260003></A>Response Time Versus Utilization</H4>Because having more servers (whether processors on chip or cashiers in a supermarket) or faster servers is costly, you might think that the goal of the system designer is to maximize utilization. However, in most cases, there is no free lunch: as we will see, higher utilization normally implies higher queueing delay and higher response times. 
+<P>Operating a system at high utilization also increases the risk of overload. Suppose you plan to minimize costs by operating a web site at 95% utilization, but your service turns out to be a little more popular than you expected. You can quickly find yourself operating in the unstable regime where requests are arriving faster than you can service them (&#955; &gt; &#956;) and where your queues and waiting times are growing without bound. </P>
+<P>As a designer, you need to find an appropriate tradeoff between higher utilization and better response time. Fifty years ago, computer designers made the tradeoff in favor of higher utilization: when computers are wildly expensive, it is annoying but understandable to make people wait for the computer. Now that computers are much cheaper, our lives are better! We now usually make the computer do the waiting. </P>
+<P>We can predict a queueing system&#8217;s average response time from its arrival process and service time, but the relationship is more complex than the relationships discussed so far. </P>
+<P>To provide intuition, we start with some extreme scenarios that bound the behavior of a queueing system; we will introduce more realistic scenarios as we proceed. </P>
+<P>Broadly speaking, higher arrival rates and burstier arrival patterns tend to yield longer queue lengths and response times than lower arrival rates and smoother arrival patterns. </P>
+<P><B>Best case: Evenly spaced arrivals.</B> Suppose we have a set of fixed-sized tasks that arrive equally spaced from one another. For As long as the rate at which tasks arrive is less than the rate at which the server completes the tasks, there will be no queueing at all. Perfection! Each server finishes the previous customer in time for the next arrival. <A id=x1-12600117 name=x1-12600117></A></P>
+<HR>
+
+<P></P>
+<CENTER><img alt="" src="about:../Images/image00432.gif" data-calibre-src="OEBPS/Images/image00432.gif"></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.17: </B>Best case response time and throughput as a function of the task arrival rate relative to the service rate. These graphs assume arrivals are evenly spaced and service times are fixed-size.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12600117"}'>7.17</A> illustrates the relationship between arrival rate and response time for this best case scenario of evenly spaced arrivals. There are three regimes: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>&#955; &lt; &#956;.</B> If the arrival rate is below the service rate, there is no queueing and the response time equals the service time.</P></LI></UL>
+<P>For example, suppose we have a server that can handle 1000 requests per second, and one request arrives every 1000, 100, or 10 milliseconds. The server finishes processing request i- 1 before request i arrives, and request i completes 1 ms after it arrives, clearing the way for request i + 1. </P>
+<P>The situation remains the same if arrivals are more closely spaced at 1.1, 1.01, 1.001, and so on down to 1.0 ms, where each request arrives at the moment the previous request completes. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>&#955; = &#956;.</B> If the arrival rate matches the service rate, the system is in a precarious equilibrium. If the queues are initially empty, they will stay empty, but if the queues are initially full, they will remain full.</P></LI></UL>
+<P>Suppose arrivals are coming every 1.0 ms, and at some point during the day a single extra request arrives; that request must wait until the previous one completes, but the server will then be busy when the next request arrives. That single extra request produces queueing delay for every subsequent request. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>&#955; &gt; &#956;.</B> If the arrival rate exceeds the service rate, queues will grow without bound. In this case, the system is not in equilibrium, and the steady state response time is undefined.</P></LI></UL>
+<P>Suppose the task arrival rate is one per 0.999 ms so that tasks arrive slightly faster than they can be processed? If a system&#8217;s arrival rate exceeds its service rate, then under our simple model its queues will grow without bound, and its queueing delay is undefined. In practice, memory is finite; once the queue&#8217;s capacity is reached, the system must discard some of the arriving requests. </P>
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12600117"}'>7.17</A> also shows the relationship between arrival rate and throughput. When the arrival rate is less than the service rate, increasing the arrival rate increases throughput. Once the arrival rate matches or exceeds the service rate, faster arrivals just grow the queues more quickly, they do not increase useful throughput. <A id=x1-12600218 name=x1-12600218></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00433.gif" data-calibre-src="OEBPS/Images/image00433.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.18: </B>Response time for a server that can handle 10 requests per second as we vary arrival rate of fixed-size tasks in two scenarios: evenly spaced arrivals and bursty arrivals where all of a second&#8217;s requests arrive in a group at the start of the second.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><B>Worst case: Bursty arrivals.</B> Now consider the opposite case. Suppose a group of tasks arrive at exactly the same time. The average wait time increases linearly as more tasks arrive together &#8212; one task in a group can be serviced right away, but others must wait. </P>
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12600218"}'>7.18</A> considers a hypothetical server with a maximum throughput of 10 tasks per second as we vary the number of tasks that arrive per second. The graph shows two cases: one where requests are evenly spaced as in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12600117"}'>7.17</A> and the other where requests arrive in a burst at the start of each second. </P>
+<P>Even when the request rate is below the server&#8217;s service rate, bursty arrivals suffer queueing delays. For example, when five requests arrive as a group at the start of each second, the first request is served immediately and finishes 0.1 seconds later. The server can then start processing the second request, finishing it 0.2 seconds after the start of the interval. The third, fourth, and fifth requests finish at 0.3, 0.4, and 0.5 seconds after the start of the second, giving an average response time of (0.1 + 0.2 + 0.3 + 0.4 + 0.5)/5 = 0.3 seconds. By the same logic, if ten requests arrive as a group, the average response time is (0.1 + 0.2 + 0.3 + 0.4 + 0.5 + 0.6 + 0.7 + 0.8 + 0.9 + 1.0)/10 = 0.55 seconds. If the same requests had arrived evenly spaced, their average response time would have been over five times better! </P>
+<P><B>Exponential arrivals.</B> Most systems are somewhere in between this best case and worst case. Rather than being perfectly synchronized or perfectly desynchronized, task arrivals in many systems are random. For example, different customers in a supermarket do not coordinate with each other as to when they arrive. </P>
+<P>Likewise, service times are not perfectly equal &#8212; there is randomness there as well. At a doctor&#8217;s office, everyone has an appointment, so it may seem like that should be the best case scenario, and no one should ever have to wait. Even so, there is often queueing! Why? If the amount of time the doctor takes with each patient is sometimes shorter and sometimes longer than the appointment length, then random chance will cause queueing. </P>
+<P>A particularly useful model for understanding queueing behavior is to use an exponential distribution to describe the time between tasks arriving and the time it takes to service each task. Once you get past a bit of math, the exponential provides a stunningly simple <EM>approximate</EM> description of most real-life queueing systems. We do not claim that all real systems always obey the exponential model in detail; in fact, most do not. However, the model is often accurate enough to provide insight on system behaviors, and as we will discuss, it is easy to understand the circumstances under which it is inaccurate. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Model vs. reality</I></B></SPAN> </P>
+<P>When trying to understand a complex system, it is often useful to construct a model of its behavior. A model is a simplification that tries to capture the most important aspects of a more complex system&#8217;s behavior. Models are neither true nor false, but they can be useful or not for a particular purpose. It is often the case that a more complex model will yield a closer approximation; whether the added complexity is useful or gets in the way depends on how the model is being used. </P>
+<P>We often find it useful to use simple workload models when debugging early system implementations. Using the types of analysis described in this chapter and an understanding of the system being built, it is usually possible to predict how the system should behave under simple workloads. If measured behavior deviates from these predictions, there is a bug in our understanding or implementation of the system. Simple workloads can help us improve our understanding if it is the former and track down the bug if it is the latter. </P>
+<P>We could, instead, evaluate early implementations by feeding them more realistic workloads. For example, if we are building a new web server, we could feed it a workload trace captured at some other server. However, this approach is often more complex. For example, to test our system under a range of conditions, we need to gather a range of traces &#8212; some with low load, some with high; some with bursty loads, some with smooth; etc. </P>
+<P>Worst, even though this approach is more complex, it may yield less insight because it is harder to predict the expected system behavior. If we run a simulation with a trace and get worse performance than we expected, is it because we do not understand our system or because we do not understand the trace? </P>
+<P>This is not to suggest that simple models are always superior to more complex, more realistic ones. Once we are satisfied with our new system&#8217;s behavior for workloads we understand, we should test it for workloads we do not understand or control. There may be (and probably are) important behaviors not captured in our simple models. We might find, for example, that bursts of interest in particular topics create &#8220;hot spots&#8221; of load that we did not anticipate. Evaluation under more realistic models might make us realize that we need to implement more aggressive caching of recently popular pages. </P>
+<P>Selecting the right model for system evaluation is a delicate balance between complexity and accuracy. If after abstracting away detail, we can still provide approximately correct predictions of system behavior under a variety of scenarios, then it is likely the model captures the most important aspects of the system. If the model is inaccurate in some important respect, then it means our explanation for how the system behaves is too coarse, and to improve the prediction we need to revise the model. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-12600319 name=x1-12600319></A>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00434.gif" data-calibre-src="OEBPS/Images/image00434.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.19: </B>Exponential probability distribution.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>First, the math. An <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:exponential distribution"}'>exponential distribution</A></EM> of a continuous random variable with a mean of 1 / &#955; has the probability density function, shown in Figure <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12600319"}'>7.19</A>: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>f(x) </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; &#955;e<SUP>-&#955;x</SUP> </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>Fortunately, you need not understand that equation in any detail, except for the following. A useful property of an exponential distribution is that it is <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:memoryless property"}'>memoryless</A></EM>. A memoryless distribution for the time between two events means that the likelihood of an event occurring remains the same, <EM>no matter how long we have already waited</EM> for the event, or what other events may have already happened. For example, on a web server, web requests from different users (usually) arrive independently. Sometimes, two requests will arrive close together in time; sometimes there will be more of a delay. For example, suppose a web server receives a request from a new user on average every 10 ms. If you want to predict how long until the next request arrives, it probably does not matter when the <EM>last</EM> request arrived: 0, 1, 5, or 50 ms ago. The expected time to the next request is still probably about 10 ms. </P>
+<P>Not every distribution is memoryless. A Gaussian, or normal, distribution for the time between events is closer to the best case scenario described above &#8212; arrivals occur randomly, but they tend to occur at regular intervals, give or take a bit. </P>
+<P>Some probability distributions work the other way. With a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:heavy-tailed distribution"}'>heavy-tailed distribution</A></EM>, the longer you have waited for some event, the longer you are likely to still need to wait. This is closer to the worst case behavior above, as it means that most events are clustered together. </P>
+<P>For example, a ticket seller&#8217;s web site might see bursty workloads. For long periods of time the site might see little traffic, but when tickets for a popular concert of sporting event go on sale, the traffic may be overwhelming. Here, external factors introduce synchronization across different users&#8217; activities so that requests from different users do not arrive independently. Such a workload is unlikely to be memoryless; if you look at a ticket seller&#8217;s web site at a random moment and see that it has been a long time since the last request arrived, you probably arrived during a lull, and you can predict that it will likely be a long time until the next request arrives. On the other hand, if the last request just arrived, you probably arrived during a burst, and the next request will arrive soon. </P>
+<P>With a memoryless distribution, the behavior of queueing systems becomes simple to understand. One can think of the queue as a finite state machine: with some probability, a new task arrives, increasing the queue by one. If the queue length is non-zero, with some other probability, a task completes, decreasing the queue by one. With a memoryless distribution of arrivals and departures, the probability of each transition is constant and independent of the other transitions, as illustrated in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12600420"}'>7.20</A>. <A id=x1-12600420 name=x1-12600420></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00435.gif" data-calibre-src="OEBPS/Images/image00435.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.20: </B>State machine representing a queue with exponentially distributed arrivals and departures. &#955; is the rate of arrivals; &#956; is the rate at which the server completes each task. With an exponential distribution, the probability of a state transition is independent of how long the system has been in any given state.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Assuming that &#955; &lt; &#956;, the system is stable Assuming stability and exponential distributions for the arrival and departure processes, we can solve the model to determine the average response time R as a function of the utilization U and service time S: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>R </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; S / (1 - U) </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>Recall that the utilization, the fraction of time that the server is busy, is simply the ratio between &#955; and &#956;. <A id=x1-12600521 name=x1-12600521></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00436.gif" data-calibre-src="OEBPS/Images/image00436.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.21: </B>Relationship between response time and utilization, assuming exponentially distributed arrivals and departures. Average response time goes to infinity as the system approaches full utilization.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>This equation is graphed in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12600521"}'>7.21</A>. When utilization is low, there is little queueing delay and response time is close to the service time. Furthermore, when utilization is low, small increases in the arrival rate result in small increases in queueing delay and response time. </P>
+<P>As utilization increases, queueing and response time also increase, and the relationship is non-linear. At high utilizations, the queueing delay is high, and small increases in the arrival rate can drastically increase queueing delay and response time. </P>
+<P><B>EXAMPLE: </B>Suppose a queueing system with exponentially distributed arrivals and task sizes is 20% utilized and the load increases by 5%, by how much does the response time increase? How does that increase compare to the case when utilization goes from 90% to 95%? </P>
+<P><B>ANSWER: </B>At 20% utilization, the response time is: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>R </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; S / (1 - U) </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; S / (1 - 0.2) </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 1.25 S </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>At 25% utilization, the response time is: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>R </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; S / (1 - U) </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; S / (1 - 0.25) </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 1.33 S </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P><B>The 5% increase in load increases response time by about 8%.</B> </P>
+<P>Using the same equation, at 90% utilization we have R = 10S and at 95% we have R = 20S, <B>the 5% increase in load increases response time by a factor of two.</B> &#9633; </P>
+<P>The response time of a system becomes unbounded as the system approaches full utilization. Although it might seem that full utilization is an achievable goal, if there is any randomness in arrivals <EM>or</EM> any randomness in service times, full utilization cannot be achieved in steady state without making some tasks wait unbounded amounts of time. </P>
+<P>In most systems, well before a system reaches full utilization, average response time will become unbearably long. In the next section, we discuss some of the steps system designers can take in response to overload. </P>
+<P>Variance in the response time increases even faster as the system approaches full utilization, proportional to 1 / (1 - U)<SUP>2</SUP>. Even with 99% utilization, 1% of the time there is no queue at all; random chance means that while sometimes a large number of customers arrive at nearly the same time, at other times the server will be able to work through all of the backlog. If you are lucky enough to arrive at just that moment, you can receive service without waiting. If you are unlucky enough to arrive immediately after a burst of other customers, your wait will be quite long. </P>
+<P>Exponential arrivals are burstier than the evenly spaced ones we considered in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12600117"}'>7.17</A> and less bursty than the ones we considered in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-12600218"}'>7.18</A>. The response time line for the exponential arrivals is higher than the one for evenly spaced arrivals, which was flat across the entire stable range form U = 0 to U = 1, and the line is lower than the one for more bursty arrivals, which rose rapidly even when utilization was low. In general burstier arrivals will produce worse response time for a given level of load. <A id=x1-126006r218 name=x1-126006r218></A></P>
+<H4 class=subsectionHead>7.5.4 <A id=x1-1270004 name=x1-1270004></A>&#8220;What if?&#8221; Questions</H4>Queueing theory is particularly useful for answering &#8220;what if?&#8221; questions: what happens if we change some design parameter of the system. In this section, we consider a selection of these questions, as a way of providing you a bit more intuition. 
+<H5 class=subsubsectionHead><A id=x1-1280004 name=x1-1280004></A>Scheduling Policy</H5>What happens to the response time curve for other scheduling policies? It depends on the burstiness and predictability of the workload. 
+<P>If the distribution of arrivals or service times is less bursty than an exponential (e.g., evenly spaced or Gaussian), FIFO will deliver nearly optimal response times, while Round Robin will perform worse than FIFO. </P>
+<P>If task service times are exponentially distributed but individual task times are unpredictable, the average response time is the exactly the same for Round Robin as for FIFO. With a memoryless distribution, every queued task has the same expected remaining service time, so switching among tasks has no impact other than to increase overhead. </P>
+<P>On the other hand, if task lengths can be predicted and there is variability of service times, Shortest Job First can improve average response time, particularly if arrivals are bursty. </P>
+<P>Many real-world systems exhibit more bursty arrivals or service times than an exponential distribution. A bursty distribution is sometimes called <EM>heavy-tailed</EM> because it has more very long tasks; since the mean rate is the same, this also implies that the distribution has even more very short tasks. For example, web page size is heavy-tailed; so is the processing time per web page. Process execution times on desktop computers are also heavy-tailed. For these types of systems, burstiness results in worse average response time than would be predicted by an exponential distribution. That said, for these types of systems, there is an even greater benefit to approximating SJF to avoid stalling small requests behind long ones, and Round Robin will outperform FIFO. </P>
+<P>Using SJF (or an approximation) to improve average response time comes at a cost of an increase in response time for long tasks. At low utilization, this increase is small, but at high utilization SJF can result in a massive increase in average response time for long tasks. </P>
+<P>To see this, note that any server alternates between periods of being idle (when the queue is empty) and periods of being busy (when the queue is non-empty). If we ignore switching overhead, the scheduling discipline has no impact on these periods &#8212; they are only affected by when tasks arrive. Scheduling can only affect which tasks the server handles first. </P>
+<P>With SJF, a long task will only complete immediately before an idle period; it is always the last thing in the queue to complete. As utilization increases, these idle periods become increasingly rare. For example, if the server is 99% busy, the server will be idle only 1% of the time. Further, idle periods are <EM>not</EM> evenly distributed &#8212; a server is much more likely to be idle if it was idle a second ago. This means that the long jobs are likely to wait for a long time under SJF under high load. </P>
+<H5 class=subsubsectionHead><A id=x1-1290004 name=x1-1290004></A>Workloads That Vary With the Queueing Delay</H5>So far, we have assumed that arrival rates and service times are independent of queueing delay. This is not always the case. 
+<P>For example, suppose a system has 10 users. Each repeatedly issues one request, waits for the result, thinks about the results, and issues the next request. In such a system, the arrival rate will generally be lower during periods when many tasks are queued than during periods when few are. In the limit, during periods when 10 tasks are queued, no new tasks can arrive and the arrival rate is zero. </P>
+<P>Or, consider an online store that becomes overloaded and sluggish during a holiday shopping season. Rather than continuing to browse, some customers may get fed up and leave, reducing the number of active browsing sessions and thereby reducing the arrival rate of requests for individual web pages. </P>
+<P>Another example is a system with a finite queue. If there is a burst of load that fills the queue, subsequent requests will be turned away until there is space. This heavy-load behavior can be modeled as either a reduced arrival rate or a reduced average service time (some tasks are &#8220;processed&#8221; by being discarded). </P>
+<H5 class=subsubsectionHead><A id=x1-1300004 name=x1-1300004></A>Multiple Servers</H5>Many real systems have not just one but multiple servers. Does it matter whether there is a single queue for everyone or a separate queue per server? Real systems take both approaches: supermarkets tend to have a separate queue per cashier; banks tend to have a single shared queue for bank tellers. Some systems do both: airports often have a single queue at security but have separate queues for the parking garage. Which is better for response time? 
+<P>Clearly, there are often efficiency gains from having separate queues. Multiprocessor schedulers use separate queues for affinity scheduling and to reduce switching costs; in a supermarket, it may not be practical to have a single queue. On the other hand, users often consider a single (FIFO) queue to be fairer than separate queues. It often seems that we always end up in the slowest line at the supermarket, even if that cannot possibly be true for everyone. </P>
+<P>If we focus on average response time, however, a single queue is always better than separate queues, provided that users are not allowed to jump lanes. The reason is simple: because of variations in how long each task takes to service, one server can be idle while another server has multiple queued tasks. Likewise, a single fast server is always better for response time than a large number of slower servers of equal aggregate capacity to the fast server. There is no difference when all servers are busy, but the single fast server will process requests faster when there are fewer active tasks than servers. </P>
+<H5 class=subsubsectionHead><A id=x1-1310004 name=x1-1310004></A>Secondary Bottlenecks</H5>If a processor is 90% busy serving web requests, and we add another processor to reduce its load, how much will that improve average response time? Unfortunately, there is not enough information to say. You might like to believe that it will reduce response time by a considerable amount, from R = S / (1 - 0.9) = 10S to R = S / (1 - 0.45) = 1.8S. 
+<P>However, suppose each web request needs not only processing time, but also disk I/O and network bandwidth. If the disk was 80% busy beforehand, it will appear that the processor utilization was the primary problem. Once you add an extra processor, however, the disk becomes the new limiting factor to good performance. </P>
+<P>In some cases, queueing theory can make a specific prediction as to the impact of improving one part of a system in isolation. For example, if arrival times are exponentially distributed and independent of the system response time, and if the service times at the processor, disk, and network are also exponentially distributed and independent of one another, then the overall response time for the system is just the sum of the response times of the components: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>R </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; &#8721; <SUB>i</SUB> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; S<SUB>i</SUB> / (1 - U<SUB>i</SUB>) </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>In this case, improving one part of the system will affect just its contribution to the aggregate system response time. Even though these conditions may not always hold, this is often useful as an approximation to what will occur in real life. <A id=x1-131001r224 name=x1-131001r224></A></P>
+<H4 class=subsectionHead>7.5.5 <A id=x1-1320005 name=x1-1320005></A>Lessons</H4>To summarize, almost all real-world systems exhibit some randomness in their arrival process or their service times, or both. For these systems: 
+<UL class=itemize1>
+<LI class=itemize>
+<P>Response time increases with increased load. </P>
+<LI class=itemize>
+<P>System performance is predictable across a range of load factors if we can estimate the average service time per request. </P>
+<LI class=itemize>
+<P>Burstiness increases average response time. It is mathematically convenient to assume an exponential distribution, but many real-world systems exhibit more burstiness and therefore worse user performance. </P></LI></UL><A id=x1-132001r214 name=x1-132001r214></A><A id=x1-1330006 name=x1-1330006>

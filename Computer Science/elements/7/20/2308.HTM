@@ -1,0 +1,25 @@
+<P width=0><SPAN class=sidebar_name><B><I><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.10 Case Study: Virtual Machines : Hardware support for operating systems</SPAN></FONT></I></B></SPAN></P>
+<P>We have described a number of hardware mechanisms that support operating systems: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Privilege levels</B>, user and kernel&#65288;<SPAN class=extract>&#29305;&#26435;&#31561;&#32423;&#30001;&#35841;&#25552;&#20379;&#65311;&#30828;&#20214;</SPAN>&#65289;. </P>
+<LI class=itemize>
+<P><B>Privileged instructions</B>: instructions available only in kernel mode.&#65288;<SPAN class=extract>&#20165;&#22312;&#20869;&#26680;&#27169;&#24335;&#20013;&#21487;&#29992;&#30340;&#25351;&#20196;&#34987;&#31216;&#20026;&#65311;&#29305;&#26435;&#25351;&#20196;</SPAN>&#65307;<SPAN class=extract>&#29305;&#26435;&#25351;&#20196;&#26159;&#30001;&#35841;&#26469;&#25552;&#20379;&#30340;&#65311;&#30828;&#20214;</SPAN>&#65289; </P>
+<LI class=itemize>
+<P><B>Memory translation</B> prevents user programs from accessing kernel data structures and aids in memory management.&#65288;<SPAN class=extract>&#20869;&#23384;&#36716;&#25442;&#26159;&#30001; OS &#25552;&#20379;&#30340;&#21527;&#65311;&#19981;&#26159;&#65292;&#26159;&#30001;&#30828;&#20214;&#25552;&#20379;&#30340;</SPAN>&#65289; </P>
+<LI class=itemize>
+<P><B>Processor exceptions</B> trap to the kernel on a privilege violation or other unexpected event. </P>
+<LI class=itemize>
+<P><B>Timer interrupts</B> return control to the kernel on time expiration. </P>
+<LI class=itemize>
+<P><B>Device interrupts</B> return control to the kernel to signal I/O completion&#65288;<SPAN class=extract>&#24403; IO &#25805;&#20316;&#23436;&#25104;&#26102;&#65292;&#35774;&#22791;&#20250;&#21521;&#20869;&#26680;&#21457;&#20986;&#30828;&#20214;&#20013;&#26029;</SPAN>&#65289;. </P>
+<LI class=itemize>
+<P><B>Interprocessor interrupts</B> cause another processor to return control to the kernel. </P>
+<LI class=itemize>
+<P><B>Interrupt masking</B> prevents interrupts from being delivered at inopportune times. </P>
+<LI class=itemize>
+<P><B>System calls</B> trap to the kernel to perform a privileged action on behalf of a user program. </P>
+<LI class=itemize>
+<P><B>Return from interrupt</B>: switch from kernel mode to user mode, to a specific location in a user process. </P>
+<LI class=itemize>
+<P><B>Boot ROM</B>: code that loads startup routines from disk into memory.</P></LI></UL>

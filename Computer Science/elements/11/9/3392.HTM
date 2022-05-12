@@ -1,0 +1,15 @@
+UNIX exec does the following steps: 
+<P></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Load the program prog into the current address space. </P>
+<LI class=itemize>
+<P>Copy arguments args into memory in the address space. </P>
+<LI class=itemize>
+<P>Initialize the hardware context to start execution at &#8220;start.&#8221;</P></LI></UL>
+<P>Note that exec does not create a new process</P>
+<P>&#31616;&#21333;&#26469;&#35828; exec &#20250;&#20570;&#19979;&#38754;&#36825;&#20123;&#24037;&#20316;&#65306;</P>
+<P>1. &#23558;&#31243;&#24207;&#21152;&#36733;&#21040;&#24403;&#21069;&#22320;&#22336;&#31354;&#38388;&#20013;&#65307;</P>
+<P>2. &#23558;&#21442;&#25968;&#25335;&#36125;&#21040;&#24403;&#21069;&#22320;&#22336;&#31354;&#38388;&#20013;&#65307;</P>
+<P>3. &#20351;&#29992;&#29238;&#36827;&#31243;&#30340;&#29366;&#24577;&#21021;&#22987;&#21270;&#19978;&#19979;&#25991;&#65307;</P>
+<P>exec &#24182;&#19981;&#20250;&#21019;&#24314;&#26032;&#36827;&#31243;

@@ -1,0 +1,3 @@
+But this one works specifically because the C compilers should follow the C standard, which mandates that arrays "decay" into pointers when used as lvalues. Thus, a pointer to the array's first element is actually passed to<SPAN>&nbsp;</SPAN><TT class="docutils literal"><SPAN class=pre>test</SPAN></TT><SPAN>&nbsp;</SPAN>and everything works. 
+<P></P>
+<P>But the first code snippet is different. <SPAN class=extract>While an array name may decay into a pointer</SPAN>, <SPAN class=extract>the address of the array does not decay into a pointer to a pointer</SPAN>. And why should it? What sense does it make to treat an array so?

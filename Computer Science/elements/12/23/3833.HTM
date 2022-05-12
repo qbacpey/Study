@@ -1,0 +1,792 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>6.5 Deadlock</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">A challenge to constructing complex multi-threaded programs is the possibility of deadlock. A </FONT><EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:deadlock"}'>deadlock</A></EM><FONT style="BACKGROUND-COLOR: #ffffff"> is a cycle of waiting among a set of threads, where each thread waits for some other thread in the cycle to take some action. </FONT>
+<P>Deadlock can occur in many different situations, but one of the simplest is <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:mutually recursive locking"}'>mutually recursive locking</A></EM>, shown in the code fragment below: </P>
+<P><BR></P><PRE class=code>   &nbsp;//&nbsp;Thread&nbsp;A
+   &nbsp;
+   &nbsp;lock1.acquire();
+   &nbsp;lock2.acquire();
+   &nbsp;lock2.release();
+   &nbsp;lock1.release();</PRE><PRE class=code>   &nbsp;//&nbsp;Thread&nbsp;B
+   &nbsp;
+   &nbsp;lock2.acquire();
+   &nbsp;lock1.acquire();
+   &nbsp;lock1.release();
+   &nbsp;lock2.release();</PRE><BR>
+<P>Suppose two shared objects with mutual exclusion locks can call into each other while holding their locks. Deadlock can occur when one thread holds the lock on the first object, and another thread holds the lock on the second object. If the first thread calls into the second object while still holding onto its lock, it will need to wait for the second object&#8217;s lock. If the other thread does the same thing in reverse, neither will be able to make progress. </P>
+<P>We can also get into deadlock with two locks and a condition variable, shown below: </P>
+<P><BR></P><PRE class=code>   &nbsp;//&nbsp;Thread&nbsp;A
+   &nbsp;
+   &nbsp;lock1.acquire();
+   &nbsp;...
+   &nbsp;lock2.acquire();
+   &nbsp;while&nbsp;(need&nbsp;to&nbsp;wait)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cv.wait(&amp;lock2);
+   &nbsp;}
+   &nbsp;...
+   &nbsp;lock2.release();
+   &nbsp;...
+   &nbsp;lock1.release();</PRE><PRE class=code>   &nbsp;//&nbsp;Thread&nbsp;B
+   &nbsp;
+   &nbsp;lock1.acquire();
+   &nbsp;...
+   &nbsp;lock2.acquire();
+   &nbsp;...
+   &nbsp;cv.signal();
+   &nbsp;lock2.release();
+   &nbsp;...
+   &nbsp;lock1.release();</PRE><BR>
+<P>In <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:nested waiting"}'>nested waiting</A></EM>, one shared object calls into another shared object while holding the first object&#8217;s lock, and then waits on a condition variable. CV::wait releases the lock of the second object, but not the first. Deadlock results if the thread that can signal the condition variable needs the first lock to make progress. </P>
+<P>The problem of deadlock is much broader than just locks and condition variables. Deadlock can occur anytime a thread waits for an event that cannot happen because of a cycle of waiting for a resource held by the first thread. As in the examples above, resources can be locks, but they can also be any other scarce quantity: memory, processing time, disk blocks, or space in a buffer. </P>
+<P>Suppose we have two bounded buffers, where one thread puts a request into one buffer, and gets a response out of the other. Deadlock can result if another thread does the reverse. </P>
+<P><BR></P><PRE class=code>   &nbsp;//&nbsp;Thread&nbsp;A
+   &nbsp;
+   &nbsp;buffer1.put();
+   &nbsp;buffer1.put();
+   &nbsp;...
+   &nbsp;buffer2.get();
+   &nbsp;buffer2.get();</PRE><PRE class=code>   &nbsp;//&nbsp;Thread&nbsp;B
+   &nbsp;
+   &nbsp;buffer2.put();
+   &nbsp;buffer2.put();
+   &nbsp;...
+   &nbsp;buffer1.get();
+   &nbsp;buffer1.get();</PRE><BR>
+<P>If the buffers are almost full, both threads will need to wait for there to be room, and so neither will be able to reach the point where they can pull data out of the other buffer to allow the other thread to make progress. <A id=x1-9600114 name=x1-9600114></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00410.gif" data-calibre-src="OEBPS/Images/image00410.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.14: </B>An example of deadlock where three tractor-trailer trucks enter an intersection without first checking whether they can clear the intersection.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Deadlocks also occur in real life. We encourage you to develop your intuition about deadlocks by considering why deadlocks occur and how we might prevent them. For example, if we lived in a world without stop signs, we might see the deadlock in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-9600114"}'>6.14</A> more often. <A id=x1-9600215 name=x1-9600215></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00411.gif" data-calibre-src="OEBPS/Images/image00411.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.15: </B>In this example of the dining philosophers problem, there are 5 philosophers, 5 plates, and 5 chopsticks.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>The scarce resource leading to deadlock can even be a chopstick. The Dining Philosophers problem is a classic illustration of both the challenges and solutions to deadlock; an example is shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-9600215"}'>6.15</A>. There is a round table with n plates alternating with n chopsticks around the circle. A philosopher sitting at a plate requires two chopsticks to eat. Suppose that each philosopher proceeds by picking up the chopstick on the left, picking up the chopstick on the right, eating, and then putting down both chopsticks. If every philosopher follows this approach, there can be a deadlock: each philosopher takes the chopstick on the left but can be stuck waiting for the philosopher on the right to release the chopstick. </P>
+<P>Note that mutually recursive locking is equivalent to Dining Philosophers with n = 2. </P>
+<P>The rest of this section addresses the following questions: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Deadlock vs. Starvation.</B> How does deadlock relate to the concepts of liveness and starvation? </P>
+<LI class=itemize>
+<P><B>Necessary Conditions for Deadlock.</B> What conditions are required for deadlock to be possible? </P>
+<LI class=itemize>
+<P><B>Preventing Deadlock.</B> What techniques can be used to prevent deadlock? </P>
+<LI class=itemize>
+<P><B>The Banker&#8217;s Algorithm for Avoiding Deadlock.</B> The Banker&#8217;s Algorithm is a general-purpose mechanism for preventing deadlock by exploiting knowledge of what resources may be needed in the future. </P>
+<LI class=itemize>
+<P><B>Detecting and Recovering From Deadlock.</B> In some systems, deadlock is not prevented but repaired when it occurs. How can we detect deadlock and then recover?</P></LI></UL><A id=x1-96003r159 name=x1-96003r159></A>
+<H4 class=subsectionHead>6.5.1 <A id=x1-970001 name=x1-970001></A>Deadlock vs. Starvation</H4>Deadlock and starvation are both liveness concerns. In <EM>starvation</EM>, a thread fails to make progress for an indefinite period of time. Deadlock is a form of starvation but with the stronger condition: a group of threads forms a cycle where none of the threads make progress because each thread is waiting for some other thread in the cycle to take action. Thus, deadlock implies starvation (literally, for the dining philosophers), but starvation does not imply deadlock. 
+<P>For example, recall the readers/writers example discussed in Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-630001"}'>5.6.1</A>. A writer only waits if a reader or writer is active. In the writers-preferred solution we gave, waiting readers can starve if new writers arrive sufficiently frequently; likewise, waiting writers can starve if there is an active reader, and new readers arrive and become active before the last one completes. Note that such starvation would not be deadlock because there is no cycle. The waiting readers are waiting on the active writers to finish, and the waiting writers are waiting on the active readers to finish, but no active thread is waiting on a waiting reader or writer. </P>
+<P>Just because a system can suffer deadlock or starvation does not mean that it always will. A system is <EM>subject to starvation</EM> if a thread could starve in some circumstances. A system is <EM>subject to deadlock</EM> if a group of threads could deadlock in some circumstances. Here, the circumstances that affect whether deadlock or starvation occurs could include a broad range of factors, such as: the choices made by the scheduler, the number of threads running, the workload or sequence of requests processed by the system, which threads win races to acquire locks, and which threads are enabled in what order when signals or broadcasts occur. </P>
+<P>A system that is subject to starvation or deadlock may be live in many or most runs and starve or deadlock only for particular workloads or &#8220;unlucky&#8221; interleavings. For example, in mutually recursive locking, the deadlock only occurs if both threads obtain the outer locks at about the same time. For the Dining Philosophers problem, philosophers may succeed in eating for a long time before hitting the unlucky sequence of events that causes them to deadlock. Similarly, in the readers/writers example, the writers-preferred solution will allow some reads to complete as long as the rate of writes stays below some threshold. </P>
+<P>Since testing may not discover deadlock problems, it is important to construct systems that are deadlock-free by design. <A id=x1-97001r163 name=x1-97001r163></A></P>
+<H4 class=subsectionHead>6.5.2 <A id=x1-980002 name=x1-980002></A>Necessary Conditions for Deadlock</H4>There are four necessary conditions for deadlock to occur. Knowing these conditions is useful for designing solutions: if you can prevent any one of these conditions, then you can eliminate the possibility of deadlock. 
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-98002x1 name=x1-98002x1></A>
+<P><B>Bounded resources.</B> There are a finite number of threads that can simultaneously use a resource. </P>
+<LI class=enumerate><A id=x1-98004x2 name=x1-98004x2></A>
+<P><B>No preemption.</B> Once a thread acquires a resource, its ownership cannot be revoked until the thread acts to release it. </P>
+<LI class=enumerate><A id=x1-98006x3 name=x1-98006x3></A>
+<P><B>Wait while holding.</B> A thread holds one resource while waiting for another. This condition is sometimes called <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:multiple independent requests"}'>multiple independent requests</A></EM> because it occurs when a thread first acquires one resource and then tries to acquire another. </P>
+<LI class=enumerate><A id=x1-98008x4 name=x1-98008x4></A>
+<P><B>Circular waiting.</B> There is a set of waiting threads such that each thread is waiting for a resource held by another. </P></LI></OL><A id=x1-9800916 name=x1-9800916></A>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00412.gif" data-calibre-src="OEBPS/Images/image00412.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.16: </B>Graph representation of the state of a deadlocked Dining Philosophers system. Circles represent threads, boxes represent resources, an arrow from a box/resource to a circle/thread represents an <EM>owned by</EM> relationship, and an arrow from a circle/thread to a box/resource represents a <EM>waiting for</EM> relationship.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><B>EXAMPLE: </B>Show that the Dining Philosophers meet all four conditions for deadlock. </P>
+<P><B>ANSWER: </B>To see that all four conditions are met, observe that </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-98011x1 name=x1-98011x1></A>
+<P><B>Bounded resources.</B> Each chopstick can be held by a single philosopher at a time. </P>
+<LI class=enumerate><A id=x1-98013x2 name=x1-98013x2></A>
+<P><B>No preemption.</B> Once a philosopher picks up a chopstick, she does not release it until she is done eating, even if that means no one will ever eat. </P>
+<LI class=enumerate><A id=x1-98015x3 name=x1-98015x3></A>
+<P><B>Wait while holding.</B> When a philosopher needs to wait for a chopstick, she continues to hold onto any chopsticks she has already picked up. </P>
+<LI class=enumerate><A id=x1-98017x4 name=x1-98017x4></A>
+<P><B>Circular waiting.</B> Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-9800916"}'>6.16</A> maps the state of a deadlocked Dining Philosophers implementation to an abstract graph that shows which resources are <EM>owned by</EM> which threads and which threads <EM>wait for</EM> which resources. In this type of graph, if there is one instance of each type of resource (e.g., a particular chopstick), then a cycle implies deadlock assuming the system does not allow preemption.</P></LI></OL>&#9633; 
+<P>The four conditions are necessary <EM>but not sufficient</EM> for deadlock. When there are multiple instances of a type of resource, there can be a cycle of waiting without deadlock because a thread not in the cycle may return resources that enable a waiting thread to proceed. <A id=x1-9801817 name=x1-9801817></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00413.gif" data-calibre-src="OEBPS/Images/image00413.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.17: </B>Graph representation of the state of a Dining Philosophers system that includes a cycle among waiting threads and resources but that is not deadlocked. Circles represent threads, boxes represent resources, dots within a box represent multiple instances of a resource, an arrow from a dot/resource instance to a circle/thread represents an <EM>owned by</EM> relationship and an arrow from a circle/thread to a box/resource represents a <EM>waiting for</EM> relationship.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>Suppose we have 5 philosophers at a table with 5 chopsticks, but the chopsticks are placed in a tray at the center of the table when not in use. We could be in the state illustrated in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-9801817"}'>6.17</A>, where philosopher 1 has two chopsticks, philosophers 2, 3, and 4 each have one chopstick and are waiting for another chopstick, while philosopher 5 has no chopsticks. In this state, we have bounded resources (five chopsticks), no preemption (we cannot forcibly remove a chopstick from a hungry philosopher&#8217;s hand), wait while holding (philosophers 2, 3 and 4 are holding a chopstick while waiting for another), and circular waiting (each of philosophers 2, 3, and 4 are waiting for a resource held by another of them). However, we do not have deadlock. Eventually, philosopher 1 will release its two chopsticks, which may, for example, allow philosophers 2 and 3 to eat and release their chopsticks. In turn, this would allow philosophers 4 and 5 to eat. </P>
+<P>Although the system shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-9801817"}'>6.17</A> is not currently deadlocked, it is still <EM>subject to deadlock</EM>. For example, if philosopher 1 returns two chopsticks, philosopher 5 picks up one, and philosopher 1 picks up the other, then the system would deadlock. <A id=x1-98019r164 name=x1-98019r164></A></P>
+<H4 class=subsectionHead>6.5.3 <A id=x1-990003 name=x1-990003></A>Preventing Deadlock</H4>Preventing deadlock can be challenging. For example, consider a system with three resources &#8212; A, B, and C &#8212; and two threads that access them. Thread 1 acquires A then C then B, and thread 2 acquires B then C then A. The following sequence can lead to deadlock: 
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; <B>Thread 1</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; <B>Thread 2</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; Acquire A </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; Acquire B </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; Acquire C </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>4 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; Wait for C </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>5 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; Wait for B </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P>How could we avoid this deadlock? The deadlock&#8217;s circular waiting occurs when we reach step 5, but our fate was sealed much earlier. In particular, once we complete step 2 and thread 2 acquires B, deadlock is inevitable. To prevent the deadlock, we have to realize at step 2 that it will occur at step 5. Once step 1 completes and thread 1 acquires A, we cannot let thread 2 complete step 2 and acquire B or deadlock will follow. </P>
+<P>This example illustrates that for an arbitrary program, preventing deadlock can take one of three approaches: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-99002x1 name=x1-99002x1></A>
+<P><B>Exploit or limit the behavior of the program.</B> Often, we can change the behavior of a program to prevent one of the four necessary conditions for deadlock, and thereby eliminate the possibility of deadlock. In the above example, we can eliminate deadlock by changing the program to never wait for B while holding C. </P>
+<LI class=enumerate><A id=x1-99004x2 name=x1-99004x2></A>
+<P><B>Predict the future.</B> If we can know what threads may or will do, then we can avoid deadlock by having threads wait (e.g., thread 2 can wait at step 2 above) <EM>before</EM> they would head into a possible deadlock. </P>
+<LI class=enumerate><A id=x1-99006x3 name=x1-99006x3></A>
+<P><B>Detect and recover.</B> Another alternative is to allow threads to recover or &#8220;undo&#8221; actions that take a system into a deadlock; in the above example, when thread 2 finds itself in deadlock, it can recover by reverting to an earlier state.</P></LI></OL>
+<P>We discuss these three options in this and the following two sub-sections. </P>
+<P>Section&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-980002"}'>6.5.2</A> listed four necessary conditions for deadlock. These conditions are useful because they suggest approaches for preventing deadlock: if a system is structured to prevent at least one of the conditions, then the system cannot deadlock. Considering these conditions in the context of a given system often points to a viable deadlock prevention strategy. Below, we discuss some commonly used approaches. </P>
+<P><B>Bounded resources: Provide sufficient resources.</B> One way to ensure deadlock freedom is to arrange for sufficient resources to satisfy all threads&#8217; demands. A simple example would be to add a single chopstick to the middle of the table in Dining Philosophers; that is enough to eliminate the possibility of deadlock. As another example, thread implementations often reserve space in the TCB for the thread to be inserted into a waiting list or the ready list. While it would be theoretically possible to dynamically allocate space for the list entry only when it is needed, that could open up the chance that the system would run out of memory at exactly the wrong time, leading to deadlock. </P>
+<P><B>No preemption: Preempt resources.</B> Another technique is to allow the runtime system to forcibly reclaim resources held by a thread. For example, an operating system can preempt a page of memory from a running process by copying it to disk in order to prevent applications from deadlocking as they acquire memory pages. </P>
+<P><B>Wait while holding: Release lock when calling out of module.</B> For nested modules, each of which has its own lock, waiting on a condition variable in an inner module can lead to a nested waiting deadlock. One solution is to restructure a module&#8217;s code so that no locks are held when calling other modules. For example, we can change the code on the left to the code on the right, provided that the program does not depend on the three steps occurring atomically: </P>
+<P><BR></P><PRE class=code>   &nbsp;Module::foo()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;doSomeStuff();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;otherModule-&gt;bar();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;doOtherStuff();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+   &nbsp;}
+   &nbsp;
+   &nbsp;Module::doSomeStuff()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;=&nbsp;x&nbsp;+&nbsp;1;
+   &nbsp;}
+   &nbsp;
+   &nbsp;Module::doOtherStuff()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y&nbsp;=&nbsp;y&nbsp;-&nbsp;2;
+   &nbsp;}</PRE><PRE class=code>   &nbsp;Module::foo()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;doSomeStuff();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;otherModule-&gt;bar();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;doOtherStuff();
+   &nbsp;}
+   &nbsp;
+   &nbsp;Module::doSomeStuff()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x&nbsp;=&nbsp;x&nbsp;+&nbsp;1;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+   &nbsp;}
+   &nbsp;
+   &nbsp;Module::doOtherStuff()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;y&nbsp;=&nbsp;y&nbsp;-&nbsp;2;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+   &nbsp;}</PRE><BR>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Deadlock and kernel paging</I></B></SPAN> </P>
+<P>Early operating systems were often run on machines with very limited amounts of main memory. In response, going back at least as far as Multics, portions of the kernel (both code and data) could be swapped to disk in order to save space. Then, when the code and data was needed, they could be brought into main memory, swapping with some other portion of the kernel that was not currently in use. </P>
+<P>A challenge to making this work was deadlock. The code to swap in or out portions of the kernel needed to be kept in memory, along with any code or data it might touch along any possible execution path. Without very strict module layering, it would be easy to miss a dependency that would, in rare cases, trigger a latent deadlock. Often, the only possible repair would be to reboot. </P>
+<P>Because of the inherent complexity of this approach, most modern operating systems keep all kernel code and almost all data structures memory resident; the one exception is that some kernels still swap the page tables for application virtual memory, a topic we will discuss in Chapter&nbsp;9. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P>In theory, one could eliminate the risk of deadlocks due to nested monitors by always releasing locks when calling code outside of a module. In practice, doing so is likely to be cumbersome, not only from the extra code needed to acquire and release locks, but also because of the extra thought needed to transform a single atomic method that holds a lock across a series of actions to a sequence of atomic methods that each acquire and release the lock. As a result, programmers often take the decidedly non-modular and admittedly unsatisfying approach of considering whether the outside module being called is likely to wait on something that depends on enclosing monitor lock. If such waiting is unlikely, the call can made with the enclosing lock held. </P>
+<P><B>Circular waiting: Lock ordering.</B> An approach used in many systems is to identify an ordering among locks and only acquire locks in that order. </P>
+<P>For example, C printf acquires a lock to ensure printed messages appear atomic rather than mixed up with those of other threads. Because waiting for that lock does not lead to circular waiting, printf can be safely called while holding most kernel locks. </P>
+<P>For a hash table with per-bucket locks and an operation changeKeys(item, k1, k2) to move an item from one bucket to another, we can avoid deadlock by always acquiring the lock for the lower-numbered bucket before the one for the higher-numbered bucket. This prevents circular waiting since a thread only waits for threads holding higher-numbered locks. Those threads can be waiting as well, but only for threads with even higher-numbered locks, and so forth. </P>
+<P>Likewise, we can eliminate deadlock among the dining philosophers if &#8212; instead of always picking up the chopstick on the left and then the one on the right &#8212; the philosophers number the chopsticks from 1 to n and always pick up the lower-numbered chopstick before the higher-numbered one. <A id=x1-99007r167 name=x1-99007r167></A></P>
+<H4 class=subsectionHead>6.5.4 <A id=x1-1000004 name=x1-1000004></A>The Banker&#8217;s Algorithm for Avoiding Deadlock</H4>A general technique to eliminate wait-while-holding is to wait until all needed resources are available and then to acquire them atomically at the beginning of an operation, rather than incrementally as the operation proceeds. We saw this earlier with acquire-all/release-all; it cannot deadlock as long as the implementation acquires all of the locks atomically rather than one at a time. As another example, a dining philosopher might wait until the two neighboring chopsticks are available and then simultaneously pick them both up. 
+<P>Of course, a thread may not know exactly which resources it will need to complete its work, but it can still acquire all resources that it <EM>might</EM> need. Consider an operating system for mobile phones where memory is constrained and cannot be preempted by copying it to disk. Rather than having applications request additional memory as needed, we might instead have each application state its maximum memory needs and allocate that much memory when it starts. </P>
+<P>Disadvantages of this approach include: the effect on program modularity, the challenge of having applications accurately estimate their worst-case needs, and the cost of allocating significantly more resources than may be necessary in the common case. </P>
+<P>Dijkstra developed the Banker&#8217;s Algorithm as a way to improve on the performance of acquire-all. Although few systems use it in its full generality, we include the discussion because simplified versions of the algorithm are common. The Banker&#8217;s Algorithm also sheds light on the distinction between <EM>safe</EM> and <EM>unsafe</EM> states and how the occurrence of deadlocks often depends on a system&#8217;s workload and sequence of operations. </P>
+<P>In the Banker&#8217;s Algorithm, a thread states its maximum resource requirements when it begins a task, but it then acquires and releases those resources incrementally as the task runs. The runtime system delays granting some requests to ensure that the system never deadlocks. </P>
+<P>The insight behind the algorithm is that a system that may deadlock will not necessarily do so: for some interleavings of requests it will deadlock, but for others it will not. By delaying when some resource requests are processed, a system can avoid interleavings that could lead to deadlock. <A id=x1-10000118 name=x1-10000118></A></P>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00414.gif" data-calibre-src="OEBPS/Images/image00414.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.18: </B>A process can be in a <EM>safe</EM>, <EM>unsafe</EM>, or <EM>deadlocked</EM> state. The dashed line illustrates a sequence of states visited by a thread &#8212; some are safe, some are unsafe, and the final state is a deadlock.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P>A deadlock-prone system can be in one of three states: a <EM>safe state</EM>, an <EM>unsafe state</EM>, and a <EM>deadlocked state</EM> (see Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000118"}'>6.18</A>.) </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>In a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:safe state"}'>safe state</A></EM>, for any possible sequence of resource requests, there is at least one <EM>safe sequence</EM> of processing the requests that eventually succeeds in granting all pending and future requests. </P>
+<LI class=itemize>
+<P>In an <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:unsafe state"}'>unsafe state</A></EM>, there is at least one sequence of future resource requests that leads to deadlock no matter what processing order is tried. </P>
+<LI class=itemize>
+<P>In a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:deadlocked state"}'>deadlocked state</A></EM>, the system has at least one deadlock.</P></LI></UL>
+<P>A system in a safe state controls its own destiny: for any workload, it can avoid deadlock by delaying the processing of some requests. In particular, the Banker&#8217;s Algorithm delays any request that takes it from a safe to an unsafe state. Once the system enters an unsafe state, it may not be able to avoid deadlock. </P>
+<P>Notice that an unsafe state does not always lead to deadlock. A system in an unsafe state may remain that way or return to a safe state, depending on the specific interleaving of resource requests and completions. However, as long as the system remains in an unsafe state, a bad workload or unlucky scheduling of requests can force it to deadlock. </P>
+<P>The Banker&#8217;s Algorithm keeps a system in a safe state. The algorithm is based on a loose analogy with a small-town banker who has a maximum amount, total, that can be loaned at one time and a set of businesses that each have a credit line, max[i], for business i. A business borrows and pays back amounts of money as various projects start and end, so that business i always has an outstanding loan amount between 0 and max[i]. If all of a business&#8217;s requests within the credit line are granted, the business eventually reaches a state where all current projects are finished, and the loan balance returns to zero. </P>
+<P>A conservative banker might issue credit lines only until the sum is at most the total funds that the banker has available. This approach is analogous to <EM>acquire-all</EM> or <EM>provide sufficient resources</EM>. It guarantees that the system remains in a safe state. All businesses with credit lines eventually complete their projects. </P>
+<P>However, a more aggressive banker can issue more credit as long as the bank can cover its commitment to each business &#8212; i.e., to provide a loan of max[i] if business i requests it. The algorithm assumes the bank is permitted to <EM>delay</EM> requests to increase a loan amount. For example, the bank might lose the paperwork for a few hours, days, or weeks. </P>
+<P>By delaying loan requests, the bank remains in a safe state &#8212; a state for which there exists at least one series of loan fulfillments by which every business i can eventually receive its maximal loan max[i], complete its projects, and pay back all of its loan. The bank can then use that repaid money to grant pending loans to other businesses. <A id=x1-10000219 name=x1-10000219></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;class&nbsp;ResourceMgr{
+&nbsp;&nbsp;&nbsp;private:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lock&nbsp;lock;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CV&nbsp;cv;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;r;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Number&nbsp;of&nbsp;resources
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;t;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Number&nbsp;of&nbsp;threads
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;avail[];&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;avail[i]:&nbsp;instances&nbsp;of&nbsp;resource&nbsp;i&nbsp;available
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;max[][];&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;max[i][j]:&nbsp;max&nbsp;of&nbsp;resource&nbsp;i&nbsp;needed&nbsp;by&nbsp;thread&nbsp;j
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;alloc[][];&nbsp;&nbsp;//&nbsp;alloc[i][j]:&nbsp;current&nbsp;allocation&nbsp;of&nbsp;resource&nbsp;i&nbsp;to&nbsp;thread&nbsp;j
+&nbsp;&nbsp;&nbsp;...
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.19: </B>State maintained by the Banker Algorithm&#8217;s resource manager. Resource manager code is in Figures&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000320"}'>6.20</A> and <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000421"}'>6.21</A>.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+<A id=x1-10000320 name=x1-10000320></A><PRE class=code>&nbsp;//&nbsp;Invariant:&nbsp;the&nbsp;system&nbsp;is&nbsp;in&nbsp;a&nbsp;safe&nbsp;state.
+&nbsp;ResourceMgr::Request(int&nbsp;resourceID,&nbsp;int&nbsp;threadID)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.Acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert(isSafe());
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(!wouldBeSafe(resourceID,&nbsp;threadID))&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cv.Wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alloc[resourceID][threadID]++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;avail[resourceID]--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert(isSafe());
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.Release();
+&nbsp;}</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.20: </B>High-level pseudo-code for the Banker&#8217;s Algorithm. The state maintained by the algorithm is defined in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000219"}'>6.19</A>. The methods isSafe and wouldBeSafe are defined in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000421"}'>6.21</A>.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+<A id=x1-10000421 name=x1-10000421></A>
+<P></P><PRE class=code>&nbsp;//&nbsp;A&nbsp;state&nbsp;is&nbsp;safe&nbsp;iff&nbsp;there&nbsp;exists&nbsp;a&nbsp;safe&nbsp;sequence&nbsp;of&nbsp;grants&nbsp;that&nbsp;are&nbsp;sufficient
+&nbsp;//&nbsp;to&nbsp;allow&nbsp;all&nbsp;threads&nbsp;to&nbsp;eventually&nbsp;receive&nbsp;their&nbsp;maximum&nbsp;resource&nbsp;needs.
+&nbsp;
+&nbsp;bool
+&nbsp;ResourceMgr::isSafe()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;j;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;toBeAvail[]&nbsp;=&nbsp;copy&nbsp;avail[];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;need[][]&nbsp;=&nbsp;max[][]&nbsp;-&nbsp;alloc[][];&nbsp;&nbsp;//&nbsp;need[i][j]&nbsp;is&nbsp;initialized&nbsp;to
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;max[i][j]&nbsp;-&nbsp;alloc[i][j]
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;finish[]&nbsp;=&nbsp;[false,&nbsp;false,&nbsp;false,&nbsp;...];&nbsp;//&nbsp;finish[j]&nbsp;is&nbsp;true
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;if&nbsp;thread&nbsp;j&nbsp;is&nbsp;guaranteed&nbsp;to&nbsp;finish
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(true)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j&nbsp;=&nbsp;any&nbsp;threadID&nbsp;such&nbsp;that:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(finish[j]&nbsp;==&nbsp;false)&nbsp;&amp;&amp;&nbsp;forall&nbsp;i:&nbsp;need[i][j]&nbsp;&lt;=&nbsp;toBeAvail[i];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(no&nbsp;such&nbsp;j&nbsp;exists)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(forall&nbsp;j:&nbsp;finish[j]&nbsp;==&nbsp;true)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;true;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;false;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{&nbsp;&nbsp;//&nbsp;Thread&nbsp;j&nbsp;will&nbsp;eventually&nbsp;finish&nbsp;and&nbsp;return&nbsp;its
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;current&nbsp;allocation&nbsp;to&nbsp;the&nbsp;pool.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;finish[j]&nbsp;=&nbsp;true;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forall&nbsp;i:&nbsp;&nbsp;toBeAvail[i]&nbsp;=&nbsp;toBeAvail[i]&nbsp;+&nbsp;alloc[i][j];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Hypothetically&nbsp;grant&nbsp;request&nbsp;and&nbsp;see&nbsp;if&nbsp;resulting&nbsp;state&nbsp;is&nbsp;safe.
+&nbsp;
+&nbsp;bool
+&nbsp;ResourceMgr::wouldBeSafe(int&nbsp;resourceID,&nbsp;int&nbsp;threadID)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;result&nbsp;=&nbsp;false;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;avail[resourceID]--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alloc[resourceID][threadID]++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(isSafe())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;result&nbsp;=&nbsp;true;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;avail[resourceID]++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;alloc[resourceID][threadID]--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;result;
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.21: </B>Pseudo-code for the Banker&#8217;s Algorithm test whether the next state would be safe to enter. If not, the system delays until it would be safe.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000320"}'>6.20</A> shows pseudo-code for a version of the Banker&#8217;s Algorithm that manages a set of r resources for a set of t threads. To simplify the discussion, threads request each unit of resource separately, but the algorithm can be extended to allow multiple resources to be requested at the same time. </P>
+<P>The high-level idea is simple: when a request arrives, wait to grant the request until it is safe to do so. As Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000219"}'>6.19</A> shows, we can realize this high-level approach by tracking: (i) the current allocation of each resource to each thread, (ii) the maximum allocation possible for each thread, and (iii) the current set of available, unallocated resources. </P>
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000421"}'>6.21</A> shows how to test whether a state is safe. Recall that a state is safe if some sequence of thread executions allows each thread to obtain its maximum resource need, finish its work, and release its resources. We first see if the currently free resources suffice to allow any thread to finish. If so, then the resources held by that thread will eventually be released back to the system. Next, we see if the currently free resources plus any resources held by the thread identified in the first step suffice to allow any other thread to finish; if so, the second thread&#8217;s resources will also eventually be released back to the system. We continue this process until we have identified all threads guaranteed to finish, provided we serve requests in a particular order. If that set includes all of the threads, the state is safe. </P>
+<P><B>EXAMPLE: Page allocation with the Banker&#8217;s Algorithm.</B> Suppose we have a system with 8 pages of memory and three processes: A, B, and C, which need 4, 5, and 5 pages to complete, respectively. </P>
+<P>If they take turns requesting one page each, and the system grants requests in order, the system deadlocks, reaching a state where each process is stuck until some other process releases memory: </P>
+<P><BR></P>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Process</B> </P></TD>
+<TD class=td colSpan=6 align=left>
+<P class=tabp></P>
+<DIV class=multicolumn align=center noWrap><B>Allocation</B></DIV></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>A </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>1</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>2</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>3</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>B </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>1</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>2</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>3</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>C </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>1</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>2</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Total </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 4 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 5 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 6 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 7 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 8 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 8 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 8 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 8 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV><BR>
+<P>On the other hand, if the system follows the Banker&#8217;s Algorithm, then it can delay some processes and guarantee that all processes eventually complete: </P>
+<P><BR></P>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Process</B> </P></TD>
+<TD class=td colSpan=6 align=left>
+<P class=tabp></P>
+<DIV class=multicolumn align=center noWrap><B>Allocation</B></DIV></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>A </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>1</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>2</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>3</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>4</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>0</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>B </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>1</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>2</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>3</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>4</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 4 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>5</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>0</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>C </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>1</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>2</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>3</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>wait</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>4</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>5</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>0</B></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Total </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 3 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 4 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 5 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 6 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 7 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 7 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 7 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 8 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 4 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 6 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 7 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 7 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 8 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 4 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 5 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; 0 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV>
+<P><BR></P>
+<P>By delaying B and C in the ninth through twelfth steps, A can complete and release its resources. Then, by delaying C in the fifteenth and sixteenth steps, B can complete and release its resources. </P>
+<P>The Banker&#8217;s Algorithm is noticeably more involved than other approaches we discuss. Although it is rarely used in its entirety, understanding the distinction between <EM>safe</EM>, <EM>unsafe</EM>, and <EM>deadlocked</EM> states and how deadlock events depend on request ordering are key to preventing deadlock. </P>
+<P>Additionally, understanding the Banker&#8217;s Algorithm can help to design simple solutions for specific problems. For example, if we apply the Banker&#8217;s Algorithm to the Dining Philosopher&#8217;s problem, then it is safe for a philosopher to pick up a chopstick provided that afterwards (a) some philosopher will have two chopsticks or (b) a chopstick will remain on the table. In case (a), eventually that philosopher will finish eating and the other philosophers will be able to proceed. In case (b), the philosopher can pick up the chopstick because deadlock can still be avoided in the future. </P>
+<P><B>EXAMPLE: </B>Use the Banker&#8217;s Algorithm to devise a rule for when it is safe for a thread to acquire a pair of locks, A and B, with mutually recursive locking. </P>
+<P><B>ANSWER: </B>Suppose a thread needs to acquire locks A and B, in that order, while another thread needs to acquire lock B first, then A. <B>A thread is always allowed to acquire its second lock. It may acquire its first lock provided the other thread does not already hold its first lock.</B> &#9633; <A id=x1-100005r168 name=x1-100005r168></A></P>
+<H4 class=subsectionHead>6.5.5 <A id=x1-1010005 name=x1-1010005></A>Detecting and Recovering From Deadlocks</H4>Rather than preventing deadlocks, some systems allow deadlocks to occur and recover from them when they arise. 
+<P>Why allow deadlocks to occur at all? Sometimes, it is difficult or expensive to enforce sufficient structure on the system&#8217;s data and workloads to guarantee that deadlock will never occur. If deadlocks are rare, why pay the overhead in the common case to prevent them? </P>
+<P>For this approach to work, we need: (i) a way to recover from deadlock when it occurs, ideally with minimal harm to the goals of the user, and (ii) a way to detect deadlock so that we know when to invoke the recovery mechanism. We discuss recovery first because it provides context for understanding the tradeoffs in implementing detection. </P>
+<H5 class=subsubsectionHead><A id=x1-1020005 name=x1-1020005></A>Recovering From Deadlocks</H5>Recovering from a deadlock once it has occurred is challenging. A deadlock implies that some threads hold resources while waiting for others, and that progress is impossible. 
+<P>Because the resources are by definition not revocable, forcibly taking resources away from some or all of the deadlocked threads is not an ideal solution. As a simple example, if a process is part of a deadlock, some operating systems give the user the option to kill the process and release the process&#8217;s resources. Although this sounds drastic, if a deadlocked process cannot make any progress, killing it does not make the user much worse off. </P>
+<P>However, under the lock-based shared object programming abstractions we have discussed, killing all of the threads in a given process can be dangerous. If a deadlocked thread holds a lock on a shared kernel object, killing the thread and marking the lock as free could leave the kernel object in an inconsistent state. </P>
+<P>Instead, we need some systematic way to recover when some required resource is unavailable. Two widely used approaches have been developed to deal with this issue: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Proceed without the resource.</B> Web services are often designed to be resilient to resource unavailability. A rule of thumb for the web is that a significant fraction of a web site&#8217;s customers will give up and go elsewhere if the site&#8217;s latency becomes too long, for whatever reason. Whether the problem is a hardware failure, software failure, or deadlock, does not really matter. The web site needs to be designed to quickly respond back to the user, regardless of the type of problem. </P>
+<P>Amazon&#8217;s web site is a good example of this design paradigm. It is designed as an interlocking set of modules, where any individual module can be offline because of a failure. Thus, all other parts of the web site must be designed to be able to cope when some needed resource is unavailable. For example, under normal operation, Amazon&#8217;s software will check the inventory to ensure that an item is in stock before completing an order. However, if a deadlock or failure causes the inventory server to delay responding beyond some threshold, the front-end web server will give up, complete the order, and then queue a background check to make sure the item was in fact in the inventory. If the item was in fact not available (e.g., because some other customer purchased it in the meantime), an apology is sent to the customer. As long as that does not happen often, it can be better than making the customer wait, especially in the case of deadlock, where the wait could be indefinite. </P>
+<P>Because deadlocks are rare and hard to test for, this requires coding discipline to handle error conditions systematically throughout the program. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Optimistic concurrency control</I></B></SPAN> </P>
+<P>Transactions can also be used to avoid deadlocks. Optimistic concurrency control lets transactions execute in parallel without locking any data, but it only lets a transaction commit if none of the objects accessed by the transaction have been modified since the transaction began. Otherwise, the transaction must abort and retry. </P>
+<P>To implement transactions with optimistic concurrency control, Each transaction keeps track of which versions of which objects it reads and updates. All updates are applied to a local copy. Then, before a transaction commits, the system verifies that no object the transaction accessed has been modified in the meantime; if there is a conflict, the transaction must abort. Of course, committing a transaction may invalidate other transactions that are in progress (ones that use data modified by this transaction). Those conflicts will be detected when the later transactions try to commit. </P>
+<P>Optimistic concurrency control works well when different transactions most commonly use different subsets of data. In these cases, the approach not only eliminates deadlock, but it also maximizes concurrency since threads do not wait for locks. On the other hand, many conflicting, concurrent transactions increase overhead by repeatedly rolling back and re-executing transactions. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<LI class=itemize>
+<P><B>Transactions: rollback and retry.</B> A more general technique is used by <EM>transactions</EM>; transactions provide a safe mechanism for revoking resources assigned to a thread. We discuss transactions in detail in Chapter&nbsp;14; they are widely used in both databases and file systems. For deadlock recovery, transactions provide two important services: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-102002x1 name=x1-102002x1></A>
+<P><B>Thread rollback.</B> Transactions ensure that revoking locks from a thread does not leave the system&#8217;s objects in an inconsistent state. Instead, we rollback, or undo, the deadlocked thread&#8217;s actions to a clean state. To fix the deadlock, we can choose one or more victim threads, stop them, undo their actions, and let other threads proceed. </P>
+<LI class=enumerate><A id=x1-102004x2 name=x1-102004x2></A>
+<P><B>Thread restarting.</B> Once the deadlock is broken and other threads have completed some or all of their work, the victim thread is restarted. When these threads complete, the system behaves as if the victim threads never caused a deadlock but, instead, just had their executions delayed.</P></LI></OL>
+<P>A transaction defines a safe point for rollback and restart. Each transaction has a beginTransaction and endTransaction statement; rollback undoes all changes back to beginTransaction. After a rollback, the thread can be safely restarted at the beginTransaction. </P>
+<P>A key feature of transactions is that no other thread is allowed to see the results of a transaction until the transaction completes. That way, if the changes a transaction makes need to be rolled back due to a deadlock, only that one thread is affected. This can be accomplished with two-phase locking, provided locks are not released until after the transaction is complete. If the transaction is successful, it <EM>commits</EM>, the transaction&#8217;s locks are released, and the transaction&#8217;s changes to shared state become visible to other threads. </P>
+<P>If, however, a transaction fails to reach its endTransaction statement (e.g., because of a deadlock or because some other exception occurred), the transaction <EM>aborts</EM>. The system can reset all of the state modified by the transaction to what it was when the transaction began. One way to support this is to maintain a copy of the initial values of all state modified by each transaction; this copy can be discarded when the transaction commits. </P>
+<P>If a transactional system becomes deadlocked, the system can abort one or more of the deadlocked transactions. Aborting these transactions rolls back the system&#8217;s state to what it would have been if these transactions had never started and releases the aborted transactions&#8217; locks and other resources. If aborting the chosen transactions releases sufficient resources, the deadlock is broken, and the remaining transactions can proceed. If not, the system can abort additional transactions. </P>
+<P>A related question that arises in transactional systems is <EM>which</EM> thread to abort and which threads to allow to proceed. An important consideration is liveness. Progress can be ensured, and starvation avoided, by prioritizing the oldest transactions. Then, when the system needs to abort some transaction, it can abort the <EM>youngest</EM>. This ensures that <EM>some</EM> transaction, e.g., the oldest, will eventually complete. The aborted transaction eventually becomes the oldest, and so it also will complete. </P>
+<P>An example of this approach is <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:wound wait"}'>wound wait</A></EM>. With wound wait, a younger transaction may wait for a resource held by an older transaction. Eventually, the older transaction will complete and release the resource, so deadlock cannot result. However, if an older transaction needs to wait on a resource held by a younger transaction, the resource is preempted and the younger transaction is aborted and restarted. </P></LI></UL>
+<H5 class=subsubsectionHead><A id=x1-1030005 name=x1-1030005></A>Detecting Deadlock</H5>Once we have a general way to recover from a deadlock, we need a way to tell if a deadlock has occurred, so we know when to trigger the recovery. An important consideration is that the detection mechanism can be conservative: it can trigger the repair if we <EM>might</EM> be in a deadlock state. This approach risks a false positive where a non-deadlocked thread is incorrectly classified as deadlocked. Depending on the overhead of the repair operation, it can sometimes be more efficient to use a simpler mechanism for detection even if that leads to the occasional false positive. 
+<P>For example, a program can choose to wait only briefly (or not to wait at all) before declaring that recovery is needed. We saw an example earlier with how Amazon&#8217;s web site is designed. As another example, in old-style, circuit-switched telephone networks, a call reserved a circuit at a series of switches along its path. If the connection setup failed to find a free circuit at any hop, rather than wait for a circuit at the next hop to become free, it cancelled the connection attempt and gave the user an error message, &#8220;All circuits are busy. Please try again later." </P>
+<P>A modern analogue is the Internet. When a router is overloaded and runs out of packet buffers, it simply drops incoming packets. An alternative would be for each router to wait to send a packet until it knows the next router has room &#8212; an approach that could lead to deadlock. Precisely identifying whether deadlock has occurred would incur more overhead than simply dropping and resending some packets. <A id=x1-10300122 name=x1-10300122></A></P>
+<HR>
+
+<P><img alt="" src="about:../Images/image00415.gif" data-calibre-src="OEBPS/Images/image00415.gif"> </P>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.22: </B>Example graphs used for deadlock detection. Left: single instance of each resource. Right: multiple instances of one resource. Threads and resources are nodes; directed edges represent the <EM>owned by</EM> and <EM>waiting for</EM> relationships among them. </P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>There are various ways to identify deadlocks more precisely. </P>
+<P>If there are several resources and only one thread can hold each resource at a time (e.g., one printer, one keyboard, and one audio speaker or several mutual exclusion locks), then we can detect a deadlock by analyzing a simple graph. In the graph, shown on the left in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10300122"}'>6.22</A>, each thread and each resource is represented by a node. There is a directed edge (i) from a resource to a thread if the resource is <EM>owned by</EM> the thread and (ii) from a thread to a resource if the thread is <EM>waiting for</EM> the resource. There is a deadlock if and only if there is a cycle in such a graph. </P>
+<P>If there are multiple instances of some resources, then we represent a resource with k interchangeable instances (e.g., k equivalent printers) as a node with k connection points. This is illustrated by the right graph in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10300122"}'>6.22</A>. Now, a cycle is a necessary but not sufficient condition for deadlock. </P>
+<P>Another solution, described by Coffman, Elphick, and Shoshani in 1971 is a variation of Dijkstra&#8217;s Banker&#8217;s Algorithm. In this algorithm, we assume we no longer know max[][], so we cannot assess whether the current state is safe or whether some future sequence of requests can force deadlock. However, we can look at the current set of resources, granted requests, and pending requests and ask whether it is possible for the current set of requests to eventually be satisfied assuming no more requests come and all threads eventually complete. If so, there is no deadlock (although we may be in an unsafe state); otherwise, there is a deadlock. <A id=x1-10300223 name=x1-10300223></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;//&nbsp;A&nbsp;state&nbsp;is&nbsp;safe&nbsp;iff&nbsp;there&nbsp;exists&nbsp;a&nbsp;safe&nbsp;sequence&nbsp;of&nbsp;grants&nbsp;that&nbsp;would&nbsp;allow
+&nbsp;//&nbsp;all&nbsp;threads&nbsp;to&nbsp;eventually&nbsp;receive&nbsp;their&nbsp;maximum&nbsp;resource&nbsp;needs.
+&nbsp;//
+&nbsp;//&nbsp;avail[]&nbsp;holds&nbsp;free&nbsp;resource&nbsp;count
+&nbsp;//&nbsp;alloc[][]&nbsp;holds&nbsp;current&nbsp;allocation
+&nbsp;//&nbsp;request[][]&nbsp;holds&nbsp;currently-blocked&nbsp;requests
+&nbsp;bool
+&nbsp;ResourceMgr::isDeadlocked()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;j;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;toBeAvail[]&nbsp;=&nbsp;copy&nbsp;avail[];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;finish[]&nbsp;=&nbsp;[false,&nbsp;false,&nbsp;false,&nbsp;...];&nbsp;//&nbsp;finish[j]&nbsp;is&nbsp;true&nbsp;if&nbsp;thread
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;j&nbsp;is&nbsp;guaranteed&nbsp;to&nbsp;finish
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while(true)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;j&nbsp;=&nbsp;any&nbsp;threadID&nbsp;such&nbsp;that&nbsp;(finish[j]&nbsp;==&nbsp;false)&nbsp;&amp;&amp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(forall&nbsp;i:&nbsp;request[i][j]&nbsp;&lt;=&nbsp;toBeAvail[i]);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(no&nbsp;such&nbsp;j&nbsp;exists)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(forall&nbsp;j:&nbsp;finish[j]&nbsp;==&nbsp;true)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;false;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;true;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Thread&nbsp;j&nbsp;*may*&nbsp;eventually&nbsp;finish&nbsp;and
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;return&nbsp;its&nbsp;current&nbsp;allocation&nbsp;to&nbsp;the&nbsp;pool.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;finish[j]&nbsp;=&nbsp;true;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;forall&nbsp;i:&nbsp;toBeAvail[i]&nbsp;=&nbsp;toBeAvail[i]&nbsp;+&nbsp;alloc[i][j];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.23: </B>Coffman et al.&#8217;s test for deadlock. This algorithm is similar to the isSafe() test of the Banker&#8217;s Algorithm shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000421"}'>6.21</A>.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10300223"}'>6.23</A> shows the pseudo-code for the isDeadlocked method, a variation of the isSafe method shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-10000421"}'>6.21</A> for the Banker&#8217;s Algorithm. </P>
+<P>One might hope that we could avoid deadlock by asking, &#8220;Will satisfying the current request put us in a deadlocked state?&#8221; and then blocking any request that does. The Coffman et al. algorithm highlights that deadlock is determined not just by what requests are granted but also by what requests are waiting. The request that triggers deadlock (&#8220;circular wait&#8221;) will be a request that waits, not one that is granted. <A id=x1-103003r160 name=x1-103003r160></A></P><A id=x1-1040006 name=x1-1040006>

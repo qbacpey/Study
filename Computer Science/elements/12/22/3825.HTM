@@ -1,0 +1,95 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>5.8 Semaphores Considered Harmful</H3></A>
+<DIV class=makequote>&#8220;During system conception it transpired that we used the semaphores in two completely different ways. The difference is so marked that, looking back, one wonders whether it was really fair to present the two ways as uses of the very same primitives. On the one hand, we have the semaphores used for mutual exclusion, on the other hand, the private semaphores.&#8221;<BR>(From Dijkstra &#8220;The structure of the &#8217;THE&#8217;-Multiprogramming System&#8221; <EM>Communications of the ACM</EM> v. 11 n. 5 May 1968.)</DIV>
+<P>This book focuses on constructing shared objects using locks and condition variables for synchronization. However, over the years, many different synchronization primitives have been proposed, including communicating sequential processes, event delivery, message passing, and so forth. It is important to realize that none of these are more powerful than using locks and condition variables; a program using any of these paradigms can be mapped to monitors using straightforward transformations. </P>
+<P>One type of synchronization, a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:semaphore"}'>semaphore</A></EM>, is worth discussing in detail since it is still widely used. Semaphores were introduced by Dijkstra to provide synchronization in the THE operating system, which (among other advances) explored structured ways of using concurrency in operating system design. </P>
+<P>Semaphores are defined as follows: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>A semaphore has a non-negative value. </P>
+<LI class=itemize>
+<P>When a semaphore is created, its value can be initialized to any non-negative integer. </P>
+<LI class=itemize>
+<P>Semaphore::P() waits until the value is positive. Then, it atomically decrements value by 1 and returns. </P>
+<LI class=itemize>
+<P>Semaphore::V() atomically increments the value by 1. If any threads are waiting in P, one is enabled, so that its call to P succeeds at decrementing the value and returns. </P>
+<LI class=itemize>
+<P>No other operations are allowed on a semaphore; in particular, no thread can directly read the current value of the semaphore.</P></LI></UL>
+<P>Note that Semaphore::P is an atomic operation: the read that observes the positive value is atomic with the update that decrements it. As a result, semaphores can never have a negative value, even when multiple threads call P concurrently. </P>
+<P>Likewise, if V occurs when there is a waiting thread in P, then P&#8217;s increment and V&#8217;s decrement of value are atomic: no other thread can observe the incremented value, and the thread in P is guaranteed to decrement the value and return. </P>
+<P>Given this definition, semaphores can be used for either mutual exclusion (like locks) or general waiting for another thread to do something (a bit like condition variables). </P>
+<P>To use a semaphore as a mutual exclusion lock, initialize it to 1. Then, Semaphore::P is equivalent to Lock::acquire, and Semaphore::V is equivalent to Lock::release. </P>
+<P>Using a semaphore for more general waiting is trickier. A useful analogy for semaphores is thread_join. With thread_join, the precise order of events does not matter: if the forked thread finishes before the parent thread calls thread_join, then the call returns right away. On the other hand, if the parent calls thread_join&nbsp;first, then it waits until the thread finishes, and then returns. </P>
+<P>Semaphore P and V can be set up to behave similarly. Typically (but not always), you initialize the semaphore to 0. Then, each call to Semaphore::P waits for the corresponding thread to call V. If the V is called first, then P returns immediately. </P>
+<P>The difficulty comes when trying to coordinate shared state (needing mutual exclusion) with general waiting. From a distance, Semaphore::P is <EM>similar to</EM> CV::wait(&amp;lock) and Semaphore::V is <EM>similar to</EM> CV::signal. However, there are important differences. First, CV::wait(&amp;lock) atomically releases the monitor lock, so that you can safely check the shared object&#8217;s state and then atomically suspend execution. </P>
+<P>By contrast, Semaphore::P does <EM>not</EM> release an associated mutual exclusion lock. Typically, the lock is released before the call to P; otherwise, no other thread can access the shared state until the thread resumes. The programmer must carefully construct the program to work properly in this case. Second, whereas a condition variable is stateless, a semaphore has a value. If no threads are waiting, a call to CV::signal has no effect, while a call to Semaphore::V increments the value. This causes the next call to Semaphore::P to proceed without blocking. </P>
+<P><B>Semaphores considered harmful.</B> Our view is that programming with locks and condition variables is superior to programming with semaphores. We advise you to always write your code using those synchronization variables for two reasons. </P>
+<P>First, using separate lock and condition variable classes makes code more self-documenting and easier to read. As the quote from Dijkstra notes, two different abstractions are needed, and code is clearer when the role of each synchronization variable is made clear through explicit typing. For example, it is much easier to verify that every lock acquire is paired with a lock release, if they are not mixed with other calls to P and V for general waiting. </P>
+<P>Second, a stateless condition variable bound to a lock is a better abstraction for generalized waiting than a semaphore. By binding a condition variable to a lock, we can conveniently wait on any arbitrary predicate on an object&#8217;s state. In contrast, semaphores rely on the programmer to carefully map the object&#8217;s state to the semaphore&#8217;s value so that a decision to wait or proceed in P can be made entirely based on the value, without holding a lock or examining the rest of the shared object&#8217;s state. </P>
+<P>Although we do not recommend writing new code with semaphores, code based on semaphores is not uncommon, especially in operating systems. So, it is important to understand the semantics of semaphores and be able to read and understand semaphore-based code written by others. </P>
+<P><B>NOTE</B>: <B>Semaphores in interrupt handlers.</B> In one situation, semaphores are superior to condition variables and locks: synchronizing communication between an I/O device and threads waiting for I/O completion. Typically, the hardware communicates with the device driver via a shared in-memory data structure. This data structure is read and written concurrently by both hardware and the kernel, but the shared access cannot be coordinated with a software lock. Instead, the hardware and device drivers use carefully designed atomic memory operations. </P>
+<P>If a hardware device needs attention, e.g., because a network packet has arrived that needs handling, or a disk request has completed, the hardware updates the shared data structure and starts an interrupt handler. The interrupt handler is often simple: it just wakes up a waiting thread and returns. For this, one might consider using a condition variable and calling <TT>signal</TT>&nbsp;without holding the lock (this is sometimes called a <EM>naked notify</EM>). Unfortunately, there is a corner case: suppose that the operating system thread first checks the data structure, sees that no work is currently needed, and is just about to call <TT>wait</TT>&nbsp;on the condition variable. At that moment, the hardware updates the data structure with the new work and triggers the interrupt handler to call <TT>signal</TT>. Because the thread has not called <TT>wait</TT>&nbsp;yet, the <TT>signal</TT>&nbsp;has no effect. Thus, when the thread calls <TT>wait</TT>, the signal has already occurred, and the thread waits &#8212; possibly for a long time. </P>
+<P>A common solution is for device interrupts to use semaphores instead. Because semaphores are stateful, it does not matter whether the thread calls P or the interrupt handler calls V first: the result is the same, the V cannot be lost. </P>
+<P>To help illustrate the difference between semaphores and condition variables, we consider four candidate implementations of condition variables using semaphores. </P>
+<P><B>EXAMPLE: </B>Suppose you are writing concurrent application software on an operating system that only provides semaphores. Does the following code correctly implement condition variables? </P>
+<P><BR></P><PRE class=code>   &nbsp;void&nbsp;CV::wait(Lock&nbsp;*lock)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock-&gt;release();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore.P();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock-&gt;acquire();
+   &nbsp;}
+   &nbsp;
+   &nbsp;void&nbsp;CV::signal()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore.V();
+   &nbsp;}</PRE><BR>
+<P><B>ANSWER: </B><B>No. Condition variables are stateless, while semaphores have state.</B> We can illustrate this difference with a counterexample. </P>
+<P>What happens if a thread calls <TT>signal</TT>&nbsp;and no one is waiting? Nothing. What happens if another thread later calls wait? The thread waits. </P>
+<P>By contrast, consider what happens with a semaphore. What happens if a thread calls V and no one is waiting? The value of the semaphore is incremented. What happens if a thread later calls P? The value of the semaphore is decremented, and the thread continues. </P>
+<P>In other words, P and V are commutative. The result is the same no matter what order they occur. Condition variables are not commutative: <TT>wait</TT>&nbsp;does not return until the next <TT>signal</TT>. This is why condition variables must be accessed while holding a lock &#8212; code using a condition variable needs to access shared state variables to do its job. </P>
+<P>With condition variables, if a thread calls <TT>signal</TT>&nbsp;a thousand times, when no one is waiting, the next <TT>wait</TT>&nbsp;will still go to sleep. With the above code, the next thousand threads that <TT>wait</TT>&nbsp;will return immediately. &#9633; </P>
+<P><B>EXAMPLE: </B>What about the following code? </P>
+<P><BR></P><PRE class=code>   &nbsp;void&nbsp;CV::wait(Lock&nbsp;*lock)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock-&gt;release();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore.P();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock-&gt;acquire();
+   &nbsp;}
+   &nbsp;
+   &nbsp;void&nbsp;CV::signal()&nbsp;{
+   &nbsp;&nbsp;&nbsp;if&nbsp;(!semaphore.queueEmpty())
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore.V();
+   &nbsp;}</PRE><BR>
+<P><B>ANSWER: </B><B>Closer, but still no.</B> For one, the definition of a semaphore does not allow users of the semaphore to look at the contents of the semaphore queue. But more importantly, there is a race condition. Once the lock is released, some other thread can slip in, <TT>acquire</TT>&nbsp;the lock and call <TT>signal</TT>&nbsp;before the waiting thread gets to call P. In that case, the queue is empty, so the waiter never exits the while loop. </P>
+<P>Instead, the definition of CV::wait is that the lock is released and the thread goes to sleep atomically. &#9633; </P>
+<P><B>EXAMPLE: </B>What about the following code? </P>
+<P><BR></P><PRE class=code>   &nbsp;void&nbsp;CV::wait(Lock&nbsp;*lock)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitQueue.append(myTCB);
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock-&gt;release();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore.P();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock-&gt;acquire();
+   &nbsp;}
+   &nbsp;
+   &nbsp;void&nbsp;CV::signal()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!waitQueue.isEmpty())
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore.V();
+   &nbsp;}</PRE><BR>
+<P><B>ANSWER: </B><B>Very close but still no.</B> There is still a race condition. Suppose a thread calls <TT>wait</TT>, and releases the lock. Then another thread acquires the lock and calls <TT>signal</TT>. With condition variables, the waiter should wake up, but with the implementation above, a third thread could swoop in, acquire the lock, call <TT>wait</TT>, and decrement the semaphore before the first waiter has a chance to run. </P>
+<P>For some programs, this difference would not be noticeable, but for others, it could cause problems. &#9633; </P>
+<P><B>EXAMPLE: </B>Is it possible to implement condition variables using semaphores? </P>
+<P><B>ANSWER: </B><B>Yes, using the technique we outlined for implementing the FIFO bounded buffer: create a semaphore for each waiter and then wake up exactly the right waiter.</B> This solution was developed by Andrew Birrell in order to implement condition variables on top of Microsoft Windows before it supported them natively. </P>
+<P></P>
+<P></P><PRE class=code>&nbsp;//&nbsp;Put&nbsp;thread&nbsp;on&nbsp;queue&nbsp;of&nbsp;waiting
+&nbsp;//&nbsp;threads.
+&nbsp;void&nbsp;CV::wait(Lock&nbsp;*lock)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore&nbsp;=&nbsp;new&nbsp;Semaphore(0);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;waitQueue.Append(semaphore);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore.P();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Wake&nbsp;up&nbsp;one&nbsp;waiter&nbsp;if&nbsp;any.
+&nbsp;void&nbsp;CV::signal()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(!waitQueue.isEmpty())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore&nbsp;=&nbsp;queue.Remove();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;semaphore.V();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+   </PRE>&#9633; <A id=x1-74001r123 name=x1-74001r123></A><A id=x1-750009 name=x1-750009>

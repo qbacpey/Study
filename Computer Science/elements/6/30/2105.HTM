@@ -1,0 +1,56 @@
+<H4><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> x86 Assembly Guide : Callee Rules</SPAN></FONT></H4>
+<P><SPAN>The definition of the subroutine should adhere to the following rules at the beginning of the subroutine:</SPAN> </P>
+<OL>
+<LI><SPAN class=extract>Push the value of EBP onto the stack, and then copy the value of ESP into EBP using the following instructions</SPAN>:<PRE>push ebp
+    mov  ebp, esp</PRE>This initial action maintains the<SPAN>&nbsp;</SPAN><EM>base pointer</EM>, EBP. The base pointer is used by convention as a point of reference for finding parameters and local variables on the stack. <SPAN class=extract>When a subroutine is executing, the base pointer holds a copy of the stack pointer value from when the subroutine started executing</SPAN>. <SPAN class=extract>Parameters and local variables will always be located at known, constant offsets away from the base pointer value</SPAN>. We push the old base pointer value at the beginning of the subroutine so that we can later restore the appropriate base pointer value for the caller when the subroutine returns. <SPAN class=extract>Remember, the caller is not expecting the subroutine to change the value of the base pointer</SPAN>. We then move the stack pointer into EBP to obtain our point of reference for accessing parameters and local variables. <BR>
+<LI><SPAN class=extract>Next, allocate local variables by making space on the stack</SPAN>. Recall, the stack grows down, so to make space on the top of the stack, the stack pointer should be decremented. The amount by which the stack pointer is decremented depends on the number and size of local variables needed. For example, if 3 local integers (4 bytes each) were required, the stack pointer would need to be decremented by 12 to make space for these local variables (i.e.,<SPAN>&nbsp;</SPAN><SPAN class=Keyword>sub&nbsp;esp,&nbsp;12</SPAN>). As with parameters, local variables will be located at known offsets from the base pointer. <BR>
+<LI><SPAN class=extract>Next, save the values of the<SPAN>&nbsp;</SPAN><EM>callee-saved</EM><SPAN>&nbsp;</SPAN>registers that will be used by the function</SPAN>. To save registers, push them onto the stack. The callee-saved registers are EBX, EDI, and ESI <SPAN class=extract>(ESP and EBP will also be preserved by the calling convention, but need not be pushed on the stack during this step).</SPAN></LI></OL>
+<P><SPAN>After these three actions are performed, the body of the subroutine may proceed. <SPAN class=extract></P>
+<P><SPAN>When the subroutine is returns, it must follow these steps:</SPAN> </P>
+<OL>
+<LI>Leave the return value in EAX. 
+<P></P>
+<LI>Restore the old values of any callee-saved registers (EDI and ESI) that were modified. The register contents are restored by popping them from the stack. The registers should be popped in the inverse order that they were pushed. <BR>
+<LI>Deallocate local variables. The obvious way to do this might be to add the appropriate value to the stack pointer (since the space was allocated by subtracting the needed amount from the stack pointer). In practice, a less error-prone way to deallocate the variables is to move the value in the base pointer into the stack pointer:<SPAN>&nbsp;</SPAN><SPAN class=Keyword>mov&nbsp;esp,&nbsp;ebp</SPAN>. This works because the base pointer always contains the value that the stack pointer contained immediately prior to the allocation of the local variables. <BR>
+<LI>Immediately before returning, restore the caller's base pointer value by popping EBP off the stack. Recall that the first thing we did on entry to the subroutine was to push the base pointer to save its old value. <BR>
+<LI>Finally, return to the caller by executing a<SPAN>&nbsp;</SPAN><SPAN class=Keyword>ret</SPAN><SPAN>&nbsp;</SPAN>instruction. This instruction will find and remove the appropriate return address from the stack</LI></OL>
+<P></SPAN></SPAN>.</P>
+<P><SPAN>Note that the callee's rules fall cleanly into two halves that are basically mirror images of one another. The first half of the rules apply to the beginning of the function, and are commonly said to define the<SPAN>&nbsp;</SPAN></SPAN><EM>prologue</EM><SPAN><SPAN>&nbsp;</SPAN>to the function. The latter half of the rules apply to the end of the function, and are thus commonly said to define the<SPAN>&nbsp;</SPAN></SPAN><EM>epilogue</EM><SPAN><SPAN>&nbsp;</SPAN>of the function.</SPAN> </P>
+<P></P>
+<P><B>Example</B></P>
+<P><SPAN>Here is an example function definition that follows the callee rules:</SPAN> 
+<BLOCKQUOTE><PRE><FONT size=2>.486
+.MODEL FLAT
+.CODE
+PUBLIC _myFunc
+_myFunc PROC
+  ; Subroutine Prologue
+  push ebp     ; Save the old base pointer value.
+  mov ebp, esp ; Set the new base pointer value.
+  sub esp, 4   ; Make room for one 4-byte local variable.
+  push edi     ; Save the values of registers that the function
+  push esi     ; will modify. This function uses EDI and ESI.
+  ; (no need to save EBX, EBP, or ESP)</FONT></PRE><PRE><FONT size=2>
+  </FONT><FONT size=2>; Subroutine Body
+  mov eax, [ebp+8]   ; Move value of parameter 1 into EAX
+  mov esi, [ebp+12]  ; Move value of parameter 2 into ESI
+  mov edi, [ebp+16]  ; Move value of parameter 3 into EDI
+
+  mov [ebp-4], edi   ; Move EDI into the local variable
+  add [ebp-4], esi   ; Add ESI into the local variable
+  add eax, [ebp-4]   ; Add the contents of the local variable
+                     ; into EAX (final result)
+
+  ; Subroutine Epilogue 
+  pop esi      ; Recover register values
+  pop  edi
+  mov esp, ebp ; Deallocate local variables
+  pop ebp ; Restore the caller's base pointer value
+  ret
+_myFunc ENDP
+END</FONT>
+</PRE></BLOCKQUOTE>
+<P><SPAN>The subroutine prologue performs the standard actions of saving a snapshot of the stack pointer in EBP (the base pointer), allocating local variables by decrementing the stack pointer, and saving register values on the stack.</SPAN> </P>
+<P>In the body of the subroutine we can see the use of the base pointer. Both parameters and local variables are located at constant offsets from the base pointer for the duration of the subroutines execution. In particular, we notice that since parameters were placed onto the stack before the subroutine was called, they are always located below the base pointer (i.e. at higher addresses) on the stack. The first parameter to the subroutine can always be found at memory location EBP + 8, the second at EBP + 12, the third at EBP + 16. Similarly, since local variables are allocated after the base pointer is set, they always reside above the base pointer (i.e. at lower addresses) on the stack. In particular, the first local variable is always located at EBP - 4, the second at EBP - 8, and so on. This conventional use of the base pointer allows us to quickly identify the use of local variables and parameters within a function body.</P>
+<P></P>
+<P><SPAN>The function epilogue is basically a mirror image of the function prologue. The caller's register values are recovered from the stack, the local variables are deallocated by resetting the stack pointer, the caller's base pointer value is recovered, and the ret instruction is used to return to the appropriate code location in the caller</SPAN>

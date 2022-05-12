@@ -1,0 +1,27 @@
+<P class="fs-headline1 ow-break-word mb8 flex--item fl1" align=left itemprop="name">Assume the stack looks like this on entry to<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">_main</FONT></CODE><SPAN>&nbsp;</SPAN>(the address of the stack pointer is just an example):</P><PRE class="lang-c s-code-block"><CODE class="hljs language-c"><FONT face="Courier New">|    existing     |
+|  <SPAN class=hljs-built_in>stack</SPAN> content  |
++-----------------+  &lt;--- <SPAN class=hljs-number>0xbfff1230</SPAN>
+</FONT></CODE></PRE>
+<P>Push<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">%ebp</FONT></CODE>, and subtract 8 from<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">%esp</FONT></CODE><SPAN>&nbsp;</SPAN>to reserve some space for local variables:</P><PRE class="lang-c s-code-block"><CODE class="hljs language-c"><FONT face="Courier New">|    existing     |
+|  <SPAN class=hljs-built_in>stack</SPAN> content  |
++-----------------+  &lt;--- <SPAN class=hljs-number>0xbfff1230</SPAN>
+|      %ebp       |
++-----------------+  &lt;--- <SPAN class=hljs-number>0xbfff122c</SPAN>
+:    reserved     :
+:     space       :
++-----------------+  &lt;--- <SPAN class=hljs-number>0xbfff1224</SPAN>
+</FONT></CODE></PRE>
+<P><SPAN class=extract>Now, the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">andl&nbsp;$FFFFFFF0,%esp </FONT></CODE><SPAN>&nbsp;</SPAN>instruction <BR>zeroes the low 4 bits of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">%esp</FONT></CODE>, which<SPAN>&nbsp;</SPAN><EM>may</EM><SPAN>&nbsp;</SPAN>decrease it; in this particular example, it has the effect of reserving an additional 4 bytes</SPAN>:</P><PRE class="lang-c s-code-block"><CODE class="hljs language-c"><FONT face="Courier New">|    existing     |
+|  <SPAN class=hljs-built_in>stack</SPAN> content  |
++-----------------+  &lt;--- <SPAN class=hljs-number>0xbfff1230</SPAN>
+|      %ebp       |
++-----------------+  &lt;--- <SPAN class=hljs-number>0xbfff122c</SPAN>
+:    reserved     :
+:     space       :
++ - - - - - - - - +  &lt;--- <SPAN class=hljs-number>0xbfff1224</SPAN>
+:   extra space   :
++-----------------+  &lt;--- <SPAN class=hljs-number>0xbfff1220</SPAN>
+</FONT></CODE></PRE>
+<P><SPAN class=extract>The point of this is that there are some "SIMD" <BR>(Single Instruction, Multiple Data) instructions (also known in x86-land as "SSE" for "Streaming SIMD Extensions") which can perform parallel operations on multiple words in memory, but require those multiple words to be a block starting at an address which is a multiple of 16 bytes</SPAN>.</P><SPAN class=extract>
+<P>In general, the compiler can't assume that particular offsets from<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">%esp</FONT></CODE><SPAN>&nbsp;</SPAN>will result in a suitable address (because the state of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">%esp</FONT></CODE><SPAN>&nbsp;</SPAN>on entry to the function depends on the calling code). But, by deliberately aligning the stack pointer in this way, the compiler knows that adding any multiple of 16 bytes to the stack pointer will result in a 16-byte aligned address, which is safe for use with these SIMD instructions.</P>
+<P><STRONG>The compiler is maintaining a 16-byte alignment of the stack pointer when a function is called, adding padding to the stack as necessary</STRONG><SPAN>. The compiler knows that the stack will always be aligned correctly, so it can emit instructions with alignment requirements without risk of triggering their fault conditions</SPAN></SPAN>

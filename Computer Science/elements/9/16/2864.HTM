@@ -1,0 +1,27 @@
+<SPAN class=extract>
+<P>After a new child process is created,<SPAN>&nbsp;</SPAN><B><I>both</I></B><SPAN>&nbsp;</SPAN>processes will execute the next instruction following the<SPAN>&nbsp;</SPAN><B><I>fork()</I></B><SPAN>&nbsp;</SPAN>system call. </P>
+<P>&#24403; fork &#20989;&#25968;&#36820;&#22238;&#20043;&#21518;&#65292;&#25152;&#26377;&#36827;&#31243;&#37117;&#20250;&#65311;&#25191;&#34892; fork &#30340;&#19979;&#19968;&#26465;&#25351;&#20196;</P></SPAN><SPAN class=extract>
+<P>Therefore, we have to distinguish the parent from the child. This can be done by testing the returned value of<SPAN>&nbsp;</SPAN><B>fork()</B>:</P>
+<P>&#35843;&#29992; fork &#20043;&#21518;&#65292;&#21306;&#20998;&#24403;&#21069;&#36827;&#31243;&#20197;&#21450;&#21028;&#26029;&#26159;&#21542;&#25104;&#21151;&#21019;&#24314;&#23376;&#36827;&#31243;&#30340;&#26041;&#24335;&#26159;&#36890;&#36807;&#26816;&#26597; fork &#30340;&#36820;&#22238;&#20540;</P></SPAN>
+<P></P>
+<UL><SPAN class=extract>
+<UL>
+<LI>If<SPAN>&nbsp;</SPAN><B>fork()</B><SPAN>&nbsp;</SPAN>returns a negative value, the creation of a child process was unsuccessful. </LI></UL>
+<LI>
+<P>&#22914;&#26524; fork &#36820;&#22238;&#36127;&#25968;&#65292;&#37027;&#20040;&#23601;&#20195;&#34920;&#23376;&#36827;&#31243;&#21019;&#24314;&#22833;&#36133;</P></SPAN><B><SPAN class=extract>
+<UL>
+<LI><B>fork()</B><SPAN>&nbsp;</SPAN>returns a zero to the newly created child process. </LI></UL>
+<LI>
+<P>&#22914;&#26524; fork &#36820;&#22238; 0&#65292;&#37027;&#20040;&#23601;&#20195;&#34920;&#24403;&#21069;&#36827;&#31243;&#26159;&#26032;&#21019;&#24314;&#30340;&#23376;&#36827;&#31243;</P></SPAN></B><B><SPAN class=extract>
+<UL>
+<LI><B>fork()</B><SPAN>&nbsp;</SPAN>returns a positive value, the<SPAN>&nbsp;</SPAN><B><I>process ID</I></B><SPAN>&nbsp;</SPAN>of the child process, to the parent. </LI></UL>
+<LI>
+<P>&#22914;&#26524; fork &#36820;&#22238;&#27491;&#25968;&#65292;&#35813;&#27491;&#25968;&#23601;&#26159;&#23376;&#36827;&#31243;&#30340;&#36827;&#31243;ID&#65292;&#21516;&#26102;&#20195;&#34920;&#24403;&#21069;&#36827;&#31243;&#26159;&#29238;&#36827;&#31243;</P></SPAN></B></LI></UL><SPAN class=extract>
+<P>The returned process ID is of type<SPAN>&nbsp;</SPAN><B>pid_t</B><SPAN>&nbsp;</SPAN>defined in<SPAN>&nbsp;</SPAN><B>sys/types.h</B>.</P>
+<P>fork &#25152;&#36820;&#22238;&#30340;&#36827;&#31243; ID &#31867;&#22411;&#26159; pid_t&#65292;&#31867;&#22411;&#23450;&#20041;&#20301;&#20110; <STRONG>sys/types.h &#20013;</STRONG></P></SPAN>
+<P>&nbsp;<SPAN class=extract></P>
+<P>Normally, the process ID is an integer. </P>
+<P>&#19968;&#33324;&#26469;&#35828;&#65292;&#36827;&#31243; ID &#37117;&#26159;&#19968;&#20010;&#25972;&#25968;</P></SPAN><SPAN class=extract>
+<P>Moreover, a process can use function<SPAN>&nbsp;</SPAN><B>getpid()</B><SPAN>&nbsp;</SPAN>to retrieve the process ID assigned to this process</P>
+<P>&#22914;&#26524;&#24819;&#35201;&#33719;&#21462;&#24403;&#21069;&#36827;&#31243;&#30340; ID&#65292;&#21487;&#20197;&#25191;&#34892; getpid() &#20989;&#25968;<BR></P>
+<P></SPAN>

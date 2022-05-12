@@ -1,0 +1,38 @@
+<STRONG><FONT color=blue>: </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.4.3 Two Stacks per Process</SPAN></FONT><SPAN class=extract><SPAN class=extract><SPAN class=extract>Most operating system kernels go one step farther and allocate a kernel interrupt stack for every user-level process </SPAN>(and as we discuss in Chapter&nbsp;4, every thread that executes user code). When a user-level process is running, the hardware interrupt stack points to that process&#8217;s kernel stack. Note that when a process is running at user level, it is not running in the kernel so its kernel stack is empty.</SPAN></SPAN> </H4>
+<P><SPAN class=extract>Allocating a kernel stack per process makes it easier to switch to a new process inside an interrupt or system call handler. For example, a timer interrupt handler might decide to give the processor to a different process. Likewise, a system call might need to wait for an I/O operation to complete; in the meantime, some other process should run. With per-process stacks, to suspend a process, we store a pointer to its kernel stack in the process control block, and switch to the stack of the new process. We describe this mechanism in more detail in Chapter&nbsp;4.</SPAN> <A id=x1-430019 name=x1-430019></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00197.gif" data-calibre-src="OEBPS/Images/image00197.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;2.9: </B><SPAN class=extract>In most operating systems, a process has two stacks: one for executing user code and one for kernel code. The Figure shows the kernel and user stacks for various states of a process. When a process is running in user mode, its kernel stack is empty. When a process has been preempted (ready but not running), its kernel stack will contain the user-level processor state at the point when the user process was interrupted. When a process is inside a system call waiting for I/O, the kernel stack contains the context to be resumed when the I/O completes, and the user stack contains the context to be resumed when the system call returns.</SPAN></P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P><SPAN class=extract>&nbsp;</P>
+<P>Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-430019"}'>2.9</A> summarizes the various states of a process&#8217;s user and kernel stacks: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>If the process is running on the processor in user mode, its kernel stack is empty, ready to be used for an interrupt, processor exception, or system call. </P>
+<LI class=itemize>
+<P>If the process is running on the processor in kernel mode &#8212; due to an interrupt, processor exception or system call &#8212; its kernel stack is in use, containing the saved registers from the suspended user-level computation as well as the current state of the kernel handler. </P>
+<LI class=itemize>
+<P>If the process is available to run but is waiting for its turn on the processor, its kernel stack contains the registers and state to be restored when the process is resumed. </P>
+<LI class=itemize>
+<P>If the process is waiting for an I/O event to complete, its kernel stack contains the suspended computation to be resumed when the I/O finishes.</P></LI></UL></SPAN>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>UNIX and kernel stacks</I></B></SPAN> </P>
+<P><SPAN class=extract>In the original implementation of UNIX, kernel memory was at a premium; main memory was roughly one million times more expensive per byte than it is today. The initial system could run with only 50KB of main memory. Instead of allocating an entire interrupt stack per process, UNIX allocated just enough memory in the process control block to store the user-level registers saved on a mode switch. In this way, UNIX could suspend a user-level process with the minimal amount of memory. UNIX still needed a few kernel stacks: one to run the interrupt handler and one for every system call waiting for an I/O event to complete, but that is much less than one for every process. </SPAN></P>
+<P>Of course, now that memory is much cheaper, most systems keep things simple and allocate a kernel stack per process or thread. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-43002r68 name=x1-43002r68></A>

@@ -1,0 +1,105 @@
+Pointers are a great source of confusion in C - newbies have a hard time grasping them. But coupled<SPAN>&nbsp;</SPAN><A class="reference external" href="http://eli.thegreenplace.net/2009/10/21/are-pointers-and-arrays-equivalent-in-c/"><FONT color=#0066cc>with arrays</FONT></A>, some of the semantics of pointers are complex enough to confound even more seasoned programmers. 
+<P></P>
+<P>Consider this code: </P><PRE style="BOX-SIZING: border-box; FONT-SIZE: 13px; OVERFLOW: auto; BORDER-TOP: rgb(204,204,204) 1px solid; FONT-FAMILY: Consolas, monaco, monospace; BORDER-RIGHT: rgb(204,204,204) 1px solid; BACKGROUND: rgb(247,247,247); WHITE-SPACE: pre; WORD-SPACING: 0px; BORDER-BOTTOM: rgb(204,204,204) 1px solid; TEXT-TRANSFORM: none; WORD-BREAK: break-all; FONT-WEIGHT: 400; COLOR: rgb(51,51,51); PADDING-BOTTOM: 9px; FONT-STYLE: normal; PADDING-TOP: 9px; PADDING-LEFT: 9px; BORDER-LEFT: rgb(204,204,204) 1px solid; ORPHANS: 2; WIDOWS: 2; MARGIN: 0px 0px 10px; DISPLAY: block; LETTER-SPACING: normal; LINE-HEIGHT: 1.4285; PADDING-RIGHT: 9px; TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial; overflow-wrap: normal; border-radius: 4px"><SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">void</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">test</SPAN>(<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN>** p)
+{
+}
+
+
+<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">main</SPAN>()
+{
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> arr[] = {<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">30</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">450</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">14</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">5</SPAN>};
+    test(&amp;arr);
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">return</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">0</SPAN>;
+}</PRE>
+<P>Take a moment to ponder - would you expect this code to compile cleanly?</P>
+<P><TT class="docutils literal"><SPAN class=pre>gcc</SPAN></TT><SPAN>&nbsp;</SPAN>isn't very happy about it, and issues a warning:<SPAN>&nbsp;</SPAN><TT class="docutils literal"><FONT size=2><SPAN class=pre>passing</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>arg</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>1</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>of</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>test</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>from</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>incompatible</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>pointer</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>type</SPAN></FONT></TT>. C++ has stricter type checking, so let's try running the same code through<SPAN>&nbsp;</SPAN><TT class="docutils literal"><SPAN class=pre>g++</SPAN></TT>. As expected, we get an error:<SPAN>&nbsp;</SPAN><TT class="docutils literal"><FONT size=2><SPAN class=pre>cannot</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>convert</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>int</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>(*)[4]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>to</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>int**</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>for</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>argument</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>1</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>to</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>void</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>test(int**)</SPAN></FONT></TT></P>
+<P>So what's the problem here? What's wrong with the code above? Well, everything. It's simply invalid, and it makes no sense. Some would think it should work because this works:</P><PRE style="BOX-SIZING: border-box; FONT-SIZE: 13px; OVERFLOW: auto; BORDER-TOP: rgb(204,204,204) 1px solid; FONT-FAMILY: Consolas, monaco, monospace; BORDER-RIGHT: rgb(204,204,204) 1px solid; BACKGROUND: rgb(247,247,247); WHITE-SPACE: pre; WORD-SPACING: 0px; BORDER-BOTTOM: rgb(204,204,204) 1px solid; TEXT-TRANSFORM: none; WORD-BREAK: break-all; FONT-WEIGHT: 400; COLOR: rgb(51,51,51); PADDING-BOTTOM: 9px; FONT-STYLE: normal; PADDING-TOP: 9px; PADDING-LEFT: 9px; BORDER-LEFT: rgb(204,204,204) 1px solid; ORPHANS: 2; WIDOWS: 2; MARGIN: 0px 0px 10px; DISPLAY: block; LETTER-SPACING: normal; LINE-HEIGHT: 1.4285; PADDING-RIGHT: 9px; TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial; overflow-wrap: normal; border-radius: 4px"><SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">void</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">test</SPAN>(<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN>* p)
+{
+
+}
+
+
+<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">main</SPAN>()
+{
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> arr[] = {<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">30</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">450</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">14</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">5</SPAN>};
+    test(arr);
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">return</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">0</SPAN>;
+}</PRE><SPAN class=extract>
+<P>But this one works specifically because the C compilers should follow the C standard, which mandates that arrays "decay" into pointers when used as lvalues. Thus, a pointer to the array's first element is actually passed to<SPAN>&nbsp;</SPAN><TT class="docutils literal"><SPAN class=pre>test</SPAN></TT><SPAN>&nbsp;</SPAN>and everything works.</P>
+<P>But the first code snippet is different. While an array name may decay into a pointer, the address of the array does not decay into a pointer to a pointer. And why should it? What sense does it make to treat an array so?</P></SPAN>
+<P>Pointers to pointers are sometimes passed to modify the pointers (simple pointer arguments don't work here because C passes by value, which would only allow to modify what's pointed, not the pointer itself). Here's some imaginary code (won't compile):</P><PRE style="BOX-SIZING: border-box; FONT-SIZE: 13px; OVERFLOW: auto; BORDER-TOP: rgb(204,204,204) 1px solid; FONT-FAMILY: Consolas, monaco, monospace; BORDER-RIGHT: rgb(204,204,204) 1px solid; BACKGROUND: rgb(247,247,247); WHITE-SPACE: pre; WORD-SPACING: 0px; BORDER-BOTTOM: rgb(204,204,204) 1px solid; TEXT-TRANSFORM: none; WORD-BREAK: break-all; FONT-WEIGHT: 400; COLOR: rgb(51,51,51); PADDING-BOTTOM: 9px; FONT-STYLE: normal; PADDING-TOP: 9px; PADDING-LEFT: 9px; BORDER-LEFT: rgb(204,204,204) 1px solid; ORPHANS: 2; WIDOWS: 2; MARGIN: 0px 0px 10px; DISPLAY: block; LETTER-SPACING: normal; LINE-HEIGHT: 1.4285; PADDING-RIGHT: 9px; TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial; overflow-wrap: normal; border-radius: 4px"><SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">void</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">test</SPAN>(<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN>** p)
+{
+    *p = malloc ... <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">/* retarget '*p' */</SPAN>
+}
+
+
+<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">main</SPAN>()
+{
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> arr[] = {<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">30</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">450</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">14</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">5</SPAN>};
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN>* ptr;
+
+    <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">/* Fine!</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    ** test will retarget ptr, and its new value</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    ** will appear after this call.</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    */</SPAN>
+    test(&amp;ptr);
+
+    <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">/* Makes no sense!</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    ** You cannot retarget 'arr', since it's a</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    ** constant label created by the compiler.</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    */</SPAN>
+    test(&amp;arr);
+
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">return</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">0</SPAN>;
+}</PRE>
+<DIV id=pointers-to-arrays class=section>
+<H3><SPAN class=extract>
+<H3>Pointers to arrays</H3>
+<P>Note that the original code could be modified a little to make it work:</P><PRE style="BOX-SIZING: border-box; FONT-SIZE: 13px; OVERFLOW: auto; BORDER-TOP: rgb(204,204,204) 1px solid; FONT-FAMILY: Consolas, monaco, monospace; BORDER-RIGHT: rgb(204,204,204) 1px solid; BACKGROUND: rgb(247,247,247); WHITE-SPACE: pre; WORD-SPACING: 0px; BORDER-BOTTOM: rgb(204,204,204) 1px solid; TEXT-TRANSFORM: none; WORD-BREAK: break-all; FONT-WEIGHT: 400; COLOR: rgb(51,51,51); PADDING-BOTTOM: 9px; FONT-STYLE: normal; PADDING-TOP: 9px; PADDING-LEFT: 9px; BORDER-LEFT: rgb(204,204,204) 1px solid; ORPHANS: 2; WIDOWS: 2; MARGIN: 0px 0px 10px; DISPLAY: block; LETTER-SPACING: normal; LINE-HEIGHT: 1.4285; PADDING-RIGHT: 9px; TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial; overflow-wrap: normal; border-radius: 4px"><SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">void</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">test</SPAN>(<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> (*p)[<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">4</SPAN>])
+{
+    (*p)[<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">2</SPAN>] = <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">10</SPAN>;
+}
+
+
+<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">main</SPAN>()
+{
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> arr[] = {<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">30</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">450</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">14</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">5</SPAN>};
+
+    test(&amp;arr);
+    printf(<SPAN style="BOX-SIZING: border-box; COLOR: rgb(127,0,127)">"%d\n"</SPAN>, arr[<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">2</SPAN>]);
+
+    <SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">return</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">0</SPAN>;
+}</PRE>
+<P>What is that weird type<SPAN>&nbsp;</SPAN><TT class="docutils literal"><SPAN class=pre>test</SPAN></TT><SPAN>&nbsp;</SPAN>accepts now? Say hello to a "pointer to array", one of the useless features of C</P></SPAN>. This is what the C FAQ has to say about it:</H3>
+<BLOCKQUOTE>
+<P><STRONG>2.12: How do I declare a pointer to an array?</STRONG></P>
+<P>Usually, you don't want to. When people speak casually of a pointer to an array, they usually mean a pointer to its first element.</P></BLOCKQUOTE>
+<P>Truly, I can't imagine why one would use a pointer to an array in real life. If you do a web search on the topic, most of what you find is people mistakingly calling the parameter of<SPAN>&nbsp;</SPAN><TT class="docutils literal"><SPAN class=pre>foo(int*</SPAN><SPAN>&nbsp;</SPAN><SPAN class=pre>p)</SPAN></TT><SPAN>&nbsp;</SPAN>"a pointer to array", which of course it isn't. It looks to me like the whole concept is just an artifact of C's declaration syntax.</P>
+<P>While the<SPAN>&nbsp;</SPAN><TT class="docutils literal"><SPAN class=pre>test</SPAN></TT><SPAN>&nbsp;</SPAN>function from the previous snippet compiles and works, it isn't of much use, since it's much clearer to write:</P><PRE style="BOX-SIZING: border-box; FONT-SIZE: 13px; OVERFLOW: auto; BORDER-TOP: rgb(204,204,204) 1px solid; FONT-FAMILY: Consolas, monaco, monospace; BORDER-RIGHT: rgb(204,204,204) 1px solid; BACKGROUND: rgb(247,247,247); WHITE-SPACE: pre; WORD-SPACING: 0px; BORDER-BOTTOM: rgb(204,204,204) 1px solid; TEXT-TRANSFORM: none; WORD-BREAK: break-all; FONT-WEIGHT: 400; COLOR: rgb(51,51,51); PADDING-BOTTOM: 9px; FONT-STYLE: normal; PADDING-TOP: 9px; PADDING-LEFT: 9px; BORDER-LEFT: rgb(204,204,204) 1px solid; ORPHANS: 2; WIDOWS: 2; MARGIN: 0px 0px 10px; DISPLAY: block; LETTER-SPACING: normal; LINE-HEIGHT: 1.4285; PADDING-RIGHT: 9px; TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial; overflow-wrap: normal; border-radius: 4px"><SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">void</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">test</SPAN>(<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN>* p)
+{
+    p[<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">2</SPAN>] = <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">10</SPAN>;
+}
+
+...
+...
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">/* then call */</SPAN>
+test(arr);</PRE>
+<P>The main use of pointers as function arguments is to either avoid passing whole structures by value, or to modify the object pointed by the pointers. Both are irrelevant needs for pointers to array. Here's a clarifying snippet:</P><PRE style="BOX-SIZING: border-box; FONT-SIZE: 13px; OVERFLOW: auto; BORDER-TOP: rgb(204,204,204) 1px solid; FONT-FAMILY: Consolas, monaco, monospace; BORDER-RIGHT: rgb(204,204,204) 1px solid; BACKGROUND: rgb(247,247,247); WHITE-SPACE: pre; WORD-SPACING: 0px; BORDER-BOTTOM: rgb(204,204,204) 1px solid; TEXT-TRANSFORM: none; WORD-BREAK: break-all; FONT-WEIGHT: 400; COLOR: rgb(51,51,51); PADDING-BOTTOM: 9px; FONT-STYLE: normal; PADDING-TOP: 9px; PADDING-LEFT: 9px; BORDER-LEFT: rgb(204,204,204) 1px solid; ORPHANS: 2; WIDOWS: 2; MARGIN: 0px 0px 10px; DISPLAY: block; LETTER-SPACING: normal; LINE-HEIGHT: 1.4285; PADDING-RIGHT: 9px; TEXT-INDENT: 0px; font-variant-ligatures: normal; font-variant-caps: normal; -webkit-text-stroke-width: 0px; text-decoration-style: initial; text-decoration-color: initial; overflow-wrap: normal; border-radius: 4px"><SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> joe[] = {<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">1</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">2</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">3</SPAN>, <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">4</SPAN>};
+
+<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">void</SPAN> <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,0,127)">test</SPAN>(<SPAN style="BOX-SIZING: border-box; FONT-WEIGHT: bold; COLOR: rgb(0,0,127)">int</SPAN> (*p)[<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">4</SPAN>])
+{
+    <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">/* Fine: assign to an element through the</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    ** pointer.</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    */</SPAN>
+    (*p)[<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">2</SPAN>] = <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,127)">10</SPAN>;
+
+    <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">/* Works, but won't be reflected in the</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    ** caller since p was passed by value.</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    */</SPAN>
+    p = &amp;joe;
+
+    <SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">/* Error: arrays can't be assigned.</SPAN>
+<SPAN style="BOX-SIZING: border-box; COLOR: rgb(0,127,0)">    */</SPAN>
+    *p = joe;
+}</PRE>
+<P>Arrays are not passed by value anyway, so a pointer to an array is useless for this purpose. Neither can arrays be modified, so that kills the second reason.

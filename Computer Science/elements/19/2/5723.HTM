@@ -1,0 +1,25 @@
+<SPAN class=Keyword>&nbsp;<SPAN class=keyword><B>shl, shr</B></SPAN><SPAN>&nbsp;</SPAN>&#8212; Shift left and right 
+<P></P>
+<BLOCKQUOTE>
+<P>These instructions shift the bits in their first operand's contents left and right, padding the resulting empty bit positions with zeros. </P><SPAN class=extract>
+<P>shl &#21644; shr &#25351;&#20196;&#33021;&#23545;&#31532;&#19968;&#20010;&#25805;&#20316;&#25968;&#20013;&#30340;&#20869;&#23481;&#25191;&#34892;&#24038;&#31227;&#25110;&#32773;&#21491;&#31227;&#65292;&#23427;&#20250;&#20351;&#29992; 0 &#22635;&#34917;&#31354;&#32622;&#20986;&#26469;&#27604;&#29305;&#20301;&#65288;&#26080;&#35770;&#26159;&#24038;&#36824;&#26159;&#21491;&#65289;</P>
+<P></SPAN>The shifted operand can be shifted up to 31 places. The number of bits to shift is specified by the second operand, which can be either an 8-bit constant or the register CL.</P><SPAN class=extract>
+<P>&nbsp;shl, shr&nbsp;&#31227;&#21160;&#30340;&#20301;&#25968;&#30001;&#31532;&#20108;&#20010;&#25805;&#20316;&#25968;&#22768;&#26126;&#65292;&#23427;&#26082;&#21487;&#20197;&#26159;&#19968;&#20010;&#24120;&#25968;&#65292;&#20063;&#21487;&#20197;&#26159;&#19968;&#20010;&#23492;&#23384;&#22120; %cl</P>
+<P>&#31227;&#21160;&#25805;&#20316;&#24471;&#21040;&#30340;&#32467;&#26524;&#23558;&#20250;&#34987;&#20445;&#23384;&#21040;&#31532;&#20108;&#20010;&#25805;&#20316;&#25968;&#20013;</P></SPAN>
+<P>&nbsp;In either case, shifts counts of greater then 31 are performed modulo 32. </P>
+<P><SPAN class=extract>&#22914;&#26524;&nbsp;shr, shl&nbsp;&#31532;&#20108;&#20010;&#25805;&#20316;&#25968;&#30340;&#20540;&#36229;&#36807;&#20102; 32 &#37027;&#20040;&#23427;&#20250;&#34987;&#20351;&#29992; 32 &#21462;&#27169;</SPAN></P>
+<P><EM>Syntax</EM> 
+<P><SPAN class=extract>shl &#21644; shr &#33021;&#21542;&#25509;&#25910;&#20219;&#24847;&#19968;&#20010;&#23492;&#23384;&#22120;&#20013;&#30340;&#20540;&#20316;&#20026;&#20854;&#31532;&#19968;&#20010;&#25805;&#20316;&#25968;&#65311;&#19981;&#33021;</SPAN> 
+<P><SPAN class=keyword>shl &lt;con8&gt;, &lt;reg&gt;</SPAN> 
+<P><SPAN class=keyword>shl &lt;con8&gt;, &lt;mem&gt;</SPAN> 
+<P><SPAN class=keyword>shl %cl, &lt;reg&gt;</SPAN> 
+<P><SPAN class=keyword>shl %cl, &lt;mem&gt;</SPAN></P>
+<P><SPAN class=keyword>shr &lt;con8&gt;, &lt;reg&gt;</SPAN> 
+<P><SPAN class=keyword>shr &lt;con8&gt;, &lt;mem&gt;</SPAN> 
+<P><SPAN class=keyword>shr %cl, &lt;reg&gt;</SPAN> 
+<P><SPAN class=keyword>shr %cl, &lt;mem&gt;</SPAN></P>
+<P><EM>Examples</EM> 
+<P></P>
+<DIV class=hanging><SPAN class=keyword>shl $1, eax</SPAN><SPAN>&nbsp;</SPAN>&#8212; Multiply the value of EAX by 2 (if the most significant bit is 0)</DIV>
+<DIV class=hanging><SPAN class=keyword><SPAN class=extract>
+<DIV class=hanging><SPAN class=keyword>shr %cl, %ebx</SPAN><SPAN>&nbsp;</SPAN>&#8212; Store in EBX the floor of result of dividing the value of EBX by 2<SUP><EM>n</EM></SUP><SPAN>&nbsp;</SPAN>where<SPAN>&nbsp;</SPAN><EM>n</EM><SPAN>&nbsp;</SPAN>is the value in CL. Caution: for negative integers, it is<SPAN>&nbsp;</SPAN><EM>different</EM><SPAN>&nbsp;</SPAN>from the C semantics of division!</DIV></SPAN></SPAN></DIV></BLOCKQUOTE></SPAN>

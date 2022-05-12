@@ -1,0 +1,430 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>5.1 Challenges</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">We began this chapter with the core challenge of multi-threaded programming: a multi-threaded program&#8217;s execution depends on the interleavings of different threads&#8217; access to shared memory, which can make it difficult to reason about or debug these programs. In particular, cooperating threads&#8217; execution may be affected by </FONT><EM>race conditions.</EM><FONT style="BACKGROUND-COLOR: #ffffff"> </FONT><A id=x1-40001r65 name=x1-40001r65></A>
+<H4 class=subsectionHead>5.1.1 <A id=x1-410001 name=x1-410001></A>Race Conditions</H4>A <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:race condition"}'>race condition</A></EM> occurs when the behavior of a program depends on the interleaving of operations of different threads. In effect, the threads run a race between their operations, and the results of the program execution depends on who wins the race. 
+<P>Reasoning about even simple programs with race conditions can be difficult. To appreciate this, we now look at three extremely simple multi-threaded programs. </P>
+<P><B>The world&#8217;s simplest cooperating-threads program.</B> Suppose we run a program with two threads that do the following: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Thread A</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; <B>Thread B</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>x = 1; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; x = 2;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P><B>EXAMPLE: </B>What are the possible final values of x? </P>
+<P><B>ANSWER: </B>The result can be <B>x = 1 or x = 2</B> depending on which thread wins or loses the &#8220;race&#8221; to set x. &#9633; </P>
+<P>That was easy, so let&#8217;s try one that is a bit more interesting. </P>
+<P><B>The world&#8217;s second-simplest cooperating-threads program.</B> Suppose that initially y = 12, and we run a program with two threads that do the following: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Thread A</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; <B>Thread B</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>x = y + 1; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; y = y * 2;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P><B>EXAMPLE: </B>What are the possible final values of x? </P>
+<P><B>ANSWER: </B>The result is <B>x = 13 if Thread A executes first or x = 25 if Thread B executes first.</B> More precisely, we get x = 13 if Thread A reads y before Thread B updates y, or we get x = 25 if Thread B updates y before Thread A reads y. &#9633; </P>
+<P><B>The world&#8217;s third-simplest cooperating-threads program.</B> Suppose that initially x = 0 and we run a program with two threads that do the following: </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Thread A</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; <B>Thread B</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>x = x + 1; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; x = x + 2;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>
+<P><B>EXAMPLE: </B>What are the possible final values of x? </P>
+<P><B>ANSWER: </B>Obviously, <B>one possible outcome is x = 3.</B> For example, Thread A runs to completion and then Thread B starts and runs to completion. However, <B>we can also get x = 2 or x = 1.</B> In particular, when we write a single statement like x = x + 1, compilers on many processors produce multiple instructions, such as: (1) load memory location x into a register, (2) add 1 to that register, and (3) store the result to memory location x. If we disassemble the above program into simple pseudo-assembly-code, we can see some of the possibilities. </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center><B>One Interleaving</B> 
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Thread A</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; <B>Thread B</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>load r1, x </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>add r2, r1, 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>store x, r2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; load r1, x </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; add r2, r1, 2</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; store x, r2 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV><B>final: x == 3</B></DIV></TD></TR></TBODY></TABLE>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center><B>Another Interleaving</B> 
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Thread A</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; <B>Thread B</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>load r1, x </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; load r1, x </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>add r2, r1, 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; add r2, r1, 2 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>store x, r2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; store x, r2 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV><B>final: x == 2</B></DIV></TD></TR></TBODY></TABLE>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center><B>Yet Another Interleaving</B><BR>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Thread A</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; <B>Thread B</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>load r1, x </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; load r1, x </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>add r2, r1, 1 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; add r2, r1, 2 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; store x, r2 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>store x, r2 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp;&nbsp; </P></TD></TR></TBODY></TABLE></DIV><B>final: x == 1</B></DIV></TD></TR></TBODY></TABLE><BR>&#9633; 
+<P>Even for this 2-line program, the complexity of reasoning about race conditions and interleavings is beginning to grow. Not only would one have to reason about all possible interleavings of statements, but one would also have to disassemble the program and reason about all possible interleavings of assembly instructions. (And if the compiler and hardware can reorder instructions, there are even more possibilities to consider.) </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>The Case of the Therac-25</I></B></SPAN> </P>
+<P>The Therac-25 was a cancer therapy device, designed to deliver very high doses of radiation to a targeted region of the body in an attempt to eliminate cancer cells before they had a chance to spread. Over a several year period in the mid-1980&#8217;s, a computer malfunction caused six separate patients to receive an estimated 100 times the intended dose of radiation. Three of the patients later died as a result; the others sustained serious but non-fatal injuries. </P>
+<P>Although there were many contributing factors to the malfunction, a race condition was at the heart of both the overdose and the delay in recognizing and repairing the problem. The Therac-25 was designed to check in software that the entered dosage was medically safe before using it to configure the radiation beam. However, the software was also concurrent: the operator interface code could run at the same time that the dosage was being checked and used, with no locking or other synchronization. In rare cases, the dosage could be changed after the check and before the use, and due to a separate user interface bug, the operator could enter an overdose without either intending or realizing it. </P>
+<P>Because the problem required a rare sequence of events, the machine appeared to work successfully for almost all patients. Years elapsed between the first incident and the final one, and during this period, the manufacturer repeatedly insisted that no overdose was possible and that the patient injuries must be due to some other factor. It took the second occurrence of the race condition at the same hospital to help reveal the system&#8217;s design flaw. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-41001r72 name=x1-41001r72></A>
+<H4 class=subsectionHead>5.1.2 <A id=x1-420002 name=x1-420002></A>Atomic Operations</H4>When we disassembled the code in last example, we could reason about <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:atomic operations"}'>atomic operations</A></EM>, indivisible operations that cannot be interleaved with or split by other operations. 
+<P>On most modern architectures, a load or store of a 32-bit word from or to memory is an atomic operation. So, the previous analysis reasoned about interleaving of atomic loads and stores to memory. </P>
+<P>Conversely, a load or store is not always an atomic operation. Depending on the hardware implementation, if two threads store the value of a 64-bit floating point register to a memory address, the final result might be the first value, the second value, or a mix of the two. <A id=x1-42001r73 name=x1-42001r73></A></P>
+<H4 class=subsectionHead>5.1.3 <A id=x1-430003 name=x1-430003></A>Too Much Milk</H4>Although one could, in principle, reason carefully about the possible interleavings of different threads&#8217; atomic loads and stores, doing so is tricky and error-prone. Later, we present a higher level abstraction for synchronizing threads, but first we illustrate the problems with using atomic loads and stores using a simple problem called, &#8220;Too Much Milk.&#8221; The example is intentionally simple; real-world concurrent programs are often much more complex. Even so, the example shows the difficulty of reasoning about interleaved access to shared state. 
+<P>The Too Much Milk problem models two roommates who share a refrigerator and who &#8212; as good roommates &#8212; make sure the refrigerator is always well stocked with milk. With such responsible roommates, the following scenario is possible: </P>
+<P><BR></P>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>Roommate 1&#8217;s actions</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; <B>Roommate 2&#8217;s actions</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3:00 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Look in fridge; out of milk. </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3:05 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Leave for store. </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3:10 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Arrive at store. </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Look in fridge; out of milk.</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3:15 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Buy milk. </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Leave for store. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3:20 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Arrive home; put milk away. </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Arrive at store. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3:25 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Buy milk. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3:30 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Arrive home; put milk away. </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>3:35 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; Oh no! </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV><BR>
+<P>We can model each roommate as a thread and the number of bottles of milk in the fridge with a variable in memory. If the only atomic operations on shared state are atomic loads and stores to memory, is there a solution to the Too Much Milk problem that ensures both <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:safety property"}'>safety</A></EM> (the program never enters a bad state) and <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:liveness property"}'>liveness</A></EM> (the program eventually enters a good state)? Here, we strive for the following properties: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Safety:</B> Never more than one person buys milk. </P>
+<LI class=itemize>
+<P><B>Liveness:</B> If milk is needed, someone eventually buys it.</P></LI></UL>
+<P><B>WARNING</B>: <B>Simplifying Assumption.</B> Throughout the analysis in this section, we assume that the instructions are executed in exactly the order written, i.e., neither the compiler nor the architecture reorders instructions. This assumption is crucial for reasoning about the order of atomic load and store operations, but many modern compilers and architectures violate it, so be extremely careful applying the style of analysis we present here to your own programs. </P>
+<P><B>Solution 1.</B> The basic idea is for a roommate to leave a note on the fridge before going to the store. The simplest way to leave this note &#8212; given our programming model that we have shared memory on which we can perform atomic loads and stores &#8212; is to set a flag when going to buy milk and to check this flag before going to buy milk. Each thread might run the following code: </P>
+<P><BR></P><PRE class=code>   &nbsp;if&nbsp;(milk==0)&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;if&nbsp;no&nbsp;milk
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(note==0)&nbsp;{&nbsp;&nbsp;&nbsp;//&nbsp;if&nbsp;no&nbsp;note
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;note&nbsp;=&nbsp;1;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;leave&nbsp;note
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milk++;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;buy&nbsp;milk
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;note&nbsp;=&nbsp;0;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;remove&nbsp;note
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;}</PRE><BR>
+<P>Unfortunately, this implementation can violate safety. For example, the first thread could execute everything up to and including the check of the milk value and then get context switched. Then, the second thread could run through all of this code and buy milk. Finally, the first thread could be re-scheduled, see that note is zero, leave the note, buy more milk, and remove the note, leaving the system with milk == 2. </P>
+<P><BR></P><PRE class=code>   &nbsp;//&nbsp;Thread&nbsp;A&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Thread&nbsp;B
+   &nbsp;if&nbsp;(milk==0)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(milk==0)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(note==0)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;note&nbsp;=&nbsp;1;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milk++;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;note&nbsp;=&nbsp;0;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(note==0)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;note&nbsp;=&nbsp;1;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milk++;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;note&nbsp;=&nbsp;0;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;}
+   &nbsp;
+   &nbsp;
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Oh&nbsp;no!</PRE><BR>
+<P>This &#8220;solution&#8221; makes the problem worse! The preceding code usually works, but it may fail occasionally when the scheduler does just the right (or wrong) thing. We have created a Heisenbug that causes the program to occasionally fail in ways that may be very difficult to reproduce (e.g., probably only when the grader is looking at it or when the CEO is demonstrating a new product at a trade show). </P>
+<P><B>Solution 2.</B> In solution 1, the roommate checks the note before setting it. This opens up the possibility that one roommate has already made a decision to buy milk before notifying the other roommate of that decision. If we use two variables for the notes, a roommate can create a note before checking the other note and the milk and making a decision to buy. For example, we can do the following: </P>
+<P><BR><BR></P>
+<P>Path A </P><PRE class=code>&nbsp;noteA&nbsp;=&nbsp;1;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;leave&nbsp;note
+&nbsp;if&nbsp;(noteB==0)&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;if&nbsp;no&nbsp;note&nbsp;&nbsp;A1
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(milk==0)&nbsp;{&nbsp;//&nbsp;if&nbsp;no&nbsp;milk&nbsp;&nbsp;A2
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milk++;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;buy&nbsp;milk&nbsp;&nbsp;&nbsp;&nbsp;A3
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}
+&nbsp;noteA&nbsp;=&nbsp;0;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;remove&nbsp;note&nbsp;A
+ </PRE>Path B <PRE class=code>&nbsp;noteB&nbsp;=&nbsp;1;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;leave&nbsp;note
+&nbsp;if&nbsp;(noteA==0)&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;if&nbsp;no&nbsp;note&nbsp;&nbsp;B1
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(milk==0)&nbsp;{&nbsp;//&nbsp;if&nbsp;no&nbsp;milk&nbsp;&nbsp;B2
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milk++;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;buy&nbsp;milk&nbsp;&nbsp;&nbsp;&nbsp;B3
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;B4
+&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;B5
+&nbsp;noteB&nbsp;=&nbsp;0;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;remove&nbsp;note
+ </PRE>
+<P><BR></P>
+<P>If the first thread executes the Path A code and the second thread executes the Path B code, this protocol is safe; by having each thread write a note (&#8220;I might buy milk&#8221;) before deciding to buy milk, we ensure the safety property: at most one thread buys milk. </P>
+<P>Although this intuition is solid, proving the safety property without enumerating all possible interleavings requires care. </P>
+<P><B>Safety Proof.</B> Assume for the sake of contradiction that the algorithm is <EM>not</EM> safe &#8212; both A and B buy milk. Consider the state of the two variables (noteB, milk) when thread A is at the line marked <B>A1</B>, at the precise moment when the atomic load of noteB from shared memory to A&#8217;s register occurs. There are three cases to consider: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Case 1:</B> (noteB = 1, milk = any value). This state contradicts the assumption that thread A buys milk and reaches <B>A3</B>. </P>
+<LI class=itemize>
+<P><B>Case 2:</B> (noteB = 0, milk &gt; 0). In this simple program, the property milk &gt; 0 is a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:stable property"}'>stable property</A></EM> &#8212; once it becomes true, it remains true forever. Thus, if milk &gt; 0 is true when A is at <B>A1</B>, A&#8217;s test at line <B>A2</B> will fail, and A will not buy milk, contradicting our assumption. </P>
+<LI class=itemize>
+<P><B>Case 3:</B> (noteB = 0, milk = 0). We know that thread B must not currently be executing any of the lines marked <B>B1-B5</B>. We also know that either noteA == 1 or milk &gt; 0 will be true from this time forward (noteA OR milk is also a stable property). This means that B cannot buy milk in the future (either the test at B1 or B2 must fail), which contradicts our assumption that both A and B buy milk. </P></LI></UL>
+<P>Since every case contradicts the assumption, the algorithm is safe. &#9633; </P>
+<P><B>Liveness.</B> Unfortunately, Solution 2 does not ensure liveness. In particular, it is possible for both threads to set their respective notes, for each thread to check the other thread&#8217;s note, and for both threads to decide not to buy milk. </P>
+<P>This brings us to Solution 3. </P>
+<P><B>Solution 3.</B> Solution 2 was safe because a thread would avoid buying milk if there were any chance that the other thread <EM>might</EM> buy milk. For Solution 3, we ensure that at least one of the threads determines whether the other thread has bought milk or not before deciding whether or not to buy. In particular, we do the following: </P>
+<P><BR><BR></P>
+<P>Path A </P><PRE class=code>&nbsp;noteA&nbsp;=&nbsp;1;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;leave&nbsp;note&nbsp;A
+&nbsp;while&nbsp;(noteB==1)&nbsp;{&nbsp;//&nbsp;wait&nbsp;for&nbsp;no&nbsp;note&nbsp;B
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;spin
+&nbsp;}
+&nbsp;if&nbsp;(milk==0)&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;if&nbsp;no&nbsp;milk&nbsp;M
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milk++;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;buy&nbsp;milk
+&nbsp;}
+&nbsp;noteA&nbsp;=&nbsp;0;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;remove&nbsp;note&nbsp;A
+ </PRE>Path B <PRE class=code>&nbsp;noteB&nbsp;=&nbsp;1;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;leave&nbsp;note&nbsp;B
+&nbsp;if&nbsp;(noteA==0)&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;if&nbsp;no&nbsp;note&nbsp;A
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(milk==0)&nbsp;{&nbsp;&nbsp;//&nbsp;if&nbsp;no&nbsp;milk
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milk++;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;buy&nbsp;milk
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//
+&nbsp;}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//
+&nbsp;noteB&nbsp;=&nbsp;0;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;remove&nbsp;note&nbsp;B
+ </PRE>
+<P><BR></P>
+<P>We can show that Solution 3 is safe using an argument similar to the one we used for Solution 2. </P>
+<P>To show that Solution 3 is live, observe that code path B has no loops, so eventually thread B must finish executing the listed code. Eventually, noteB == 0 becomes true and remains true. Therefore, thread A must eventually reach line <B>M</B> and decide whether to buy milk. If it finds M == 1, then milk has been bought. If it finds M == 0, then it will buy milk. Either way, the liveness property &#8212; that if needed, some milk is bought &#8212; is met. <A id=x1-43001r74 name=x1-43001r74></A></P>
+<H4 class=subsectionHead>5.1.4 <A id=x1-440004 name=x1-440004></A>Discussion</H4>Assuming that the compiler and processor execute instructions in program order, the preceding proof shows that it is possible to devise a solution to Too Much Milk that is both safe and live using nothing but atomic load and store operations on shared memory. Although the solution we presented only works for two roommates, there is a generalization, called Peterson&#8217;s algorithm, which works with any fixed number of n threads. More details on Peterson&#8217;s algorithm can be found elsewhere (e.g., <A href="http://en.wikipedia.org/wiki/Peterson's_algorithm">http://en.wikipedia.org/wiki/Peterson&#8217;s_algorithm</A>). 
+<P>However, our solution for Too Much Milk (and likewise Peterson&#8217;s algorithm) is not terribly satisfying: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>The solution is <EM>complex</EM> and requires careful reasoning to be convinced that it works. </P>
+<LI class=itemize>
+<P>The solution is <EM>inefficient</EM>. In Too Much Milk, while thread A is waiting, it is <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:busy-waiting"}'>busy-waiting</A></EM> and consuming CPU resources. In Peterson&#8217;s generalized solution, <EM>all</EM> n threads can busy-wait. Busy-waiting is particularly problematic on modern systems with preemptive multi-threading, as the spinning thread may be holding the processor waiting for an event that cannot occur until some preempted thread is re-scheduled to run. </P>
+<LI class=itemize>
+<P>The solution <EM>may fail</EM> if the compiler or hardware reorders instructions. This limitation can be addressed by using <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:memory barrier"}'>memory barriers</A></EM> (see sidebar). Adding memory barriers would further increase the implementation complexity of the algorithm; barriers do not address the other limitations just mentioned. </P></LI></UL>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Memory barriers</I></B></SPAN> </P>
+<P>Suppose you are writing low-level code that must reason about the ordering of memory operations. How can this be done on modern hardware and with modern compilers? </P>
+<P>A <EM>memory barrier</EM> instruction prevents the compiler and hardware from reordering memory accesses across the barrier &#8212; no accesses before the barrier are moved after the barrier and no accesses after the barrier are moved before the barrier. One can add memory barriers to the Too Much Milk solution or to Peterson&#8217;s algorithm to get code that works on modern machines with modern compilers. Of course, this makes the code even more complex. </P>
+<P>Details of how to issue a memory barrier instruction depend on hardware and compiler details. However, a good example is gcc&#8217;s __sync_synchronize() builtin, which tells the compiler not to reorder memory accesses across the barrier and to issue processor-specific instructions that the underlying hardware treats as a memory barrier. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-44001r75 name=x1-44001r75></A>
+<H4 class=subsectionHead>5.1.5 <A id=x1-450005 name=x1-450005></A>A Better Solution</H4>The next section describes a better approach to writing programs in which multiple threads access shared state. We write <EM>shared objects</EM> that use <EM>synchronization objects</EM> to coordinate different threads&#8217; access to shared state. 
+<P>Suppose, for example, we had a primitive called a <EM>lock</EM> that only one thread at a time can own. Then, we can solve the Too Much Milk problem by defining the class for a Kitchen object with the following method: </P>
+<P><BR></P><PRE class=code>   &nbsp;Kitchen::buyIfNeeded()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(milk&nbsp;==&nbsp;0)&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;if&nbsp;no&nbsp;milk
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milk++;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;buy&nbsp;milk
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+   &nbsp;}</PRE><BR>
+<P>After outlining a strategy for managing synchronization in the next section, we define locks and condition variables (another type of synchronization object) in Sections&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-490003"}'>5.3</A> and <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540004"}'>5.4</A>. <A id=x1-45001r71 name=x1-45001r71></A></P><A id=x1-460002 name=x1-460002>

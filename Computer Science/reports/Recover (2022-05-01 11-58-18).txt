@@ -1,0 +1,347 @@
+SuperMemo Report
+   Activity: Checking the integrity of the collection
+   Collection: d:\application\supermemo\systems\computer science
+   Date: Sunday, May 1, 2022, 11:58:18 AM
+   SuperMemo 18 (Build 18.05, Oct 29, 2020)
+
+Checking 1,274 element records (ElementInfo.dat)
+Turning on tasklist verification along element data integrity checks
+Verifying integrity of element data (1274 elements in ElementInfo.dat)
+++++++++++++++++++++++    ERROR #1   ++++++++++++++++++++++
+   Wrong priority queue size
+   Expected: 1261
+   Found: 1260
+++++++++++++++++++++++    ERROR #2   ++++++++++++++++++++++
+   Memorized has been corrected from 753 to 751
+++++++++++++++++++++++    ERROR #3   ++++++++++++++++++++++
+   Topic Burden has been corrected from 98.68968 to 97.48968
+++++++++++++++++++++++    ERROR #4   ++++++++++++++++++++++
+   Avg Topic Reps has been corrected from 1.09735 to 1.09821
+++++++++++++++++++++++    ERROR #5   ++++++++++++++++++++++
+   Avg Topic Interval has been corrected from 3.0885 to 3.08929
+++++++++++++++++++++++    ERROR #6   ++++++++++++++++++++++
+   Avg Last Topic Rep has been corrected from 5.5708 to 5.56696
+++++++++++++++++++++++    ERROR #7   ++++++++++++++++++++++
+   Avg Topic A-Factor has been corrected from 1.50467 to 1.50488
+Verifying knowledge tree (1,274 elements in Contents.dat)
+Verifying the priority queue of 1,260 elements
+++++++++++++++++++++++    ERROR #8   ++++++++++++++++++++++
+   Element #1138 missing from the priority queue
+Verifying repetition schedule (Workload.dat and ElementInfo.dat)
+Verifying pending queue (Intact.dat)
+Verifying A-Factor, Lapses and Repetitions distributions
+++++++++++++++++++++++    ERROR #9   ++++++++++++++++++++++
+   Topic A-Factor distribution discrepancy in category 8
+   Topics reported: 23
+   Topics found:    22
+++++++++++++++++++++++    ERROR #10   ++++++++++++++++++++++
+   Topic A-Factor distribution discrepancy in category 12
+   Topics reported: 38
+   Topics found:    37
+++++++++++++++++++++++    ERROR #11   ++++++++++++++++++++++
+   Topic interval distribution discrepancy in category 1
+   Topics reported: 35
+   Topics found:    34
+++++++++++++++++++++++    ERROR #12   ++++++++++++++++++++++
+   Topic interval distribution discrepancy in category 4
+   Topics reported: 37
+   Topics found:    36
+++++++++++++++++++++++    ERROR #13   ++++++++++++++++++++++
+   Topic review distribution discrepancy in category 1
+   Topics reported: 206
+   Topics found:    204
+Recovering registries and filespace references
+Rebuilding Text registry (2626 members in a 2814 member file)
+Rebuilding Template registry (17 members in a 17 member file)
+Rebuilding Font registry (1 members in a 1 member file)
+Rebuilding Reference registry (79 members in a 79 member file)
+Rebuilding Style registry (0 members in a 0 member file)
+Rebuilding Script registry (0 members in a 0 member file)
+Rebuilding Program registry (0 members in a 0 member file)
+Rebuilding Ole registry (0 members in a 0 member file)
+Rebuilding Video registry (0 members in a 0 member file)
+Rebuilding Image registry (5 members in a 5 member file)
+Rebuilding Sound registry (0 members in a 0 member file)
+Rebuilding Tasklist registry (1 members in a 1 member file)
+Rebuilding Concept registry (9 members in a 9 member file)
+Rebuilding Link registry (0 members in a 0 member file)
+Registering components
+++++++++++++++++++++++    ERROR #14   ++++++++++++++++++++++
+   Empty element:
+   Topic #6: In the original implementation of UNIX, kernel memory was at a premium; main memory was roughly one million times more expensive per byte than it is today. The initial system .
+++++++++++++++++++++++    ERROR #15   ++++++++++++++++++++++
+   Empty element:
+   Topic #127: 通过CPU中一个比特位标识当前的状态
+++++++++++++++++++++++    ERROR #16   ++++++++++++++++++++++
+   Empty element:
+   Item #561: Introduction
+Warning! Element count operation on a deleted registry member
+   Registry: text
+   Posit: 2483
+   Used by: Topic #1,139: command
+Transferring templates
+Registering references
+Registering image references
+Registration of links for 0 members in a 0 member file
+Registration of concepts for 9 members in a 9 member file
+Verifying Text registry
+Warning! Registry member not used
+   Text #11: HTML: <P>&nbsp;</P>
+++++++++++++++++++++++    ERROR #17   ++++++++++++++++++++++
+   Wrong reference count for Text #58: 2. The Kernel Abstraction. Good fences make good neighbors. —17th century proverb . A central role of operating systems is protection — the isolation of potentially ...
+   Count: reported=1 found=0
+   Registry: text
+++++++++++++++++++++++    ERROR #18   ++++++++++++++++++++++
+   Wrong length of registry usership list for Text #58: 2. The Kernel Abstraction. Good fences make good neighbors. —17th century proverb . A central role of operating systems is protection — the isolation of potentially ...
+   Count: reported=1 found=0
+   Registry: text
+++++++++++++++++++++++    ERROR #19   ++++++++++++++++++++++
+   Wrong reference count for Text #2619: GDB : 删除断点 (断点类型: 额外类型的断点 (断点类型))
+   Count: reported=59 found=61
+   Registry: text
+++++++++++++++++++++++    ERROR #20   ++++++++++++++++++++++
+   Wrong length of registry usership list for Text #2619: GDB : 删除断点 (断点类型: 额外类型的断点 (断点类型))
+   Count: reported=59 found=61
+   Registry: text
+++++++++++++++++++++++    ERROR #21   ++++++++++++++++++++++
+   Missing reference to Item #1,237: GDB 遇到断点时打印的代码是[.]的代码，而不是[.]的代码
+   on registry list for Text #2619: GDB : 删除断点 (断点类型: 额外类型的断点 (断点类型))
+   Registry: text
+++++++++++++++++++++++    ERROR #22   ++++++++++++++++++++++
+   Missing reference to Item #1,238: GDB 正常工作的基础是，生成的可执行文件中包含有 [.]（symbol table），在 gcc 中则需要加上 -g 选项
+   on registry list for Text #2619: GDB : 删除断点 (断点类型: 额外类型的断点 (断点类型))
+   Registry: text
+++++++++++++++++++++++    ERROR #23   ++++++++++++++++++++++
+   Wrong reference count for Text #2748: Title: command. 考虑到 GDB 被断点阻塞时，接下来的操作通常是执行一些指令，可以使用command将这两项操作合二为一：.  command <breakpoint id> > . > commands > . end. 这一段命令的目的就是在断点标识符为<breakpoint id>的断点阻塞程序时执行commands
+   Count: reported=1 found=0
+   Registry: text
+++++++++++++++++++++++    ERROR #24   ++++++++++++++++++++++
+   Wrong length of registry usership list for Text #2748: Title: command. 考虑到 GDB 被断点阻塞时，接下来的操作通常是执行一些指令，可以使用command将这两项操作合二为一：.  command <breakpoint id> > . > commands > . end. 这一段命令的目的就是在断点标识符为<breakpoint id>的断点阻塞程序时执行commands
+   Count: reported=1 found=0
+   Registry: text
+1 unused member(s) in the Text registry
+Verifying Font registry
+Wrong reference count for Font #1: 方正新书宋简体, 14, 0191919
+   Count: reported=579 found=673
+   Registry: font
+++++++++++++++++++++++    ERROR #25   ++++++++++++++++++++++
+   Wrong length of registry usership list for Font #1: 方正新书宋简体, 14, 0191919
+   Count: reported=579 found=672
+   Registry: font
+++++++++++++++++++++++    ERROR #26   ++++++++++++++++++++++
+   Missing reference to Item #39: [3] 2.4.4 Interrupt Masking. 2.4.4 Interrupt Masking. 2.4.4 Interrupt Masking
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #27   ++++++++++++++++++++++
+   Missing reference to Item #51: 由于x86的内存结构是分段化（segmented）的，因此其内存指针由两部分组成：[.]和偏移量（offset）.
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #28   ++++++++++++++++++++++
+   Missing reference to Item #158: Once the handler has saved the interrupted thread’s state to the stack, it can use the registers as it pleases, and it can push additional items onto the stack. So, the .
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #29   ++++++++++++++++++++++
+   Missing reference to Item #159: 执行了[.]指令之后，被“禁用”的中断才会被分发给处理器
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #30   ++++++++++++++++++++++
+   Missing reference to Item #176: 从总体上看，硬件保存了六个寄存器：[.]而中断处理程序则保存了八个通用寄存器
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #31   ++++++++++++++++++++++
+   Missing reference to Item #177: 从总体上看，硬件保存了六个寄存器：栈段寄存器和栈指针寄存器、代码段寄存器和代码指针寄存器、错误代码寄存器、执行标志寄存器（EFLAGS），而[.]则保存了八个通用寄存器
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #32   ++++++++++++++++++++++
+   Missing reference to Item #178: 从总体上看，硬件保存了六个寄存器：栈段寄存器和栈指针寄存器、代码段寄存器和代码指针寄存器、错误代码寄存器、执行标志寄存器（EFLAGS），而中断处理程序（软件）则保存了[.]
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #33   ++++++++++++++++++++++
+   Missing reference to Item #179: 从总体上看，[.]保存了六个寄存器：栈段寄存器和栈指针寄存器、代码段寄存器和代码指针寄存器、错误代码寄存器、执行标志寄存器（EFLAGS），而中断处理程序则保存了八个通用寄存器
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #34   ++++++++++++++++++++++
+   Missing reference to Item #180: 由于x86的内存结构是分段化（segmented）的，因此其[.]由两部分组成：段（segment）所在位置和偏移量（offset）.
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #35   ++++++++++++++++++++++
+   Missing reference to Item #181: 由于x86的内存结构是分段化（segmented）的，因此其内存指针由两部分组成：段（segment）所在位置和[.]
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #36   ++++++++++++++++++++++
+   Missing reference to Item #195: 禁用中断指令是[.]指令
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #37   ++++++++++++++++++++++
+   Missing reference to Item #206: 当中断处理程序执行完毕，[.]就会使用 `popad` 将所有通用寄存器中的值恢复到原来的状态。注意，这些寄存器并不包括三个关键值
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #38   ++++++++++++++++++++++
+   Missing reference to Item #207: 当中断处理程序执行完毕，中断处理程序就会使用 [.] 将所有通用寄存器中的值恢复到原来的状态。注意，这些寄存器并不包括三个关键值
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #39   ++++++++++++++++++++++
+   Missing reference to Item #208: 当中断处理程序执行完毕，中断处理程序就会使用 `popad` 将所有[.]中的值恢复到原来的状态。注意，这些寄存器并不包括三个关键值
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #40   ++++++++++++++++++++++
+   Missing reference to Item #209: 当中断处理程序执行完毕，中断处理程序就会使用 `popad` 将所有通用寄存器中的值恢复到原来的状态。注意，这些寄存器并不包括[.]
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #41   ++++++++++++++++++++++
+   Missing reference to Item #215: 中断处理程序的下半部分执行时首先会[.]，随后会刷新硬件，最后会通知调度器
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #42   ++++++++++++++++++++++
+   Missing reference to Item #229: 为每一个进程都分配一个中断栈有什么优点？  能让[.]在其执行过程中更容易切换执行其他进程
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #43   ++++++++++++++++++++++
+   Missing reference to Item #230: 中断处理程序通知调度器的内容是？[.]
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #44   ++++++++++++++++++++++
+   Missing reference to Item #254: [.]能要求内核等待针对内核数据结构的显式访问
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #45   ++++++++++++++++++++++
+   Missing reference to Item #255: 中断处理程序的上半部分能要求[.]等待针对内核数据结构的显式访问
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #46   ++++++++++++++++++++++
+   Missing reference to Item #256: 中断处理程序的上半部分能要求内核等待针对[.]的显式访问
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+++++++++++++++++++++++    ERROR #47   ++++++++++++++++++++++
+   Missing reference to Item #257: 中断处理程序的上半部分能要求内核等待针对内核数据结构的[.]
+   on registry list for Font #1: 方正新书宋简体, 14, 0191919
+   Registry: font
+Verifying Reference registry
+++++++++++++++++++++++    ERROR #48   ++++++++++++++++++++++
+   Wrong reference count for Reference #56: GDB
+   Count: reported=59 found=61
+   Registry: reference
+++++++++++++++++++++++    ERROR #49   ++++++++++++++++++++++
+   Wrong length of registry usership list for Reference #56: GDB
+   Count: reported=59 found=61
+   Registry: reference
+++++++++++++++++++++++    ERROR #50   ++++++++++++++++++++++
+   Missing reference to Item #1,237: GDB 遇到断点时打印的代码是[.]的代码，而不是[.]的代码
+   on registry list for Reference #56: GDB
+   Registry: reference
+++++++++++++++++++++++    ERROR #51   ++++++++++++++++++++++
+   Missing reference to Item #1,238: GDB 正常工作的基础是，生成的可执行文件中包含有 [.]（symbol table），在 gcc 中则需要加上 -g 选项
+   on registry list for Reference #56: GDB
+   Registry: reference
+Verifying Ole registry
+Verifying Image registry
+Verifying Sound registry
+Verifying Video registry
+Verifying Style registry
+Verifying Script registry
+Verifying Program registry
+Verifying Template registry
+Verifying Tasklist registry
+Warning! Registry member not used
+   Tasklist #1: Tasks
+1 unused member(s) in the Tasklist registry
+Verifying Concept registry
+Verifying Link registry
+Deleting directory: d:\application\supermemo\systems\computer science\registry\Text_users
+Deleting directory: d:\application\supermemo\systems\computer science\registry\Font_users
+Deleting directory: d:\application\supermemo\systems\computer science\registry\Reference_users
+Deleting directory: d:\application\supermemo\systems\computer science\registry\Template_users
+3 empty elements found
+Verifying OLE filespace
+Verifying image filespace
+Verifying sound filespace
+Verifying video filespace
+Verifying stylesheet filespace
+Verifying script filespace
+Verifying binary filespace
+Verifying text filespace
+Warning! Removing formatting from member #58:
+   Text: 2. The Kernel Abstraction. Good fences make good neighbors. —17th century proverb . A central role of operating systems is protection — the isolation of potentially ...
+   Format: HTML
+Warning! Removing formatting from member #118:
+   Text: 通过CPU中一个比特位标识当前的状态
+   Format: HTML
+Warning! Removing formatting from member #1577:
+   Text: 桩（stub）亦称方法桩（method stub）是用来暂时性替代某些代码的功能的代码
+   Format: HTML
+Warning! Removing formatting from member #1667:
+   Text: “常识”
+   Format: HTML
+Warning! Removing formatting from member #2181:
+   Text: 断点
+   Format: HTML
+Warning! Removing formatting from member #2748:
+   Text: Title: command. 考虑到 GDB 被断点阻塞时，接下来的操作通常是执行一些指令，可以使用command将这两项操作合二为一：.  command <breakpoint id> > . > commands > . end. 这一段命令的目的就是在断点标识符为<breakpoint id>的断点阻塞程序时执行commands
+   Format: HTML
+Inspecting 1747 filespace slots
+Unused filespace slot count: 81
+Checking for empty filespace slots
+Inspecting 81 empty filespace slot(s)
+Formatting removed from 6 texts
+   Including 0 RTF text(s) and 6 HTML text(s)
+Building new lexicon: 2,814 texts
+Warning!
+   Changed registry size
+   Registry:      Lexicon
+   Size reported:    0
+   Size found:  9264
+Verifying repetition history
+++++++++++++++++++++++    ERROR #52   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 20:31:55
+   Topic #78: 有两种形式的动态数组： 一种是直接在堆中申请一大片区域，直接用来放置期望保存的元素。想要打印这种类型的动态数组只需要使用 这里 提到的语法就可以了； 另一种是将动态数组作为数据的托管对象，此时堆数组存放的不再是元素对象本身恶，而是一些指向它们的指针，这种情况就需要用到 GDB 变量 了；
+++++++++++++++++++++++    ERROR #53   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 18:44:43
+   Topic #109: Next is the section with which the symbol is associated or *ABS* if the section is absolute (ie not connected with any section), or *UND* if the section is referenced in the .
+++++++++++++++++++++++    ERROR #54   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 21:58:50
+   Item #148: 可以在使用 `filename:` 指定文件的断点位置包括：行号、[.]
+++++++++++++++++++++++    ERROR #55   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 22:45:12
+   Topic #204: 继续执行程序
+++++++++++++++++++++++    ERROR #56   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 22:15:52
+   Topic #285: 三个与断点启用和禁用相关的指令分别是：`enable`、`disable`、`enable once`
+++++++++++++++++++++++    ERROR #57   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 22:59:36
+   Topic #876: watchpoint 在指定变量内存中的值变动时就会阻塞 GDB
+++++++++++++++++++++++    ERROR #58   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 22:33:56
+   Topic #880: 如果我们向以断点为单位执行指令跳转，可以使用什么指令？ continue
+++++++++++++++++++++++    ERROR #59   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 16:41:52
+   Topic #932: Beginners Guide to GCC
+++++++++++++++++++++++    ERROR #60   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 17:21:18
+   Topic #932: Beginners Guide to GCC
+++++++++++++++++++++++    ERROR #61   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 17:42:24
+   Topic #1,091: GCC Flag
+++++++++++++++++++++++    ERROR #62   ++++++++++++++++++++++
+   Registering a review in the timeline: 
+   Apr 30, 2022, 20:55:25
+   Topic #1,135: 断点的设置位置（location）也非常多变，位置包括以下几种： 当前文件下源代码的行号（可使用 filename: 指定文件）； 行号偏移量（± offset）； 代码的地址； 函数名，默认情况下所有同名函数都涵盖在其中（可使用 filename: 指定文件）； 标签，仅会在当前所选择的栈帧中搜索给定标签（可使用 function: 指定函数）； .
+Repetition history compressed from 92.469 kB to 73.983 kB
+Deleting temporary folders
+Deleting directory: d:\application\supermemo\systems\computer science\temp
+Removing empty collection directories
+
+Process completed at 11:59:52 AM in 00:01:33 sec (Sunday, May 1, 2022)
+
+62 ERRORS (Checking the integrity of the collection)
+
+____________________________________________________________

@@ -1,0 +1,16 @@
+The<SPAN>&nbsp;</SPAN><CODE><FONT face=NSimsun>ESP</FONT></CODE><SPAN>&nbsp;</SPAN>register is the 32-bit version of the 16-bit<SPAN>&nbsp;</SPAN><CODE><FONT face=NSimsun>SP</FONT></CODE><SPAN>&nbsp;</SPAN>register, but in the 32-bit architecture,<SPAN>&nbsp;</SPAN><CODE><FONT face=NSimsun>SS</FONT></CODE><SPAN>&nbsp;</SPAN>is irrelevant. So, let's talk about 16-bit first. A note about 32-bit is at the end of the post.</P>
+<P>In the 16-bit Intel x86 architecture:</P><SPAN class=extract>
+<UL>
+<LI>
+<P><CODE><FONT face=NSimsun>SS</FONT></CODE><SPAN>&nbsp;</SPAN>is the stack-segment register. It identifies the block of memory that will be used for the stack.</P>
+<LI>
+<P><CODE><FONT face=NSimsun>SP</FONT></CODE><SPAN>&nbsp;</SPAN>is the stack pointer register. It points to the precise location within the stack segment which is at any given moment the 'top' of the stack.</P></LI></UL></SPAN>
+<HR>
+<SPAN class=extract>
+<P>The 16-bit Intel architecture had a&nbsp;clunky mechanism for implementing 20-bit wide addresses by means of 16-bit 'segments' plus 16-bit 'offsets', so the<SPAN>&nbsp;</SPAN><CODE><FONT face=NSimsun>SS</FONT></CODE><SPAN>&nbsp;</SPAN>register would point to the stack segment, and the<SPAN>&nbsp;</SPAN><CODE><FONT face=NSimsun>SP</FONT></CODE><SPAN>&nbsp;</SPAN>register would hold the actual offset into the stack. We would say that the current stack location was at<SPAN>&nbsp;</SPAN><CODE><FONT face=NSimsun>SS:SP</FONT></CODE>.</P></SPAN>
+<P><SPAN class=extract>Naturally, you might wonder how come they were only able to have 20-bit wide addresses instead of 32-bit wide addresses, given that the segment register was 16-bit wide, and the offset register was another 16-bits wide. Well, this is part of why the architecture was clunky: the actual address represented by the SS:SP pair was not calculated as (SS &lt;&lt; 16) + SP, instead it was (SS &lt;&lt; 4) + SP. This means that the segments had a very high degree of overlap: even though each segment was 65536 bytes long, its start was only 16 bytes away from the start of the previous segment.</SPAN>
+<HR>
+</P>
+<P></P>
+<H2 id=bit-y3xa>32-bit</H2>
+<P><SPAN class=extract>In the 32-bit architecture, none of that matters, because the<SPAN>&nbsp;</SPAN><CODE><FONT face=NSimsun>ESP</FONT></CODE><SPAN>&nbsp;</SPAN>register is large enough to be capable of addressing the entire 32-bit memory address space by itself, with no need for any segment register. So if you are using the<SPAN>&nbsp;</SPAN><CODE><FONT face=NSimsun>ESP</FONT></CODE><SPAN>&nbsp;</SPAN>register you don't have to worry about the<SPAN>&nbsp;</SPAN><CODE><FONT face=NSimsun>SS</FONT></CODE><SPAN>&nbsp;</SPAN>register at all.</SPAN>

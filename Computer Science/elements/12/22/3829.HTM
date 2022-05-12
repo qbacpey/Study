@@ -1,0 +1,104 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>6.1 Multiprocessor Lock Performance</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Client-server applications often have ample parallelism for modern multicore architectures with dozens of processors. Each separate client request can be handled by a different thread running on a different processor; this is called </FONT><EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:request parallelism"}'>request parallelism</A></EM><FONT style="BACKGROUND-COLOR: #ffffff">. Likewise, server operating systems often have ample parallelism &#8211; applications with large numbers of threads can make a large number of concurrent system calls into the kernel. </FONT>
+<P>Even with ample request parallelism, however, performance can often be disappointing. Once locks and condition variables are added to a server application to allow it to process requests concurrently, throughput may be only slightly faster on a fifty-way multiprocessor than on a uniprocessor. Most often, this can be due to three causes: </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-79002x1 name=x1-79002x1></A>
+<P><B>Locking.</B> A lock implies mutual exclusion &#8212; only one thread at a time can hold the lock. As a result, access to a shared object can limit parallelism. </P>
+<LI class=enumerate><A id=x1-79004x2 name=x1-79004x2></A>
+<P><B>Communication of shared data.</B> The performance of a modern processor can vary by a factor of ten (or more) depending on whether the data needed by the processor is already in its cache or not. Modern processors are designed with large caches, so that almost all of the data needed by the processor will already be stored in the cache. On a uniprocessor, it is rare that the processor needs to wait. </P>
+<P>However, on a multiprocessor, the situation is different. Shared data protected by a lock will often need to be copied from one cache to another. Shared data is often in the cache of the processor that last held the lock, and it is needed in the cache of the processor that is next to acquire the lock. Moving data can slow critical section performance significantly compared to a uniprocessor. </P>
+<LI class=enumerate><A id=x1-79006x3 name=x1-79006x3></A>
+<P><B>False sharing.</B> A further complication is that the hardware keeps track of shared data at a fixed granularity, often in units of a cache entry of 32 or 64 bytes. This reduces hardware management overhead, but it can cause performance problems if multiple data structures with different sharing behavior fit in the same cache entry. This is called <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:false sharing"}'>false sharing</A></EM>.</P></LI></OL>
+<P>Fortunately, these effects can be reduced through careful design of shared objects. We caution, however, that you should keep your shared object design simple until you have proven, through detailed measurement, that a more complex design is necessary to achieve your performance target. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>The evolution of Linux kernel locking</I></B></SPAN> </P>
+<P>The first versions of Linux ran only on uniprocessor machines. To allow Linux to run on multiprocessors, version 2.0 introduced the Big Kernel Lock (BKL) &#8212; a single lock that protected all of the kernel&#8217;s shared data structures. The BKL allowed the kernel to function on multiprocessor machines, but scalability and performance were limited. So, over time, different subsystems and different data structures got their own locks, allowing them to be accessed without holding the BKL. </P>
+<P>By version 2.6, Linux has been highly optimized to run well on multiprocessor machines. It now has thousands of different locks, and researchers have demonstrated scalability for a range of benchmarks on a 48 processor machine. Still, the BKL remains in use in a few &#8212; mostly less performance-critical &#8212; parts of the Linux kernel, like the reboot system call, some older file systems, and some device drivers. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P>To illustrate these concepts, consider a web server with an in-memory cache of recently fetched pages. It is often faster to simply return a page from memory rather than regenerating it from scratch. For example, Google might receive a large number of searches for election results on election night, and there is little reason to do all of the work of a general search in that case. </P>
+<P>To implement caching of web pages, the server might have a shared data structure, such as a hash table on the search terms, to point to the cached page if it exists. The hash table is shared among the threads handling client requests, and therefore needs a lock. The hash table is updated whenever a thread generates a new page that is not in the cache. The code might also mark pages that have been recently fetched, to keep them in memory in preference to other requests that do not occur as frequently. </P>
+<P>An important question in this design is whether the single lock on the hash table will significantly limit server parallelism. How can we tell if the lock on a shared object is going to be a problem? </P>
+<P>A convenient approach is to derive a bound on the performance of a parallel program by assuming that the rest of the program is perfectly parallelizable &#8212; in other words, that the only limiting factor is that only one thread at a time can hold the shared lock. </P>
+<P><B>EXAMPLE: </B>Suppose that, on average, a web server spends 5% of each request accessing and manipulating its hash table of recently used web pages. If the hash table is protected by a single lock, what is the maximum possible throughput gain? </P>
+<P><B>ANSWER: </B>The time spent in the critical section is inherently sequential. If we assume all other parts of the server are perfectly parallelizable, then the maximum speedup is a <B>factor of 20</B> regardless of how many processors are used. &#9633; </P>
+<P>As we mentioned earlier, a further complication is that it can take much longer to fetch shared data on a multiprocessor because the data is unlikely to be in the processor cache. If the portion of the program holding the lock is slower on a multiprocessor than on a uniprocessor, the potential gain in throughput can be severely limited. </P>
+<P><B>EXAMPLE: </B>In the example above, what is the maximum throughput improvement if the hash table code runs four times slower on a multiprocessor due to the need to move shared data between processor caches? </P>
+<P><B>ANSWER: </B>The potential throughput improvement would be small even if a large number of processors are used. </P>
+<P><BR></P>
+<TABLE width="100%" border=0>
+<TBODY>
+<TR>
+<TD>
+<DIV align=center>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Throughput gain </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; &#8804; </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; 1&#8725;4 &#215; 0.05 </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; = </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; <B>5</B> </P></TD></TR></TBODY></TABLE></DIV></DIV></TD></TR></TBODY></TABLE><BR>&#9633; 
+<P>We can study the effect of cache behavior on multiprocessor performance with a simple experiment. The experiment is a intended only as an illustration; it is not meant a reflection of normal program behavior, but rather as a way of isolating the effect of hardware on the performance of code using shared objects. </P>
+<P>Suppose we set up an array of a thousand shared objects, where each object is a simple integer counter protected by a spinlock. (We use a spinlock rather than a lock to avoid measuring context switch time.) The program iterates through the array. For each item, it acquires the lock, increments the counter, and releases the lock. We repeat the loop a thousand times to improve measurement precision. </P>
+<P>Consider the following scenarios: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>One thread, one array.</B> When one thread iterates through the array, incrementing each counter in turn, the test gives the time it takes to acquire and release an array of uncontended locks. </P>
+<LI class=itemize>
+<P><B>Two threads, two arrays.</B> When two threads iterate through disjoint arrays, this gives the slowdown when doing work in parallel. On most architectures, there is little to no slowdown to parallel execution. </P>
+<LI class=itemize>
+<P><B>Two threads, one array.</B> When two threads iterate through the <EM>same</EM> array, each lock is acquired by a thread running on one processor, and then, shortly afterwards, acquired by a different thread running on a different processor. Thus, the performance illustrates the added cost of moving the shared object data from one processor to another. </P>
+<LI class=itemize>
+<P><B>Two threads, alternate elements of one array.</B> To measure the impact of false sharing, one thread can iterate through the array acquiring the odd entries, and the other thread can iterate through the array acquiring the even entries. If there was no effect to false sharing, this would be identical to the two array case &#8212; the threads never use the same data.</P></LI></UL><A id=x1-790071 name=x1-790071></A>
+<HR>
+
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>One thread, one array </P></TD>
+<TD class=td align=left>
+<P class=tabp>51.2 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Two threads, two arrays </P></TD>
+<TD class=td align=left>
+<P class=tabp>52.5 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Two threads, one array </P></TD>
+<TD class=td align=left>
+<P class=tabp>197.4 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>Two threads, alternating </P></TD>
+<TD class=td align=left>
+<P class=tabp>127.3 </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR></TBODY></TABLE></DIV>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;6.1: </B>Number of CPU cycles to execute a simple critical section to increment a counter. Measurements taken on a 64-core AMD Opteron 6262, with threads assigned to processor cores that do not share a cache. The performance difference between these cases largely disappears when threads are assigned to cores that share an L2 cache.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>Table&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-790071"}'>6.1</A> shows example results for a single multiprocessor, a 64-core AMD Opteron; the performance on different machines will vary. The threads were assigned to cores that do not share a cache. </P>
+<P>On this machine, there is very little slowdown in critical section performance when threads access disjoint locks. However, critical section execution time slows down by a factor of four when multiple processors access the same data. The slowdown is also significant when false sharing occurs. <A id=x1-79008r130 name=x1-79008r130></A></P><A id=x1-800002 name=x1-800002>

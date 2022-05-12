@@ -1,0 +1,135 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> di&#64256;erences of RISC and CISC</SPAN> 
+<P></P>
+<P></P>
+<P></P><STRONG><SPAN class=extract>
+<P><STRONG>Reduced Instruction Set Architecture (RISC) &#8211;</STRONG>&nbsp; </P>
+<P>The main idea behind this is to make hardware simpler by using an instruction set composed of a few basic steps for loading, evaluating, and storing operations just like a load command will load data, a store command will store the data</P>
+<P></SPAN></STRONG>.&nbsp;</P><STRONG><SPAN class=extract>
+<P><STRONG>Complex Instruction Set Architecture (CISC) &#8211;</STRONG>&nbsp; 
+<P>The main idea is that a single instruction will do all loading, evaluating, and storing operations just like a multiplication command will do stuff like loading data, evaluating, and storing it, hence it&#8217;s complex</P>
+<P></SPAN></STRONG>.&nbsp;</P><SPAN class=extract>
+<P>Both approaches try to increase the CPU performance&nbsp;</P>
+<UL>
+<LI><STRONG>RISC:</STRONG><SPAN>&nbsp;</SPAN>Reduce the cycles per instruction at the cost of the number of instructions per program.&nbsp; 
+<LI><STRONG>CISC:</STRONG><SPAN>&nbsp;</SPAN>The CISC approach attempts to minimize the number of instructions per program but at the cost of an increase in the number of cycles per instruction</LI></UL>
+<P></SPAN>.&nbsp;</P>
+<P><img alt="" src="https://media.geeksforgeeks.org/wp-content/uploads/Screenshot-210.png" width=526 height=68></P>
+<P><SPAN class=extract>Earlier when programming was done using assembly language, a need was felt to make instruction do more tasks because programming in assembly was tedious and error-prone due to which CISC architecture evolved but with the uprise of high-level language dependency on assembly reduced RISC architecture prevailed</SPAN>.&nbsp;</P>
+<DIV id=AP_G4GR_5></DIV><STRONG><SPAN class=extract>
+<P><STRONG>Characteristic of RISC &#8211;</STRONG>&nbsp;</P>
+<OL>
+<LI>Simpler instruction, hence simple instruction decoding. 
+<LI>Instruction comes undersize of one word. 
+<LI>Instruction takes a single clock cycle to get executed. 
+<LI>More general-purpose registers. 
+<LI>Simple Addressing Modes. 
+<LI>Fewer Data types. 
+<LI>A pipeline can be achieved</LI></OL>
+<P></SPAN></STRONG>.&nbsp;</P><STRONG><SPAN class=extract>
+<P><STRONG>Characteristic of CISC &#8211;</STRONG>&nbsp;</P>
+<OL>
+<LI>Complex instruction, hence complex instruction decoding. 
+<LI>Instructions are larger than one-word size. 
+<LI>Instruction may take more than a single clock cycle to get executed. 
+<LI>Less number of general-purpose registers as operations get performed in memory itself. 
+<LI>Complex Addressing Modes. 
+<LI>More Data types</LI></OL>
+<P></SPAN></STRONG>.&nbsp;</P>
+<P><STRONG>Example &#8211;</STRONG><SPAN>&nbsp;</SPAN>Suppose we have to add two 8-bit numbers:&nbsp;</P>
+<UL>
+<LI><STRONG>CISC approach:</STRONG><SPAN>&nbsp;</SPAN>There will be a single command or instruction for this like ADD which will perform the task. 
+<LI><STRONG>RISC approach:</STRONG><SPAN>&nbsp;</SPAN>Here programmer will write the first load command to load data in registers then it will use a suitable operator and then it will store the result in the desired location.</LI></UL>
+<P>So, add operation is divided into parts i.e. load, operate, store due to which RISC programs are longer and require more memory to get stored but require fewer transistors due to less complex command.&nbsp;</P>
+<P><STRONG>Difference &#8211;</STRONG>&nbsp;</P><FIGURE class=table>
+<P>
+<TABLE>
+<THEAD>
+<TR>
+<TH>RISC</TH>
+<TH>CISC</TH></TR></THEAD>
+<TBODY>
+<TR>
+<TD><SPAN class=extract>Focus on software</SPAN></TD>
+<TD><SPAN class=extract>Focus on hardware</SPAN></TD></TR>
+<TR>
+<TD>Uses only Hardwired control unit</TD>
+<TD>Uses both hardwired and microprogrammed control unit</TD></TR>
+<TR>
+<TD>Transistors are used for more registers</TD>
+<TD>Transistors are used for storing complex&nbsp;Instructions</TD></TR>
+<TR>
+<TD>Fixed sized instructions</TD>
+<TD>Variable sized instructions</TD></TR>
+<TR>
+<TD><SPAN class=extract>Can perform only Register to Register Arithmetic operations</SPAN></TD>
+<TD><SPAN class=extract>Can perform REG to REG or REG to MEM or MEM to MEM</SPAN></TD></TR>
+<TR>
+<TD>Requires more number of registers</TD>
+<TD>Requires less number of registers</TD></TR>
+<TR>
+<TD>Code size is large</TD>
+<TD>Code size is small</TD></TR>
+<TR>
+<TD><SPAN class=extract>An instruction executed in a single clock cycle</SPAN></TD>
+<TD><SPAN class=extract>Instruction takes more than one clock cycle</SPAN></TD></TR>
+<TR>
+<TD>An instruction fit in one word</TD>
+<TD>Instructions are larger than the size of one word</TD></TR></TBODY></TABLE></P></FIGURE>
+<P>&nbsp;</P>
+<P>A<SPAN>&nbsp;</SPAN><STRONG>microprocessor</STRONG><SPAN>&nbsp;</SPAN>is a processing unit on a single chip. It is an integrated circuit that performs the core functions of a computer CPU. It is a multipurpose programmable silicon chip constructed using Metal Oxide Semiconductor (MOS) technology which is clock-driven and register-based. It accepts binary data as input and provides output after processing it as per the specification of instructions stored in the memory. These microprocessors are capable of processing 128 bits at a time at the speed of one billion instructions per second.&nbsp;</P>
+<P><STRONG>Characteristics of a microprocessor:</STRONG>&nbsp;</P>
+<UL>
+<LI><STRONG>Instruction Set &#8211;</STRONG>&nbsp; 
+<P>The set of complete instructions that the microprocessor executes is termed the instruction set.</P>
+<LI><STRONG>Word Length &#8211;</STRONG>&nbsp; 
+<P>The number of bits processed in a single instruction is called word length or word size. Greater the word size, the larger the processing power of the CPU.</P>
+<LI><STRONG>System Clock Speed &#8211;</STRONG>&nbsp; 
+<P>Clock speed determines how fast a single instruction can be executed in a processor. The microprocessor&#8217;s pace is controlled by the System Clock. Clock speeds are generally measured in millions of cycles per second (MHz) and thousand million cycles per second (GHz). Clock speed is considered to be a very important aspect of predicting the performance of a processor.</P></LI></UL>
+<P><STRONG>Classification of Microprocessors:</STRONG>&nbsp; 
+<P>Besides the classification based on the word length, the classification is also based on the architecture i.e. Instruction Set of the microprocessor. These are categorized into RISC and CISC.&nbsp;</P>
+<OL>
+<LI><STRONG>RISC:&nbsp;</STRONG> 
+<P>It stands for Reduced Instruction Set Computer. It is a type of microprocessor architecture that uses a small set of instructions of uniform length. These are simple instructions that are generally executed in one clock cycle. RISC chips are relatively simple to design and inexpensive. The setback of this design is that the computer has to repeatedly perform simple operations to execute a larger program having a large number of processing operations.&nbsp; 
+<P><STRONG>Examples:</STRONG><SPAN>&nbsp;</SPAN>SPARC, POWER PC, etc.</P>
+<LI><STRONG>CISC:</STRONG>&nbsp; 
+<P><SPAN class=extract>It stands for Complex Instruction Set Computer. These processors offer the users, hundreds of instructions of variable sizes. CISC architecture includes a complete set of special-purpose circuits that carry out these instructions at a very high speed. These instructions interact with memory by using complex addressing modes. CISC processors reduce the program size and hence lesser number of memory cycles are required to execute the programs. This increases the overall speed of execution</SPAN>.&nbsp; 
+<P><STRONG>Examples:<SPAN>&nbsp;</SPAN></STRONG>Intel architecture, AMD</P>
+<LI><STRONG>EPIC:</STRONG>&nbsp; 
+<P>It stands for Explicitly Parallel Instruction Computing. The best features of RISC and CISC processors are combined in the architecture. It implements parallel processing of instructions rather than using fixed-length instructions. The working of EPIC processors is supported by using a set of complex instructions that contain both basic instructions as well as the information of execution of parallel instructions. It substantially increases the efficiency of these processors.</P></LI></OL>
+<P>Below are a few differences between RISC and CISC:&nbsp;</P>
+<P><FIGURE class=table>
+<TABLE>
+<THEAD>
+<TR>
+<TH>CISC</TH>
+<TH>RISC</TH></TR></THEAD>
+<TBODY>
+<TR>
+<TD>A large number of instructions are present in the architecture.</TD>
+<TD>Very few instructions are present. The number of instructions is generally less than 100.</TD></TR>
+<TR>
+<TD>Some instructions with long execution times. These include instructions that copy an entire block from one part of memory to another and others that copy multiple registers to and from memory.</TD>
+<TD>No instruction with a long execution time due to a very simple instruction set. Some early RISC machines did not even have an integer multiply instruction, requiring compilers to implement multiplication as a sequence of additions.</TD></TR>
+<TR>
+<TD>Variable-length encodings of the instructions.&nbsp; 
+<P><STRONG>Example:</STRONG><SPAN>&nbsp;</SPAN>IA32 instruction size can range from 1 to 15 bytes.</P></TD>
+<TD>Fixed-length encodings of the instructions are used.&nbsp; 
+<P><STRONG>Example:</STRONG><SPAN>&nbsp;</SPAN>In IA32, generally all instructions are encoded as 4 bytes.</P></TD></TR>
+<TR>
+<TD><FONT style="BACKGROUND-COLOR: #7be1e1">Multiple formats are supported for specifying operands. A memory operand specifier can have many different combinations of displacement, base, and index register.</FONT></TD>
+<TD><FONT style="BACKGROUND-COLOR: #7be1e1">Simple addressing formats are supported. Only base and displacement addressing is allowed.</FONT></TD></TR>
+<TR>
+<TD>CISC supports array.</TD>
+<TD>RISC does not support an array.</TD></TR>
+<TR>
+<TD><FONT style="BACKGROUND-COLOR: #7be1e1">Arithmetic and logical operations can be applied to both memory and register operands.</FONT></TD>
+<TD><FONT style="BACKGROUND-COLOR: #7be1e1">Arithmetic and logical operations only use register operands. Memory referencing is only allowed by loading and storing instructions, i.e. reading from memory into a register and writing from a register to memory respectively.</FONT></TD></TR>
+<TR>
+<TD>Implementation programs are hidden from machine-level programs. The ISA provides a clean abstraction between programs and how they get executed.</TD>
+<TD>Implementation programs exposed to machine-level programs. Few RISC machines do not allow specific instruction sequences.</TD></TR>
+<TR>
+<TD>Condition codes are used.</TD>
+<TD>No condition codes are used.</TD></TR>
+<TR>
+<TD><FONT style="BACKGROUND-COLOR: #7be1e1">The stack is being used for procedure arguments and returns addresses.</FONT></TD>
+<TD><FONT style="BACKGROUND-COLOR: #7be1e1">Registers are being used for procedure arguments and return addresses. Memory references can be avoided by some procedures</FONT>.</TD></TR></TBODY></TABLE></FIGURE>

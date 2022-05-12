@@ -1,0 +1,54 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : </FONT></STRONG>
+<H3 class=likesectionHead>Exercises</H3></A>
+<P></P>
+<OL class=problems>
+<P>For some of the following problems, you will need to download the thread library from <A href="http://ospp.cs.washington.edu/instructor.html">http://ospp.cs.washington.edu/instructor.html</A>. The comment at the top of threadHello.c explains how to compile and run a program that uses this library. </P>
+<P></P>
+<LI>Download threadHello.c, compile it, and run it several times. What happens when you run it? Do you get the same result if you run it multiple times? What if you are also running some other demanding processes (e.g., compiling a big program, playing a Flash game on a website, or watching streaming video) when you run this program? 
+<P></P>
+<P></P>
+<LI>For the threadHello program in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-170016"}'>4.6</A>, suppose that we delete the second for loop so that the main routine simply creates NTHREADS threads and then prints &#8220;Main thread done.&#8221; What are the possible outputs of the program now. <B>Hint:</B> Fewer than NTHREADS+1 lines may be printed in some runs. Why? 
+<P></P>
+<P></P>
+<LI>How expensive are threads? Write a program that times how long it takes to create and then join 1000 threads, where each thread simply calls thread_exit(0) as soon as it starts running. 
+<P></P>
+<LI>Write a program that has two threads. Make the first thread a simple loop that continuously increments a counter and prints a period (&#8220;.&#8221;) whenever the value of that counter is divisible by 10,000,000. Make the second thread repeatedly wait for the user to input a line of text and then print &#8220;Thank you for your input.&#8221; On your system, does the first thread makes rapid progress? Does the second thread respond quickly? <A id=x1-3800119 name=x1-3800119></A>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00399.gif" data-calibre-src="OEBPS/Images/image00399.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;4.19: </B>Matrix multiplication.</P></TD></TR></TBODY></TABLE>
+<HR>
+
+<P></P>
+<LI>Write a program that uses threads to perform a parallel matrix multiply. To multiply two matrices, C = A * B, the result entry C<SUB>(i,j)</SUB> is computed by taking the dot product of the ith row of A and the jth column of B: C<SUB>i,j</SUB> = &#931;<SUB>k=0</SUB><SUP>N-1</SUP>A<SUB>(i,k)</SUB>B<SUB>(k,j)</SUB>. We can divide the work by creating one thread to compute each value (or each row) in C, and then executing those threads on different processors in parallel, as shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-3800119"}'>4.19</A>. 
+<P></P>
+<LI>Write a program that uses threads to perform a parallel merge sort. 
+<P></P>
+<LI>For the threadHello program in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-170016"}'>4.6</A>, the procedure go() has the parameter np and the local variable n. Are these variables <EM>per-thread</EM> or <EM>shared</EM> state? Where does the compiler store these variables&#8217; states? 
+<P></P>
+<P></P>
+<LI>For the threadHello program in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-170016"}'>4.6</A>, the procedure main() has local variables such as i and exitValue. Are these variables <EM>per-thread</EM> or <EM>shared</EM> state? Where does the compiler store these variables? 
+<P></P>
+<P></P>
+<LI>In the <EM>thread-local variables</EM> sidebar, we described how many thread systems have this type of per-thread state. 
+<P>Describe how you would implement thread-local variables. Each thread should have an array of 1024 pointers to its thread-local variables. </P>
+<P></P>
+<OL class=subproblems>
+<LI>What would you add to the TCB? 
+<LI>How would you change the thread creation procedure? (For simplicity, assume that when a thread is created, all 1024 entries should be initialized to NULL.) 
+<LI>How would a running thread allocate a new thread-local variable? 
+<LI>In your design, how would a running thread access a particular thread-local variable? </LI></OL>
+<P></P>
+<P></P>
+<LI>For the threadHello program, what is the minimum and maximum number of times that the main thread enters the WAITING&nbsp;state? 
+<P></P>
+<LI>Using simple threads, write a program that creates several threads and then determines whether the threads package on your system allocates a fixed-size stack for each thread or whether each thread&#8217;s stack starts at some small size and dynamically grows as needed. 
+<P><B>Hints:</B> You probably want to write a recursive procedure that you can use to consume a large amount of stack memory. You may also want to examine the addresses of variables allocated to different threads&#8217; stacks. Finally, you may want to be able to determine how much memory has been allocated to your process; most operating systems have a command or utility that can show the resource consumption of currently running processes (e.g., top in Linux, Activity Monitor in OSX, or Task Manager in Windows). </P>
+<P></P></LI></OL>
+<P>
+<DIV style="break-after: always; -webkit-column-break-after: always"></DIV><BR><BR><BR>
+<P></P><A id=x1-390005 name=x1-390005>

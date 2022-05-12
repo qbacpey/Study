@@ -1,0 +1,291 @@
+<H1 class=entry-title><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Beginners Guide to GCC</SPAN></FONT></H1>
+<DIV id=primary class=content-area>
+<DIV class=entry-body>
+<DIV class=entry-content>
+<P></P>
+<P>
+<P>GCC is the default compiler in the GNU+Linux systems, and is used to compile small applications, big softwares, and the kernel. Often beginners are overwhelmed with the amount of information provided in the gcc manual. This tutorial highlights the most useful commands and describes how to use them, how to read warnings and errors from the compiler output and compile the C Language sourcecodes with gcc. This tutorial does not cover advanced options and topics, in depth details are avoided. This tutorial will give the basic idea, and after reading this i hope that the manual pages would be easier to read.</P>
+<P><SPAN id=more-600></SPAN></P>
+<H3>Index</H3>
+<OL>
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#gtsr">Get the system ready</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#hgcc">Hello GCC</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#ntof">Naming the output file: The -o Flag</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#smws">Show more warnings: The -Wall, -Wextra, -Werror options</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#mcmo">Multifile compilation and making objects: The -c option</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#lwsl">Linking with system library: The -l, -L and -I options</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#mksl">Making a Shared library: The -shared option</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#stln">Static Linking: The -static option</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#aboo">A bit of Optimization: The -O switches</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#debg">Debug : The -g switch</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#more">And More</A> 
+<LI><A href="https://phoxis.org/2009/12/01/beginners-guide-to-gcc/#refn">References</A></LI></OL>
+<P><A name=gtsr></A></P>
+<H3>Get the system ready</H3>
+<P>We will learn how to compile a C Language source file with the gcc that is the GNU project C and C++ compiler or the GNU compiler collection. In order to use gcc you need to ensure that gcc is installed in your system. To check if you have gcc installed or not execute the below command from a shell.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc --version
+</PRE>
+<P>If you have gcc installed then you would get the version number and a copyright message as an output, which would be similar as below.</P><PRE title="" class="brush: plain; light: true; title: ; notranslate"><FONT size=2>gcc (GCC) 4.3.2 20081105 (Red Hat 4.3.2-7)
+Copyright (C) 2008 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</FONT>
+</PRE>
+<P>If you do not have gcc installed then the shell will say that the command is not found.</P><PRE title="" class="brush: plain; light: true; title: ; notranslate">bash: gcc: command not found
+</PRE>
+<P>To install gcc check your distribution&#8217;s development repository and install gcc</P>
+<P>Now we will see the basic compilation methods with gcc.</P>
+<P><A name=hgcc></A></P>
+<H3>Hello GCC</H3>
+<P>First let us write a simple C Language code, and the most common &#8220;Hello World&#8221; one. Type in the below code in a file with your favorite text editor (mine is KWrite) and save it as &#8216;hello.c&#8217; .</P><PRE title="" class="brush: cpp; title: ; notranslate">#include &lt;stdio.h&gt;
+
+int main (void)
+{
+  printf ("Hello GCC!\n");
+  return 0;
+}
+</PRE>
+<P>To compile a code in gcc you need to pass the file name and some options to the gcc program in command line. <SPAN class=extract></P>
+<P>The general format of the gcc command is</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc &lt;options&gt; &lt;files&gt; &lt;options&gt;
+</PRE></SPAN>
+<P>We will compile &#8216;hello.c&#8217; in the most simple manner. Compile &#8216;hello.c&#8217; with the below command.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc hello.c
+</PRE>
+<P>This command simply tells to compile &#8216;hello.c&#8217; file. No options are applied in this command. After the command has completed you notice that a new file is created in the directory named &#8216;a.out&#8217; . This is the executable file of the &#8216;hello.c&#8217; source code. Run it as shown below.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">./a.out
+</PRE>
+<P>And you will get &#8220;Hello GCC!&#8221; , as output. The command tells the shell to execute the file &#8216;a.out&#8217; which is in the current directory &#8216;.&#8217; . (single dot is current directory, double dot is previous directory).</P>
+<P>We have succeeded compiling a source file. But what if it contains errors? To check what it does open &#8216;hello.c&#8217; again and then intentionally make a mistake , say remove the &#8216;<TT>;</TT>&#8216; (semicolon) after the<SPAN>&nbsp;</SPAN><TT>printf</TT><SPAN>&nbsp;</SPAN>statement, and then compile the code again. The erroneous code is shown below.</P><PRE title="" class="brush: cpp; highlight: [5]; title: ; notranslate">#include &lt;stdio.h&gt;
+
+void main (void)
+{
+  printf ("Hello GCC!\n") /* Intentional Error */
+  return 0;
+}
+</PRE>
+<P>If you compile the above code it will now show the below message.</P><PRE title="" class="brush: plain; light: true; title: ; notranslate"><FONT size=2>  hello.c: In function &#8216;main&#8217;:
+       hello.c:6: warning: &#8216;return&#8217; with a value, in function returning void
+      hello.c:4: warning: return type of &#8216;main&#8217; is not &#8216;int&#8217;</FONT>
+</PRE>
+<P>In the error message, the first line tells there is some problem in the main function in &#8216;hello.c&#8217; file. The second line tells the problem stated above is an<SPAN>&nbsp;</SPAN><B>error</B><SPAN>&nbsp;</SPAN>in the<SPAN>&nbsp;</SPAN><B>6<SUP>th</SUP></B><SPAN>&nbsp;</SPAN>line, and the error is then described. It says<SPAN>&nbsp;</SPAN><TT>expected &#8216;;&#8217; before &#8216;return&#8217;</TT><SPAN>&nbsp;</SPAN>. The sixth line contains the<SPAN>&nbsp;</SPAN><TT>return</TT><SPAN>&nbsp;</SPAN>statement, and the compiler has found an error<SPAN>&nbsp;</SPAN><EM>before</EM><SPAN>&nbsp;</SPAN>that line and expects a semicolon &#8216;<TT>;</TT>&#8216; . Open the file and you can note where the error is easily; &#8212; no semicolon after the<SPAN>&nbsp;</SPAN><TT>printf</TT><SPAN>&nbsp;</SPAN>statement. The last line warns that though the return type of function &#8216;main&#8217; is &#8216;void&#8217; , it returns an &#8216;int&#8217; .</P>
+<P>With the line number provided in the error message you can use your text editor to directory jump to the error location and fix it. Keeping the line numbers on in the text editor helps far more to trace errors. To show the line numbers in<SPAN>&nbsp;</SPAN><TT>KWrite</TT><SPAN>&nbsp;</SPAN>press<SPAN>&nbsp;</SPAN><TT>F11</TT>. In<SPAN>&nbsp;</SPAN><TT>vim</TT><SPAN>&nbsp;</SPAN>switch to command mode and key in<SPAN>&nbsp;</SPAN><TT>set number</TT><SPAN>&nbsp;</SPAN>to show line numbers, and<SPAN>&nbsp;</SPAN><TT>set nonumber</TT><SPAN>&nbsp;</SPAN>to unset. To jump to a line number say 156, press<SPAN>&nbsp;</SPAN><TT>Ctrl + G</TT><SPAN>&nbsp;</SPAN>in<SPAN>&nbsp;</SPAN><TT>KWrite</TT><SPAN>&nbsp;</SPAN>and enter 156 in the Goto box and press enter to land on that line number. In<SPAN>&nbsp;</SPAN><TT>vim</TT><SPAN>&nbsp;</SPAN>enter type the line number 156 and press &#8216;<TT>g</TT>&#8216; twice when in command mode.</P>
+<P>This was a basic demonstration of error reporting. For each error or warning the source file name will be told, and then the name of the function where the error occurs, and also the line number.</P>
+<P>Now we have learned to compile C Language programs with gcc. We will explore some more flags.</P>
+<P><A name=ntof></A></P>
+<H3>Naming the output file: The -o Flag</H3>
+<P>In the previous example after we compiled &#8216;hello.c&#8217; the executable file which was created was named &#8216;a.out&#8217; by default. Definitely you will not like such a name for an executable which you are going to distribute or make use. <SPAN class=extract>Although you can always rename the executable file name but we will now talk about the<SPAN>&nbsp;</SPAN><TT>-o</TT><SPAN>&nbsp;</SPAN>switch which will let you name the executable when compiling the source file. This switch is used to supply the &#8220;output&#8221; file name and location of the compiled result</SPAN>. We will now specify a name (and path) of the executable binary with the help of the<SPAN>&nbsp;</SPAN><TT>-o</TT><SPAN>&nbsp;</SPAN>switch.</P><SPAN class=extract>
+<P>We will name the executable file &#8216;<TT>hello</TT>&#8216; . To do this we will use the<SPAN>&nbsp;</SPAN><TT>-o</TT><SPAN>&nbsp;</SPAN>switch as below.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc hello.c -o hello
+</PRE></SPAN>
+<P>The above will create a binary executable named &#8216;hello&#8217; in the current directory instead of a.out. Now you can execute<SPAN>&nbsp;</SPAN><TT>./hello</TT><SPAN>&nbsp;</SPAN>to execute the program. You can name the binary file with any name, and can also specify a path. <SPAN class=extract></P>
+<P>For example if you want to place the executable in your<SPAN>&nbsp;</SPAN><TT>home/bin</TT><SPAN>&nbsp;</SPAN>directory and name it &#8216;hi&#8217; instead of &#8216;hello&#8217; , then you should execute</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc hello.c -o ~/bin/hi
+</PRE></SPAN>
+<P>(Note: the output file can be anything a binary executable, an object file, or assembly, or preprocessed. depending on -c -E or -S switch used.)</P>
+<P><A name=smws></A></P>
+<H3>Show more warnings: The -Wall, -Wextra, -Werror options</H3>
+<P><SPAN class=extract>Now we will use another flag<SPAN>&nbsp;</SPAN><TT>-Wall</TT><SPAN>&nbsp;</SPAN>(Note the uppercase &#8216;W&#8217;). This is used to show all the warnings</SPAN>. (To know what options are enabled refer the man-page). Normally, without this switch the gcc will also show warnings, as we saw in the previous example when it warned about the return type of main. This option shows even more warnings. Actually gcc has a variety of warning flags, some of which are enabled by default, and you will get them when you normally compile without the warning flags. But the<SPAN>&nbsp;</SPAN><TT>-Wall</TT><SPAN>&nbsp;</SPAN>flag turns all almost all the warning flags , which will show each and every suspicious activity in the code.</P>
+<P>Consider an error enriched program to add two numbers below. Name this file &#8216;<TT>add.c</TT>&#8216;</P><PRE title="" class="brush: cpp; highlight: [16,18]; title: ; notranslate">#include &lt;stdio.h&gt;
+
+int main(void)
+{
+  int a, b;
+  unsigned int c;
+
+  printf ("\nEnter a: ");
+  scanf ("%d",&amp;a);
+
+  printf ("\nEnter b: ");
+  scanf ("%ld",&amp;b);
+
+  c = a + b;
+
+  printf ("\n%d + %d = %d\n",a,b);
+
+  if ((a == c) &amp;&amp; (b == c))
+    printf ("\na , b , and c are same!");
+
+  return 0;
+}
+</PRE><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc add.c -o add
+</PRE>
+<P>The compilation of the above &#8216;add.c&#8217; without any flags, would be perfect, without any warnings. Run the program, enter two simple integers, say 10 and 20, and the answer would be wrong.</P>
+<P>Now compile the program with the<SPAN>&nbsp;</SPAN><TT>-Wall</TT><SPAN>&nbsp;</SPAN>flag.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc add.c -o add -Wall
+</PRE>
+<P>Now you can see the picture, two warnings, in<SPAN>&nbsp;</SPAN><TT>main</TT><SPAN>&nbsp;</SPAN>function of &#8216;add.c&#8217; source file. One in line 12 another in line 16. The message is shown below.</P><PRE title="" class="brush: plain; light: true; title: ; notranslate"><FONT size=2>add.c: In function &#8216;main&#8217;:
+add.c:12: warning: format &#8216;%ld&#8217; expects type &#8216;long int *&#8217;, but argument 2 has type &#8216;int *&#8217;
+add.c:16: warning: too few arguments for format</FONT>
+</PRE>
+<P>Notice in line 12 the format specifier in the<SPAN>&nbsp;</SPAN><TT>printf</TT><SPAN>&nbsp;</SPAN>statement is<SPAN>&nbsp;</SPAN><TT>%ld</TT><SPAN>&nbsp;</SPAN>(<TT>long int</TT>) but the corresponding variable is of<SPAN>&nbsp;</SPAN><TT>int</TT><SPAN>&nbsp;</SPAN>type. In line 16 there are three format specifiers in the<SPAN>&nbsp;</SPAN><TT>printf</TT><SPAN>&nbsp;</SPAN>format string, but only two variables are there in the variable list. Correct these problems and compile with<SPAN>&nbsp;</SPAN><TT>-Wall</TT><SPAN>&nbsp;</SPAN>flag, and the compilation will be successful.</P>
+<P></P>
+<P><SPAN class=extract>Almost all the warnings are enabled by the<SPAN>&nbsp;</SPAN><TT>-Wall</TT><SPAN>&nbsp;</SPAN>flag. The<SPAN>&nbsp;</SPAN><TT>-Wextra</TT><SPAN>&nbsp;</SPAN>flag enables some more warning condition flags, and shows you more</SPAN>. (To know about which warning flags are enabled by<SPAN>&nbsp;</SPAN><TT>-Wextra</TT><SPAN>&nbsp;</SPAN>check the gcc man-page.)</P>
+<P>Now if you compile the corrected &#8216;add.c&#8217; with the<SPAN>&nbsp;</SPAN><TT>-Wextra</TT><SPAN>&nbsp;</SPAN>flag you will have another warning shown.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate"><FONT size=2>gcc add.c -o add -Wall -Wextra
+</FONT></PRE><PRE title="" class="brush: plain; light: true; title: ; notranslate"><FONT size=2>add.c: In function &#8216;main&#8217;:
+add.c:18: warning: comparison between signed and unsigned
+add.c:18: warning: comparison between signed and unsigned</FONT>
+</PRE>
+<P>The<SPAN>&nbsp;</SPAN><B>18<SUP>th</SUP></B><SPAN>&nbsp;</SPAN>line which detects if all the integers are same, compares variable<SPAN>&nbsp;</SPAN><TT>a</TT><SPAN>&nbsp;</SPAN>with<SPAN>&nbsp;</SPAN><TT>c</TT><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><TT>b</TT><SPAN>&nbsp;</SPAN>with<SPAN>&nbsp;</SPAN><TT>c</TT>.<SPAN>&nbsp;</SPAN><TT>a</TT><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><TT>b</TT><SPAN>&nbsp;</SPAN>are signed integers and<SPAN>&nbsp;</SPAN><TT>c</TT><SPAN>&nbsp;</SPAN>is unsigned, so comparison between signed and unsigned integers triggers this warning. Change the variable type of<SPAN>&nbsp;</SPAN><TT>c</TT><SPAN>&nbsp;</SPAN>from<SPAN>&nbsp;</SPAN><TT>unsigned int</TT><SPAN>&nbsp;</SPAN>to<SPAN>&nbsp;</SPAN><TT>int</TT><SPAN>&nbsp;</SPAN>and the warning goes off. Note that the warning is shown twice in line 18. This signifies that the there two problems of the same kind in the same line (line 18).</P>
+<P></P>
+<P><SPAN class=extract>The<SPAN>&nbsp;</SPAN><TT>-Werror</TT><SPAN>&nbsp;</SPAN>switch tells the compiler to interpret the warnings as errors. With this switch, each warning will be shown as if it is an error and the program will not be compiled</SPAN>. Copy-Paste the &#8220;error enriched&#8221; &#8216;add.c&#8217; code so that the horrible warnings show again, and then compile the code with the<SPAN>&nbsp;</SPAN><TT>-Werror</TT><SPAN>&nbsp;</SPAN>flag to see how it behaves.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc add.c -o add -Wall -Wextra -Werror
+</PRE>
+<P>The compiler message is shown below, note all the warnings are now reported as errors.</P><PRE title="" class="brush: plain; light: true; title: ; notranslate"><FONT size=2>cc1: warnings being treated as errors
+add.c: In function &#8216;main&#8217;:
+add.c:12: error: format &#8216;%ld&#8217; expects type &#8216;long int *&#8217;, but argument 2 has type &#8216;int *&#8217;
+add.c:16: error: too few arguments for format
+add.c:18: error: comparison between signed and unsigned
+add.c:18: error: comparison between signed and unsigned</FONT>
+</PRE>
+<P>Although keeping warnings does not bar the code to run, and most of the time it runs fine. But sometimes the cause of the warnings create some fault in the code under some specific condition (a bug), and crashes the program or makes it behave strangely. Like uninitialized variables flags, unallocated pointers etc. When compiling a code with some script or make file, say when installing an application from source, the author cannot see whats showing in the screen, the user could make some changes to the sources before he/she compiles it, and which might result in a warning, which layer could prove to be a costly one because the application will just compile and generate the binary. In this case making the make file or other script with adding the<SPAN>&nbsp;</SPAN><TT>-Werror</TT><SPAN>&nbsp;</SPAN>flag in the compiler flag list would forbid compilation and stop, and no binaries would be generated.</P>
+<P></P>
+<P><SPAN class=extract>There is another switch the<SPAN>&nbsp;</SPAN><TT>-w</TT><SPAN>&nbsp;</SPAN>which suppresses all the warnings, even the normal and general ones</SPAN>.</P>
+<P>In the previous examples we have used all the flags as we kept introducing it. But remember you not necessarily need to use all the flags when compiling. Use only those which are needed.</P>
+<P><A name=mcmo></A></P>
+<H3>Multifile compilation and making objects: The -c option</H3>
+<P>Long programs are generally written as modules and the different modules with functions and all are kept in different files. When compiling we need to compile these codes at once. We can do these in some ways. 
+<P>The first way and the most simple one is to pass all those multiple files to the gcc command-line. For example consider the two C Language source files below.</P><PRE title="" class="brush: cpp; title: ; notranslate"><FONT size=2>/* File name : "prog.c" */
+#include &lt;stdio.h&gt;                       
+
+/* This is the function prototype of 
+ * my_function() which is defined in my_fun.c
+ */
+void my_function (void);
+
+int main (void)
+{
+  printf ("This is the main function");
+  printf ("\nNow calling \"my_function()\" .");
+
+  /* This function is defined in my_fun.c file */
+  my_function ();
+
+  printf ("\nProgram is now in main function again");
+
+  return 0;
+}
+</FONT></PRE><PRE title="" class="brush: cpp; title: ; notranslate"><FONT size=2>/* File name : "my_fun.c" */
+#include &lt;stdio.h&gt;
+
+void my_function (void)
+{
+  printf ("\n0_o OmG! the function is now in \"my_function ()\" !");
+  printf ("\nBut this was not in the file \"prog.c\"");
+  printf ("\nIt is in \"my_fun.c\"");
+  printf ("\nEnough, now returning control again to \"main ()\"");
+}</FONT>
+</PRE>
+<P>The file<SPAN>&nbsp;</SPAN><TT>prog.c</TT><SPAN>&nbsp;</SPAN>only defines the function<SPAN>&nbsp;</SPAN><TT>main</TT><SPAN>&nbsp;</SPAN>and contains a function call to<SPAN>&nbsp;</SPAN><TT>my_function()</TT><SPAN>&nbsp;</SPAN>which is not present in that file. The function prototype is declared at the top, that tells the compiler that the call to<SPAN>&nbsp;</SPAN><TT>my_function()</TT><SPAN>&nbsp;</SPAN>will be done in future. The<SPAN>&nbsp;</SPAN><TT>my_fun.c</TT><SPAN>&nbsp;</SPAN>file contains the definition of the<SPAN>&nbsp;</SPAN><TT>my_function()</TT><SPAN>&nbsp;</SPAN>. If you just compile the<SPAN>&nbsp;</SPAN><TT>prog.c</TT><SPAN>&nbsp;</SPAN>file with<SPAN>&nbsp;</SPAN><TT>gcc prog.c -o prog</TT><SPAN>&nbsp;</SPAN>the it would show you a<SPAN>&nbsp;</SPAN><EM>linker</EM><SPAN>&nbsp;</SPAN>error. Note this is not a compiler error because the compilation was fine as we have already declared the prototype and told the compiler about the<SPAN>&nbsp;</SPAN><TT>my_function()</TT>. We will now describe below on how to compiler these two files.</P>
+<P>To compile the above multifile program we will simply pass both the files to the gcc command line as below, and you will get the binary executable<SPAN>&nbsp;</SPAN><TT>prog</TT><SPAN>&nbsp;</SPAN>in the current directory.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc prog.c my_fun.c -o prog
+</PRE>
+<P>There is a problem for some large number of files in a big projects. You have to compile all the files each time you make an update, it may be a tiny update to only one file. If you have developed a certain module then it is obvious it will not undergo regular changes and do not need to be compiled each an every time some other module gets updated. For this separate modules/files are compiled separately and kept as object code, and then to build the application we only just need to link the object codes. For example if you already have 500 object code models, and you under go some changes in some other files which uses functions from these modules, then you only need to compile the code, and then link it to the object files in-order to make an executable.</P>
+<P>In our test case we have two files. We will compile the<SPAN>&nbsp;</SPAN><TT>prog.c</TT><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><TT>my_fun.c</TT><SPAN>&nbsp;</SPAN>as objects with the<SPAN>&nbsp;</SPAN><TT>-c</TT><SPAN>&nbsp;</SPAN>switch, and then link the object files to make a binary. The process is described below.</P>
+<P>Run the below commands to compile and make the object files of the C Language codes.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc -c prog.c -o prog.o
+gcc -c my_fun.c -o my_fun.o
+</PRE>
+<P><SPAN class=extract>The<SPAN>&nbsp;</SPAN><TT>-c</TT><SPAN>&nbsp;</SPAN>switch compiles the source codes and then makes an object file and names them as specified. The<SPAN>&nbsp;</SPAN><TT>-o</TT><SPAN>&nbsp;</SPAN>switch here is used to name the output object code files. The<SPAN>&nbsp;</SPAN><TT>.o</TT><SPAN>&nbsp;</SPAN>extension is normally used to denote object file<SPAN>&nbsp;</SPAN></SPAN>.</P>
+<P>Now you will have two object files named<SPAN>&nbsp;</SPAN><TT>prog.o</TT><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><TT>my_fun.o</TT><SPAN>&nbsp;</SPAN>in the current working directory. We will have to link these together in order to have an executable.</P>
+<P>We can link these two files and make the executable with the command below.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc prog.o my_fun.o -o nprog
+</PRE>
+<P>This is the same command to compile two C Language source files, but instead we use the object files. The<SPAN>&nbsp;</SPAN><TT>-o</TT><SPAN>&nbsp;</SPAN>tag here also has the same meaning. You can execute the binary now.</P>
+<P>Let us change some code in the<SPAN>&nbsp;</SPAN><TT>main</TT><SPAN>&nbsp;</SPAN>function and add another line to print. We will add a line before the<SPAN>&nbsp;</SPAN><TT>my_function()</TT><SPAN>&nbsp;</SPAN>call, as shown below.</P><PRE title="" class="brush: cpp; title: ; notranslate"><FONT size=2>/* File name : "prog.c" */
+#include &lt;stdio.h&gt;                       
+
+/* This is the function prototype of my_function() which is defined 
+ * in my_fun.c . The prototype could also be inside a header file and
+ * you can include it here
+ */
+void my_function (void);
+
+int main (void)
+{
+  printf ("This is the main function");
+  printf ("\nNow calling \"my_function()\" .");
+
+  /* This function is defined in my_fun.c file */
+  my_function ();
+
+  /* The below line was inserted */
+  printf ("\n\tHello i am the new line!!");
+  printf ("\nProgram is now in main function again");
+
+  return 0;
+}</FONT>
+</PRE>
+<P>Making this change in<SPAN>&nbsp;</SPAN><TT>main()</TT><SPAN>&nbsp;</SPAN>located in file &#8216;prog.c&#8217; does not change the file &#8216;my_fun.c&#8217; , so we<SPAN>&nbsp;</SPAN><EM>only</EM><SPAN>&nbsp;</SPAN>need to compile the &#8216;prog.c&#8217; file, where the change occurred, and make an object file reflecting the changes. Then we will link the new updated &#8216;prog.o&#8217; file with the old unmodified &#8216;my_fun.o&#8217; object file and make the executable binary. Thus we do not need to compile both the files.</P>
+<P>If you has some 1000 files and you have modified only 1 file then instead to compile 1000 files you need to compile 1 file and then link it with the object files to update the binary. This saves a huge compile time. To make this use far more easy and let some software handle which file to compile and which not (depending on which was updated) read about the make files.</P>
+<P><A name=lwsl></A></P>
+<H3>Linking with system library: The -l, -L and -I options</H3>
+<P></P>
+<P>Consider the below program &#8220;sqroot.c&#8221; containing a<SPAN>&nbsp;</SPAN><TT>math.h</TT><SPAN>&nbsp;</SPAN>function.</P><PRE title="" class="brush: cpp; highlight: [12]; title: ; notranslate"><FONT size=2>/* File name : "sqroot.c" */
+&#9;#include &lt;stdio.h&gt;
+&#9;#include &lt;math.h&gt;
+&#9;int main (void)
+&#9;{
+  &#9;double a,roota;
+  &#9;printf ("Enter an integer: ");
+  &#9;scanf ("%lf",&amp;a);  <BR>  &#9;</FONT><FONT size=2>roota = sqrt (a);
+  &#9;printf("The Square Root of \"%lf\" is \"%lf\"\n",a,roota);
+  &#9;return 0;
+&#9;}</FONT>
+
+</PRE>
+<P>This program takes an input and prints out it square roots value. Compile it normally and you will get a linker error as shown below.</P><PRE title="" class="brush: plain; light: true; title: ; notranslate">/tmp/ccqFNKdP.o: In function `main':
+power.c:(.text+0x51): undefined reference to `sqrt'
+collect2: ld returned 1 exit status
+</PRE>
+<P>From this error many people come to a conclusion that &#8220;gcc do not have a math library&#8221;, and which is really funny and ridiculous. What you have to do is just to link the libc math library to your program with the<SPAN>&nbsp;</SPAN><TT>-l</TT><SPAN>&nbsp;</SPAN>option, as shown below.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc sqroot.c -o sqroot -lm
+</PRE>
+<P>This command links the<SPAN>&nbsp;</SPAN><EM>libm.so</EM><SPAN>&nbsp;</SPAN>object file with the<SPAN>&nbsp;</SPAN><TT>sqroot.c</TT><SPAN>&nbsp;</SPAN>sourcecode and thus the<SPAN>&nbsp;</SPAN><TT>sqrt ()</TT><SPAN>&nbsp;</SPAN>function can be linked. similarly if you have ncurses functions in your code you need to link it with libcurses.so file by using<SPAN>&nbsp;</SPAN><TT>-lcurses</TT><SPAN>&nbsp;</SPAN>option. <SPAN class=extract>The<SPAN>&nbsp;</SPAN><TT>-l</TT><SPAN>&nbsp;</SPAN>surrounds the library name with lib and .a/.o/.so . Like if you give -llol to link then the compiler will find liblol.o or liblol.so or liblol.a files in the default directories and link.</SPAN></P>
+<P>for example you can see which libraries are your code is linked with the<SPAN>&nbsp;</SPAN><TT>ldd</TT><SPAN>&nbsp;</SPAN>tool as shown below:</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">$ ldd sqroot
+        linux-gate.so.1 =&gt;  (0x00bd4000)
+        libm.so.6 =&gt; /lib/libm.so.6 (0x00d1d000)
+        libc.so.6 =&gt; /lib/libc.so.6 (0x00110000)
+        /lib/ld-linux.so.2 (0x00b82000)
+</PRE><SPAN class=extract>
+<P>If you have the library files in some location which is not a system default and link them with the<SPAN>&nbsp;</SPAN><TT>-l</TT><SPAN>&nbsp;</SPAN>option, then you need to tell that location to the compiler explicitly by the<SPAN>&nbsp;</SPAN><TT>-L</TT><SPAN>&nbsp;</SPAN>option and then the path to the directory. Like if you have your a library file<SPAN>&nbsp;</SPAN><EM>/home/user/libs/libhoard.so</EM><SPAN>&nbsp;</SPAN>then you need to pass<SPAN>&nbsp;</SPAN><TT>-L/home/user/libs</TT><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><TT>-lhoard</TT>. So the commands becomes.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc source.c -o source.bin -L/home/user/libs -lhoard</PRE>
+<P></SPAN><BR>&nbsp;</P>
+<P>
+<P><A name=mksl></A></P>
+<H3>Making a Shared library: The -shared option</H3>
+<P>We go back to our &#8216;prog.c&#8217; example and will make<SPAN>&nbsp;</SPAN><TT>libmyfun.so</TT><SPAN>&nbsp;</SPAN>library file of our own, and Then if you copy this file into /usr/lib . You will need superuser permission to copy.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc my_fun.c -o libmyfun.so -shared
+cp libmyfun.so /usr/lib
+</PRE>
+<P>Now when compiling &#8216;prog.c&#8217; or any file calling<SPAN>&nbsp;</SPAN><TT>my_function()</TT><SPAN>&nbsp;</SPAN>you need only to link the object file with the source-file with the<SPAN>&nbsp;</SPAN><TT>-lmyfun</TT><SPAN>&nbsp;</SPAN>option. As shown below.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc prog.c -o prog -lmyfun
+</PRE>
+<P>You can run the<SPAN>&nbsp;</SPAN><TT>ldd</TT><SPAN>&nbsp;</SPAN>command on this executable and check out that it is linked to<SPAN>&nbsp;</SPAN><TT>/usr/lib/libmyfun.so</TT><SPAN>&nbsp;</SPAN>file.</P>
+<P></P>
+<P>This links with the library you just created. Similarly if you keep the libmyfun.so in some other place than the system defaults directory then you will need to tell the compiler the location with the<SPAN>&nbsp;</SPAN><TT>-L</TT><SPAN>&nbsp;</SPAN>option as we told above. If the libmyfun.so is in<SPAN>&nbsp;</SPAN><TT>/home/user/project/lib/libmyfun.so</TT><SPAN>&nbsp;</SPAN>and the source-file is in<SPAN>&nbsp;</SPAN><TT>/home/user/project/src/prog.c</TT><SPAN>&nbsp;</SPAN>then you need to pass the absolute or relative path (relative to current working directory) to the compiler. If we are inside<SPAN>&nbsp;</SPAN><TT>/home/user/project/src/</TT><SPAN>&nbsp;</SPAN>directory then we should execute</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc prog.c -o prog -L/home/user/project/lib -lmyfun
+</PRE>
+<P>or when you are inside<SPAN>&nbsp;</SPAN><TT>/home/user/project/src</TT><SPAN>&nbsp;</SPAN>the relative path will be</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc prog.c -o prog -L../lib -lmyfun
+</PRE>
+<P>Try these yourselves.</P>
+<P></P>
+<P>Let us keep some header files in a certain directory which is not a system default location, say in<SPAN>&nbsp;</SPAN><TT>/home/user/project/include</TT><SPAN>&nbsp;</SPAN>we are keeping all the header files of the project. We have a source file scrabble.c inside<SPAN>&nbsp;</SPAN><TT>/home/user/project/src</TT><SPAN>&nbsp;</SPAN>directory. the two files include two header files &#8216;header1.h&#8217; and &#8216;header2.h&#8217; like below.</P><PRE title="" class="brush: cpp; title: ; notranslate"><SPAN class=extract><PRE title="" class="brush: cpp; title: ; notranslate">#include &lt;header1.h&gt;
+#include &lt;header2.h&gt;
+</PRE><P>Note the conic brackets will only search the files in system default directories, (even with double quotes the .h files won&#8217;t be found in the current directory). To compile there files we need to tell the compiler about our include directory with the<SPAN>&nbsp;</SPAN><TT>-I</TT><SPAN>&nbsp;</SPAN>switch as below.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc scrabble.c -o scrabble -I/home/user/project/include</PRE></SPAN>
+</PRE>
+<P>or the same with the below</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc scrabble.c -o scrabble -I../include
+</PRE>
+<P><A name=stln></A></P>
+<H3>Static Linking: The -static option</H3>
+<P>By default all the executable binary files are compiled as dynamic. This way when you will tun the binary it will refer to the linked libraries and run the code from there. Like it you include a math function in a code then when executing the code will access that particular math function code from the glibc math library. This is the same case when you are linking some binary code with some of your library or any 3rd party library. Compiling the code as static removes all the references and packs all the codes, which needed to be referred at runtime, inside the binary executable itself. Thus the binary executable size grows, but it becomes a standalone code which do not (almost) depend on any thing. To make static code the<SPAN>&nbsp;</SPAN><TT>-static</TT><SPAN>&nbsp;</SPAN>switch is used as below.</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">gcc hello.c -o hello_static -static
+</PRE>
+<P>Note the difference in size of &#8216;hello&#8217; and &#8216;hello_static&#8217; below, as shown by<SPAN>&nbsp;</SPAN><TT>ls</TT><SPAN>&nbsp;</SPAN>, and the output of the<SPAN>&nbsp;</SPAN><TT>ldd</TT><SPAN>&nbsp;</SPAN>command on the executable</P><PRE title="" class="brush: bash; light: true; title: ; notranslate"><FONT size=2>$ ls -lh hello hello_static
+-rwxrwxr-x 1 Phoxis Phoxis 4.8K 2009-11-01 13:27 hello
+-rwxrwxr-x 1 Phoxis Phoxis 610K 2009-11-01 13:28 hello_static
+</FONT></PRE><PRE title="" class="brush: bash; light: true; title: ; notranslate"><FONT size=2>$ ldd a.out
+        not a dynamic executable</FONT>
+</PRE>
+<P>If you run the<SPAN>&nbsp;</SPAN><TT>nm</TT><SPAN>&nbsp;</SPAN>tool on both the static and shared binaries you would see that the shared one has very few symbols in it and the rest of them are linked to the glibc library. In a static one there are no external references and no undefined symbols. Static and Dynamic linking is not described more in this article, maybe in some other article. While developing a code and in general you should use dynamic linked binaries.</P>
+<P><A name=aboo></A></P>
+<H3>A bit of Optimization: The -O switches</H3>
+<P>at last we will get introduced to the basic code optimization switches. GCC has a lot of compiler optimization switches, which cleverly upgrades the performance of the code, shortens the size etc. There are three optimization switches the<SPAN>&nbsp;</SPAN><TT><SPAN class=extract> 
+<P><TT>-O1</TT>,<SPAN>&nbsp;</SPAN><TT>-O2</TT>,<SPAN>&nbsp;</SPAN><TT>-O3</TT>,<SPAN>&nbsp;</SPAN><TT>Os</TT> 
+<P>The first three increases the execution performance, the last one optimized for size of the executable</P>
+<P></SPAN></TT>. These switches actually enables and disables a bunch of other optimization flags at once to give different levels of optimization. To check what switches are turned on or off check the manual page. There are a lot of optimization switches with which fine tuning can be done to the executable. <SPAN class=extract>Default is<SPAN>&nbsp;</SPAN><TT>-O0</TT><SPAN>&nbsp;</SPAN>which reduces the compilation time and helps debug process</SPAN>. When developing and for most of normal coding these optimization switches are not needed. You can try out measuring execution times with the flags and without the flags. 
+<P><A name=debg></A></P>
+<H3>Debug : The -g switch</H3>
+<P><SPAN class=extract>Use the<SPAN>&nbsp;</SPAN><TT>-g</TT><SPAN>&nbsp;</SPAN>switch when compiling to add debug information to the binary. By doing this you could use a debugged like<SPAN>&nbsp;</SPAN><EM>gdb</EM><SPAN>&nbsp;</SPAN>to debug your code and see what the code is actually doing</SPAN>. This is useful when you are in development stage and using the executable with a debugger. Check the manual to know more advanced debugging options.</P>
+<P><A name=more></A></P>
+<H3>And More</H3>
+<P>There are tons of switches to set what your exact compilation need is. Not all switches are discussed in detail to avoid complexity. To know more about gcc read the man page and the info page of gcc by executing the commands below</P><PRE title="" class="brush: bash; light: true; title: ; notranslate">man gcc
+info gcc
+</PRE>
+<P><A name=refn></A></P>
+<H3>References</H3>
+<UL>
+<LI>GCC manual pages 
+<LI>GCC info pages</LI></UL></DIV></DIV></ARTICLE></MAIN>

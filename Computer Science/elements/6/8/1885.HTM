@@ -1,0 +1,23 @@
+<STRONG><FONT color=blue>3.1 Process Management : </FONT></STRONG><FONT color=blue><STRONG>:</STRONG>What is the system call interface for process management?<STRONG> </STRONG></FONT>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3.1 Process Management</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">On a modern computer, when a user clicks on a file or application icon, the application starts up. How does this happen and who is called? Of course, we could implement everything that needs to happen in the kernel &#8212; draw the icon for every item in the file system, map mouse positions to the intended icon, catch the mouse click, and start the process. In early batch processing systems, the kernel was in control by necessity. Users submitted jobs, and the operating system took it from there, instantiating the process when it was time to run the job. </FONT>
+<P><SPAN class=extract>A different approach is to allow user programs to create and manage their own processes</SPAN>. This has fostered a blizzard of innovation. Today, programs that create and manage processes include window managers, web servers, web browsers, shell command line interpreters, source code control systems, databases, compilers, and document preparation systems. <SPAN class=extract>We could go on, but you get the idea. If creating a process is something a process can do, then anyone can build a new version of any of these applications, without recompiling the kernel or forcing anyone else to use it</SPAN>. </P>
+<P>An early motivation for user-level process management was to allow developers to write their own shell command line interpreters. <SPAN class=extract>A <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:shell"}'>shell</A></EM> is a job control system; both Windows and UNIX have a shell. Many tasks involve a sequence of steps to do something, each of which can be its own program. With a shell, you can write down the sequence of steps, as a sequence of programs to run to do each step. Thus, you can view it as a very early version of a scripting system</SPAN>. </P>
+<P>For example, to compile a C program from multiple source files, you might type: </P>
+<P><BR></P><PRE class=code>cc&nbsp;-c&nbsp;sourcefile1.c
+   &nbsp;cc&nbsp;-c&nbsp;sourcefile2.c
+   &nbsp;ln&nbsp;-o&nbsp;program&nbsp;sourcefile1.o&nbsp;sourcefile2.o</PRE><BR>
+<P>If we put those commands into a file, the shell reads the file and executes it, creating, in turn, a process to compile sourcefile1.c, a process to compile sourcefile2, and a process to link them together. Once a shell script is a program, we can create other programs by combining scripts together. <SPAN class=extract>In fact, on UNIX, the C compiler is itself a shell program! The compiler first invokes a process to expand header include files, then a separate process to parse the output, another process to generate (text) assembly code, and yet another to convert assembly into executable machine instructions</SPAN>. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>There is an app for that</I></B></SPAN> </P>
+<P><SPAN class=extract>User-level process management is another way of saying &#8220;there is an app for that.&#8221; Instead of a single program that does everything, we can create specialized programs for each task, and mix and match what we need</SPAN>. The formatting system for this textbook uses over fifty separate programs. </P>
+<P>The web is a good example of the power of composing complex applications from more specialized services. A web page does not need to do everything itself: it can mash up the results of many different web pages, and it can invoke process creation on the local server to generate part of the page. The flexibility to create processes was extremely important early on in the development of the web. HTML was initially just a way to describe the formatting for static information, but it included a way to escape to a process, e.g., to do a lookup in a database or to authenticate a user. Over time, HTML has added support for many different features that were first prototyped via execution by a separate process. And of course, HTML can still execute a process for any format not supported by the standard. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-55001r71 name=x1-55001r71></A>

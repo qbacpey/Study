@@ -1,0 +1,12 @@
+SuperMemo Report
+   Activity: Operation: memorize elements
+   Collection: d:\application\supermemo\systems\computer science
+   Date: 2022年5月11日, 18:20:55
+   SuperMemo 18 (Build 18.05, Oct 29, 2020)
+
+
+Process completed at 18:20:55 in 00:00:00 sec (2022年5月11日)
+
+NO ERRORS (Operation: memorize elements)
+
+____________________________________________________________

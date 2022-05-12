@@ -1,0 +1,4 @@
+It must be careful, however, in how it garbage collects the process control block (PCB). Even though the child process has finished, if it deletes the PCB, then the parent process will be left with a dangling pointer if later on it calls UNIX wait. 
+<P></P>
+<P><SPAN class=extract>&#36827;&#31243;&#35843;&#29992; exit &#30340;&#21516;&#26102;&#20250;&#37322;&#25918;&#20854; PCB &#21527;&#65311;&#19981;&#20250;</SPAN> 
+<P>&#24456;&#22810;&#26102;&#20505;&#65292;&#23601;&#31639;&#23376;&#36827;&#31243;&#24050;&#32463;&#32467;&#26463;&#20102;&#65292;&#20294;&#26159;&#20381;&#28982;&#19981;&#33021;&#22815;&#38144;&#27585;&#23376;&#36827;&#31243;&#30340; PCB&#65292;&#36825;&#26159;&#22240;&#20026;&#29238;&#36827;&#31243;&#26377;&#21487;&#33021;&#20250;&#36890;&#36807; wait &#35775;&#38382;&#23376;&#36827;&#31243;&#30340; PCB

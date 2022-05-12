@@ -1,0 +1,26 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 2.4.4 Interrupt Masking</SPAN></FONT> 
+<P></P><SPAN class=extract>
+<P>Some interrupts can trigger a large amount of processing, and it is undesirable to leave interrupts masked for too long. Hardware I/O devices have a limited amount of buffering, which can lead to dropped events if interrupts are not processed in a timely fashion.</P>
+<P>&#30001;&#20110;I/O&#35774;&#22791;&#30340;&#32531;&#23384;&#31354;&#38388;&#26159;&#26377;&#38480;&#30340;&#65292;&#22240;&#27492;&#22914;&#26524;&#20013;&#26029;&#22826;&#38271;&#26102;&#38388;&#27809;&#26377;&#34987;&#22788;&#29702;&#65292;&#37027;&#20040;&#21487;&#33021;&#26377;&#19968;&#20123;I/O&#36755;&#20837;&#20250;&#34987;&#20002;&#22833;</P></SPAN>
+<P>&nbsp;<SPAN class=extract></P>
+<P>For example, keyboard hardware can drop keystrokes if the keyboard buffer is full. Interrupt handlers are therefore divided into a top half and a bottom half.</P>
+<P>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#34987;&#20998;&#20026;&#20004;&#37096;&#20998;&#65306;&#19978;&#21322;&#37096;&#20998;&#65288;top half&#65289;&#21644;&#19979;&#21322;&#37096;&#20998;&#65288;bottom half&#65289;</P>
+<P>&nbsp;Unfortunately, this terminology can differ a bit from system to system; in Linux, the sense of top and bottom are reversed. In this book, we adopt the more common (non-Linux) usage. </P>
+<P>&#27880;&#24847;&#65292;&#36825;&#20010;&#26415;&#35821;&#38543;&#31995;&#32479;&#30340;&#19981;&#21516;&#26377;&#32454;&#24494;&#24046;&#21035;</P></SPAN><SPAN class=extract>
+<P>The interrupt handler&#8217;s bottom half is invoked by the hardware and executes with interrupts masked. </P>
+<P>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#30340;&#19979;&#21322;&#37096;&#20998;&#20026;&#30828;&#20214;&#25152;&#35843;&#29992;</P>
+<P>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#30340;&#19979;&#21322;&#37096;&#20998;&#20026;&#25191;&#34892;&#36807;&#31243;&#20013;&#20276;&#38543;&#30528;&#20013;&#26029;&#31105;&#27490;</P></SPAN><SPAN class=extract>
+<P>It is designed to complete quickly. </P>
+<P>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#30340;&#19979;&#21322;&#37096;&#20998;&#30340;&#25191;&#34892;&#36895;&#24230;&#36739;&#24555;</P></SPAN><SPAN class=extract>
+<P>The bottom half typically saves the state of the hardware device, resets it so that it can receive a new event, and notifies the scheduler that the top half needs to run. </P>
+<P>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#20250;&#20381;&#27425;&#23436;&#25104;&#20197;&#19979;&#19977;&#27493;&#65306;</P>
+<P>1. &#20445;&#23384;&#30828;&#20214;&#35774;&#22791;&#29366;&#24577;&#65307;</P>
+<P>2. &#21047;&#26032;&#30828;&#20214;&#20351;&#20854;&#30828;&#20214;&#35774;&#22791;&#33021;&#25509;&#25910;&#26032;&#20107;&#20214;&#65307;</P>
+<P>3. &#36890;&#30693;&#35843;&#24230;&#22120;&#65306;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#19978;&#21322;&#37096;&#20998;&#21487;&#25191;&#34892;&#65307;</P></SPAN><SPAN class=extract>
+<P>At this point, the bottom half is done, and it can re-enable interrupts and return to the interrupted task or (if the event is high priority) switch to the top half but with interrupts enabled. </P>
+<P>&#24403;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#19979;&#21322;&#37096;&#20998;&#25191;&#34892;&#23436;&#27605;&#65292;&#30828;&#20214;&#20250;&#21551;&#29992;&#20013;&#26029;&#12290;&#21462;&#20915;&#20110;&#20107;&#20214;&#20248;&#20808;&#32423;&#65292;&#25509;&#19979;&#26469;&#21487;&#33021;&#25191;&#34892;&#20197;&#19979;&#20004;&#20010;&#19981;&#21516;&#30340;&#20219;&#21153;&#65306;</P>
+<P>1. &#36820;&#22238;&#34987;&#20013;&#26029;&#20219;&#21153;&#30340;&#25191;&#34892;&#65307;</P>
+<P>2. &#20999;&#25442;&#21040;&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#30340;&#19978;&#21322;&#37096;&#20998;&#65307;</P></SPAN><SPAN class=extract>
+<P>When the top half runs, it can do more general kernel tasks, such as parsing the arriving packet, delivering it to the correct user-level process, sending an acknowledgment, and so forth. </P>
+<P>&#20013;&#26029;&#22788;&#29702;&#31243;&#24207;&#19978;&#21322;&#37096;&#20998;&#25152;&#25191;&#34892;&#30340;&#20219;&#21153;&#26356;&#20026;&#36890;&#29992;&#65292;&#22914;&#35299;&#26512;&#21040;&#36798;&#21253;&#12289;&#20998;&#21457;&#21040;&#25351;&#23450;&#36827;&#31243;&#12289;&#21457;&#36865;&#24212;&#31572;&#31561;</P></SPAN>
+<P><SPAN class=extract>The top half can also do operations that require the kernel to wait for exclusive access to shared kernel data structures, the topic of Chapter 5</SPAN>

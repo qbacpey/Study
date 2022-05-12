@@ -1,0 +1,8 @@
+&nbsp;That is a<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">gdb</FONT></CODE><SPAN>&nbsp;</SPAN>command which says to display (e<STRONG>x</STRONG>amine) 24 words at the top of the stack in hex.</P>
+<P></P>
+<P>One would do that to see the current function's return address, stack frame pointer, function parameters, and local variables.</P>
+<HR>
+
+<P>Oh, I see: You might not be familiar with stacks.</P>
+<P>On 99% of all processors, stacks grow up (toward lower-numbered memory), the reverse of an array. See<SPAN>&nbsp;</SPAN><A href="https://en.wikipedia.org/wiki/Call_stack#Structure" rel=noreferrer>this article</A><SPAN>&nbsp;</SPAN>which helpfully contains this diagram:<SPAN>&nbsp;</SPAN><A href="https://i.stack.imgur.com/4bRnY.png" rel=noreferrer><img style="HEIGHT: 378px; WIDTH: 449px" alt="enter image description here" src="https://i.stack.imgur.com/4bRnY.png" width=684 height=557></A></P>
+<P>This is worth spending a few hours reading and understanding. Stacks are<SPAN>&nbsp;</SPAN><EM>extremely</EM><SPAN>&nbsp;</SPAN>important in computing.

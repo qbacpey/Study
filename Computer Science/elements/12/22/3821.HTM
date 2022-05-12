@@ -1,0 +1,229 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>5.4 Condition Variables: Waiting for a Change</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Condition variables provide a way for one thread to wait for another thread to take some action. For example, in the thread-safe queue example in Figure&nbsp;</FONT><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-510013"}'>5.3</A><FONT style="BACKGROUND-COLOR: #ffffff">, rather than returning an error when we try to remove an item from an empty queue, we might wait until the queue is non-empty, and then always return an item. </FONT>
+<P>Similarly, a web server might wait until a new request arrives; a word processor might wait for a key to be pressed; a weather simulator&#8217;s coordinator thread might wait for the worker threads calculating temperatures in each region to finish; or, in our <A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-110001"}'>Earth Visualizer</A> example, a thread in charge of rendering part of the screen might wait for a user command or for new data to update the view. </P>
+<P>In all of these cases, we want a thread to wait for some action to change the system state so that the thread can make progress. <A id=x1-540016 name=x1-540016></A></P>
+<HR>
+<PRE class=code>&nbsp;int
+&nbsp;TSQueue::remove()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;item;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;bool&nbsp;success;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;do&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;success&nbsp;=&nbsp;tryRemove(&amp;item);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;until(success);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;item;
+&nbsp;}</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.6: </B>A polling-based implementation of TSQueue::remove. The code retries in a loop until it succeeds in removing an item.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>One way for a thread to wait would be to poll &#8212; to repeatedly check the shared state to see if it has changed. As shown in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540016"}'>5.6</A>, a polling implementation of remove would have a simple wrapper that repeatedly calls tryRemove until it returns success. Unfortunately, this approach is inefficient: the waiting thread continually loops, or busy-waits, consuming processor cycles without making useful progress. Worse, busy-waiting can delay the scheduling of other threads &#8212; perhaps exactly the thread for which the looping thread is waiting. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>The sleep fix?</I></B></SPAN> </P>
+<P>We often find that students want to &#8220;fix&#8221; the polling-based approach by adding a delay. For example, in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-540016"}'>5.6</A>, we could add a call to sleep to yield the processor for (say) 100 ms after each unsuccessful tryRemove call. This would allow some other thread to run while the waiting thread is waiting. </P>
+<P>This approach has two problems. First, although it reduces the inefficiency of polling, it does not eliminate it. Suspending and scheduling a thread imposes non-trivial overheads, and a program with many polling threads would still waste significant resources. Second, periodic polling adds latency. In our Earth Visualizer example, if the thread waiting for keyboard input waited 100 ms between each check, the application might become noticeably more sluggish. </P>
+<P>As an extreme example, one of the authors once had an employee implement a network server that provided several layers of processing, where each layer had a thread that received work from the layer above and sent the work to the layer below. Measurements of the server showed surprisingly bad performance; we expected each request to take a few milliseconds, but instead each took just over half a second. Fortunately, the performance was so poor that it was easy to track down the problem: layers passed work to each other through bounded queues much like TSQueue, but the queue remove method was implemented as a polling loop with a 100 ms delay. With five such layers of processing, the server became unusable. Fortunately, the fix was simple: use condition variables instead. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-54002r84 name=x1-54002r84></A>
+<H4 class=subsectionHead>5.4.1 <A id=x1-550001 name=x1-550001></A>Condition Variable Definition</H4>A <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:condition variable"}'>condition variable</A></EM> is a synchronization object that lets a thread efficiently wait for a change to shared state that is protected by a lock. A condition variable has three methods: 
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>CV::wait(Lock *lock).</B> This call atomically <EM>releases the lock</EM> and <EM>suspends execution of the calling thread</EM>, placing the calling thread on the condition variable&#8217;s waiting list. Later, when the calling thread is re-enabled, it <EM>re-acquires the lock</EM> before returning from the <TT>wait</TT>&nbsp;call. </P>
+<LI class=itemize>
+<P><B>CV::signal().</B> This call takes one thread off the condition variable&#8217;s waiting list and marks it as eligible to run (i.e., it puts the thread on the scheduler&#8217;s ready list). If no threads are on the waiting list, <TT>signal</TT>&nbsp;has no effect. </P>
+<LI class=itemize>
+<P><B>CV::broadcast().</B> This call takes all threads off the condition variable&#8217;s waiting list and marks them as eligible to run. If no threads are on the waiting list, <TT>broadcast</TT>&nbsp;has no effect. </P></LI></UL>
+<P><B>WARNING</B>: Note that condition variable <TT>wait</TT>&nbsp;and <TT>signal</TT>&nbsp;are different from the UNIX system calls wait and signal. The nomenclature is unfortunate but longstanding. In this book, we always use the terms, UNIX wait and UNIX signal, to refer to the UNIX variants, and simple <TT>wait</TT>&nbsp;and <TT>signal</TT>&nbsp;to refer to condition variable operations. </P>
+<P>A condition variable is used to wait for a change to shared state, and a lock must always protect updates to shared state. Thus, the condition variable API is designed to work in concert with locks. All three methods (<TT>wait</TT>, <TT>signal</TT>, and <TT>broadcast</TT>) should only be called while the associated lock is held. <A id=x1-550017 name=x1-550017></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;SharedObject::someMethodThatWaits()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;
+&nbsp;//&nbsp;Read&nbsp;and/or&nbsp;write&nbsp;shared&nbsp;state&nbsp;here.
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(!testOnSharedState())&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cv.wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert(testOnSharedState());
+&nbsp;
+&nbsp;//&nbsp;Read&nbsp;and/or&nbsp;write&nbsp;shared&nbsp;state&nbsp;here.
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+&nbsp;
+&nbsp;SharedObject::someMethodThatSignals()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;
+&nbsp;//&nbsp;Read&nbsp;and/or&nbsp;write&nbsp;shared&nbsp;state&nbsp;here.
+&nbsp;
+&nbsp;//&nbsp;If&nbsp;state&nbsp;has&nbsp;changed&nbsp;in&nbsp;a&nbsp;way&nbsp;that
+&nbsp;//&nbsp;could&nbsp;allow&nbsp;another&nbsp;thread&nbsp;to&nbsp;make
+&nbsp;//&nbsp;progress,&nbsp;signal&nbsp;(or&nbsp;broadcast).
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;cv.signal();
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.7: </B>Design patterns for waiting using a condition variable (top) and for waking up a waiter (bottom). Since many critical sections need to both <TT>wait</TT>&nbsp;and <TT>signal</TT>, these two design patterns are often combined in one method. </P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>The standard design pattern for a shared object is a lock and zero or more condition variables. A method that waits using a condition variable works as shown on the top in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-550017"}'>5.7</A>. In this code, the calling thread first acquires the lock and can then read and write the shared object&#8217;s state variables. To wait until testOnSharedState succeeds, the thread calls <TT>wait</TT>&nbsp;on the shared object&#8217;s condition variable cv. This atomically puts the thread on the waiting list and releases the lock, allowing other threads to enter the critical section. Once the waiting thread is signaled, it re-acquires the lock and returns from <TT>wait</TT>. The monitor can then safely test the state variables to see if testOnSharedState succeeds. If so, the monitor performs its tasks, releases the lock, and returns. </P>
+<P>The bottom of Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-550017"}'>5.7</A> shows the complementary code that causes a waiting thread to wake up. Whenever a thread changes the shared object&#8217;s state in a way that enables a waiting thread to make progress, the thread must signal the waiting thread using the condition variable. </P>
+<P>A thread waiting on a condition variable must inspect the object&#8217;s state in a loop. The condition variable&#8217;s <TT>wait</TT>&nbsp;method releases the lock (to let other threads change the state of interest) and then re-acquires the lock (to check that state again). </P>
+<P>Similarly, the only reason for a thread to <TT>signal</TT>&nbsp;(or <TT>broadcast</TT>) is that it has just changed the shared state in a way that may be of interest to a waiting thread. To make a change to shared state, the thread must hold the lock on the state variables, so <TT>signal</TT>&nbsp;and <TT>broadcast</TT>&nbsp;are also always called while holding a lock. </P>
+<P><B>Discussion.</B> Condition variables have been carefully designed to work in tandem with locks and shared state. The precise definition of condition variables includes three properties worth additional comment: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>A condition variable is <EM>memoryless</EM>. </P>
+<P>The condition variable, itself, has no internal state other than a queue of waiting threads. Condition variables do not need their own state because they are always used inside shared objects that have their own state. </P>
+<P>If no threads are currently on the condition variable&#8217;s waiting list, a <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;has no effect. No thread calls <TT>wait</TT>&nbsp;unless it holds the lock, checks the state variables, and finds that it needs to wait. Thus, the condition variable has no &#8220;memory&#8221; of earlier calls to <TT>signal</TT>&nbsp;or <TT>broadcast</TT>. After <TT>signal</TT>&nbsp;is called, if sometime later another thread calls <TT>wait</TT>, it will block until the <EM>next</EM> <TT>signal</TT>&nbsp;(or <TT>broadcast</TT>) is called, regardless of how many times <TT>signal</TT>&nbsp;has been called in the past. </P>
+<LI class=itemize>
+<P><EM>CV::wait atomically releases the lock.</EM> </P>
+<P>A thread always calls <TT>wait</TT>&nbsp;while holding a lock. The call to <TT>wait</TT>&nbsp;<EM>atomically</EM> releases the lock and puts the thread on the condition variable&#8217;s waiting list. Atomicity ensures that there is no separation between checking the shared object&#8217;s state, deciding to wait, adding the waiting thread to the condition variable&#8217;s queue, and releasing the lock so that some other thread can access the shared object. </P>
+<P>If threads released the lock before calling <TT>wait</TT>, they could miss a signal or broadcast and wait forever. Consider the case where thread T<SUB>1</SUB> checks an object&#8217;s state and decides to wait, so it releases the lock in anticipation of putting itself on the condition variable&#8217;s waiting list. At that precise moment, T<SUB>2</SUB> preempts T<SUB>1</SUB>. T<SUB>2</SUB> acquires the lock, changes the object&#8217;s state to what T<SUB>1</SUB> wants, and calls <TT>signal</TT>, but the waiting list is empty so the call to <TT>signal</TT>&nbsp;has no effect. Finally, T<SUB>1</SUB> runs again, puts itself on the waiting list, and suspends execution. The lack of atomicity means that T<SUB>1</SUB> missed the signal and is now waiting, potentially forever. </P>
+<P>Once <TT>wait</TT>&nbsp;releases the lock, any number of threads might run before <TT>wait</TT>&nbsp;re-acquires the lock after a <TT>signal</TT>. In the meantime, the state variables might have changed &#8212; in fact, they are almost <EM>certain</EM> to have changed. Code must not assume just because something was true before <TT>wait</TT>&nbsp;was called, it remains true when <TT>wait</TT>&nbsp;returns. The only assumption you should make on return from <TT>wait</TT>&nbsp;is that the lock is held, and the normal invariants that hold at the start of the critical section are true. </P>
+<LI class=itemize>
+<P>When a waiting thread is re-enabled via <TT>signal</TT>&nbsp;or <TT>broadcast</TT>, <EM>it may not run immediately</EM>. </P>
+<P>When a waiting thread is re-enabled, it is moved to the scheduler&#8217;s ready queue with no special priority, and the scheduler may run it at some later time. Furthermore, when the thread finally does run, it must re-acquire the lock, which means that other threads may have acquired and released the lock in the meantime, between when the signal occurs and when the waiter re-acquires the lock. Therefore, even if the desired predicate were true when <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;was called, it may no longer be true when <TT>wait</TT>&nbsp;returns. </P>
+<P>This may seem like a small window of vulnerability, but concurrent programs must work with all possible schedules. Otherwise, programs may fail sometimes, but not always, making debugging very difficult. See the sidebar on Mesa vs. Hoare semantics for a discussion of the history behind this property. </P></LI></UL>
+<P><B>WARNING</B>: The points above have an important implication for programmers: <TT>wait</TT>&nbsp;<EM>must always be called from within a loop</EM>. </P>
+<P>Because <TT>wait</TT>&nbsp;releases the lock, and because there is no guarantee of atomicity between <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;and the return of a call to <TT>wait</TT>, there is no guarantee that the checked-for state still holds. Therefore, a waiting thread must always wait in a loop, rechecking the state until the desired predicate holds. Thus, the design pattern is: </P>
+<P><BR></P><PRE class=code>   &nbsp;...
+   &nbsp;while&nbsp;(predicateOnStateVariables(...))&nbsp;{
+   &nbsp;&nbsp;&nbsp;wait(&amp;lock);
+   &nbsp;}
+   &nbsp;...</PRE><BR>
+<P>and not: </P>
+<P><BR></P><PRE class=code>   &nbsp;...
+   &nbsp;if&nbsp;(predicateOnStateVariables(...))&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;wait(&amp;lock);
+   &nbsp;}
+   &nbsp;...</PRE><BR>
+<P>There are two fundamental reasons why condition variables impose this requirement: to simplify the implementation and to improve modularity. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Simplifying the implementation.</B> When a waiting thread is re-enabled, it may not run immediately. Other threads may access the shared state before it runs, and the desired predicate on the shared state may no longer hold when <TT>wait</TT>&nbsp;finally does return. </P>
+<P>This behavior simplifies the implementation of condition variables without increasing the complexity of the code that uses them. No special code is needed for scheduing; <TT>signal</TT>&nbsp;puts the signaled thread onto the ready list and lets the scheduler choose when to run it. Similarly, no special code is needed to re-acquire the lock at the end of <TT>wait</TT>. The woken thread calls <TT>acquire</TT>&nbsp;when it is re-scheduled. As with any attempt to acquire a lock, it may succeed immediately, or it may wait if some other thread acquired the lock first. </P>
+<P>Some implementations go even further and warn that a call to <TT>wait</TT>&nbsp;may return even if no thread has called <TT>signal</TT>&nbsp;or <TT>broadcast</TT>. So, not only is it possible that the desired predicate on the state <EM>is no longer true</EM>, it is possible that the desired predicate on the state <EM>was never true.</EM> For example, the Java definition of condition variables allows for &#8220;spurious wakeups&#8221;: </P>
+<P></P>
+<DIV class=makequote>When waiting upon a Condition, a &#8220;spurious wakeup&#8221; is permitted to occur, in general, as a concession to the underlying platform semantics. This has little practical impact on most application programs as a Condition should always be waited upon in a loop, testing the state predicate that is being waited for. An implementation is free to remove the possibility of spurious wakeups but it is recommended that applications programmers always assume that they can occur and so always wait in a loop.<BR>(From <A href="https://docs.oracle.com/javase/8/docs/api/">https://docs.oracle.com/javase/8/docs/api/</A>)</DIV>
+<LI class=itemize>
+<P><B>Improving modularity.</B> Waiting in a loop that checks the shared state makes shared objects&#8217; code more modular because we can reason about when the thread will continue by looking only at the <TT>wait</TT>&nbsp;loop. In particular, we do not need to examine the rest of the shared object&#8217;s code to understand where and why calls to <TT>signal</TT>&nbsp;and <TT>broadcast</TT>&nbsp;are made to know the post-condition for the <TT>wait</TT>&nbsp;loop. For example, in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-550017"}'>5.7</A>, we know the assert call will never fail without having to look at any other code. </P>
+<P>Not only does waiting in a loop simplify writing and reasoning about the code that waits, it simplifies writing and reasoning about the code that signals or broadcasts. Signaling at the wrong time will never cause a waiting thread to proceed when it should not. Signal and <TT>broadcast</TT>&nbsp;can be regarded as <EM>hints</EM> that it <EM>might</EM> be a good time to proceed; if the hints prove to be wrong, no damage is done. You can always convert a <TT>signal</TT>&nbsp;to a <TT>broadcast</TT>, or add any number of <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;calls, without changing the semantics of a shared object. Avoiding extra <TT>signal</TT>&nbsp;and <TT>broadcast</TT>&nbsp;calls may matter for performance, but not for correctness.</P></LI></UL>
+<P><B>Bottom line:</B> Given the range of possible implementations and the modularity benefits, <TT>wait</TT>&nbsp;must always be done from within a loop that tests the desired predicate. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Mesa vs. Hoare semantics</I></B></SPAN> </P>
+<P>In modern condition variables, <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;calls take waiting threads from a condition variable&#8217;s waiting list and put them on the ready list. Later, when these threads are scheduled, they may block for some time while they try to re-acquire the lock. Thus, modern condition variables implement what are often called <EM>Mesa Semantics</EM> (for Mesa, an early programming language at Xerox PARC that implemented these semantics). Despite the name, Mesa was not the first system to use &#8220;Mesa&#8221; semantics; Brinch Hansen had proposed their use five years earlier. However, PARC was the first to use Mesa semantics extensively in a very large operating system, and the name stuck. </P>
+<P>C.A.R. &#8220;Tony&#8221; Hoare proposed a different definition for condition variables. Under <EM>Hoare semantics</EM>, when a thread calls <TT>signal</TT>, execution of the signaling thread is suspended, the ownership of the lock is immediately transferred to one of the waiting threads, and execution of that thread is immediately resumed. Later, when the resumed thread releases the lock, ownership of the lock reverts to the signaling thread, whose execution continues. </P>
+<P>Under Hoare semantics, signaling is atomic with the resumption of a waiting thread, and a signaled thread may assume that the state has not changed since the signal that woke it up was issued. Under Mesa semantics, waiting is always done in a loop: while (predicate()) {cv.wait(&amp;lock);}. Under Hoare semantics, waiting can be done with a simple conditional: if (predicate()) {cv.wait(&amp;lock);}. </P>
+<P>Mesa semantics are much more widely used, but some argue that the atomicity of signaling and resuming a waiting process makes it easier to prove liveness properties of programs under Hoare semantics. If we know that one thread is waiting on a condition, and we do a signal, we know that the waiting thread (and not some other late-arriving thread) will resume and make progress. </P>
+<P>The authors of this book come down strongly on the side of Mesa semantics. The modularity advantages of Mesa greatly simplify reasoning about an object&#8217;s core safety properties. For the properties we care most about (i.e., the safety properties that threads proceed only when they are supposed to) and for large programs where modularity matters, Mesa semantics seem vastly preferable. Later in this chapter, we will explain how to implement FIFO queueing with Mesa semantics, for where liveness concerns are paramount. </P>
+<P>As a practical matter the debate has been settled: essentially all systems, including both Java and POSIX, use Mesa semantics. We know of no widely used system that implements Hoare semantics. Programmers that assume the weaker Mesa semantics &#8212; always writing while (predicate()) &#8212; will write programs that work under either definition. The overhead of the &#8220;extra&#8221; check of the predicate upon return from wait in a while loop is unlikely to be significant compared to the signaling and scheduling overheads. As a programmer, you will not go wrong if you write your code assuming Mesa semantics. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><A id=x1-55002r92 name=x1-55002r92></A>
+<H4 class=subsectionHead>5.4.2 <A id=x1-560002 name=x1-560002></A>Thread Life Cycle Revisited</H4>Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-100004"}'>4</A> discussed how a thread can switch between the READY, WAITING, and RUNNING&nbsp;states. We now explain the WAITING&nbsp;state in more detail. 
+<P>A RUNNING&nbsp;thread that calls <TT>wait</TT>&nbsp;is put in the WAITING&nbsp;state. This is typically implemented by moving the thread control block (TCB) from the ready list to the condition variable&#8217;s list of waiting threads. Later, when some RUNNING&nbsp;thread calls <TT>signal</TT>&nbsp;or <TT>broadcast</TT>&nbsp;on that condition variable, one (if <TT>signal</TT>) or all (if <TT>broadcast</TT>) of the TCBs on that condition variable&#8217;s waiting list are moved to the ready list. This changes those threads from the WAITING&nbsp;state to the READY&nbsp;state. At some later time, the scheduler selects a READY&nbsp;thread and runs it by moving it to the RUNNING&nbsp;state. Eventually, the signaled thread runs. </P>
+<P>Locks are similar. A lock <TT>acquire</TT>&nbsp;on a busy lock puts the caller into the WAITING&nbsp;state, with the caller&#8217;s TCB on a list of waiting TCBs associated with the lock. Later, when the lock owner calls <TT>release</TT>, one waiting TCB is moved to the ready list, and that thread transitions to the READY&nbsp;state. </P>
+<P>Notice that threads that are RUNNING&nbsp;or READY&nbsp;have their state located at a pre-defined, &#8220;global&#8221; location: the CPU (for a RUNNING&nbsp;thread) or the scheduler&#8217;s list of ready threads (for a READY&nbsp;thread). However, threads that are WAITING&nbsp;typically have their state located on some per-lock or per-condition-variable queue of waiting threads. Then, a <TT>signal</TT>, <TT>broadcast</TT>, or <TT>release</TT>&nbsp;call can easily find and re-enable a waiting thread for that particular condition variable or lock. <A id=x1-560018 name=x1-560018></A></P>
+<HR>
+
+<P></P><PRE class=code>&nbsp;//&nbsp;Thread-safe&nbsp;blocking&nbsp;queue.
+&nbsp;
+&nbsp;const&nbsp;int&nbsp;MAX&nbsp;=&nbsp;10;
+&nbsp;
+&nbsp;class&nbsp;BBQ{
+&nbsp;&nbsp;&nbsp;//&nbsp;Synchronization&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Lock&nbsp;lock;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CV&nbsp;itemAdded;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;CV&nbsp;itemRemoved;
+&nbsp;
+&nbsp;&nbsp;&nbsp;//&nbsp;State&nbsp;variables
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;items[MAX];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;front;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;nextEmpty;
+&nbsp;
+&nbsp;&nbsp;&nbsp;public:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;BBQ();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;~BBQ()&nbsp;{};
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;void&nbsp;insert(int&nbsp;item);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;remove();
+&nbsp;};
+</PRE><PRE class=code>&nbsp;//&nbsp;Initialize&nbsp;the&nbsp;queue&nbsp;to&nbsp;empty,
+&nbsp;//&nbsp;the&nbsp;lock&nbsp;to&nbsp;free,&nbsp;and&nbsp;the
+&nbsp;//&nbsp;condition&nbsp;variables&nbsp;to&nbsp;empty.
+&nbsp;BBQ::BBQ()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;front&nbsp;=&nbsp;nextEmpty&nbsp;=&nbsp;0;
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Wait&nbsp;until&nbsp;there&nbsp;is&nbsp;room&nbsp;and
+&nbsp;//&nbsp;then&nbsp;insert&nbsp;an&nbsp;item.
+&nbsp;void
+&nbsp;BBQ::insert(int&nbsp;item)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;((nextEmpty&nbsp;-&nbsp;front)&nbsp;==&nbsp;MAX)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;itemRemoved.wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;items[nextEmpty&nbsp;%&nbsp;MAX]&nbsp;=&nbsp;item;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;nextEmpty++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;itemAdded.signal();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Wait&nbsp;until&nbsp;there&nbsp;is&nbsp;an&nbsp;item&nbsp;and
+&nbsp;//&nbsp;then&nbsp;remove&nbsp;an&nbsp;item.
+&nbsp;int
+&nbsp;BBQ::remove()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;item;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.acquire();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;(front&nbsp;==&nbsp;nextEmpty)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;itemAdded.wait(&amp;lock);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;item&nbsp;=&nbsp;items[front&nbsp;%&nbsp;MAX];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;front++;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;itemRemoved.signal();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock.release();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;item;
+&nbsp;}
+&nbsp;
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;5.8: </B>A thread-safe blocking bounded queue using Mesa-style condition variables.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+<A id=x1-56002r94 name=x1-56002r94></A>
+<H4 class=subsectionHead>5.4.3 <A id=x1-570003 name=x1-570003></A>Case Study: Blocking Bounded Queue</H4>We can use condition variables to implement a <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:blocking bounded queue"}'>blocking bounded queue</A></EM>, one where a thread trying to remove an item from an empty queue will wait until an item is available, and a thread trying to put an item into a full queue will wait until there is room. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-560018"}'>5.8</A> defines the blocking bounded queue&#8217;s interface and implementation. 
+<P>As in TSQueue, we acquire and release the lock at the beginning and end of the public methods (e.g., insert and remove). Now, however, we can atomically release the lock and wait if there is no room in insert or no item in remove. Before returning, insert signals on itemAdded since a thread waiting in remove may now be able to proceed; similarly, remove signals on itemRemoved before it returns. </P>
+<P>We <TT>signal</TT>&nbsp;rather than <TT>broadcast</TT>&nbsp;because each insert allows at most one remove to proceed, and vice versa. </P>
+<P><B>EXAMPLE: </B>What invariants hold when <TT>wait</TT>&nbsp;returns in BBQ:remove? Is an item guaranteed to be in the queue? Why or why not? </P>
+<P><B>ANSWER: </B><B>Exactly the same invariants hold when <TT>wait</TT>&nbsp;returns as when the thread first acquired the lock.</B> These are the same constraints as listed earlier for the thread-safe (non-blocking) bounded queue TSQueue. </P>
+<P>In particular, although there is always an item in the queue when insert calls <TT>signal</TT>, there is <EM>no</EM> guarantee that the item is still in the queue when <TT>wait</TT>&nbsp;returns. Even if the language runtime avoids spurious wakeups, some other thread may have run between the <TT>signal</TT>&nbsp;and the return from <TT>wait</TT>. That thread may perform a remove, acquire the BBQ::lock, find the item, and empty the queue, all before <TT>wait</TT>&nbsp;returns. &#9633; <A id=x1-57001r90 name=x1-57001r90></A></P><A id=x1-580005 name=x1-580005>

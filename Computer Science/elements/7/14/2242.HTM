@@ -1,0 +1,15 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Calling Convention : Callee : epilogue</SPAN></FONT> 
+<P></P>
+<P>Before returning (i.e. epilogue), the callee needs to </P><SPAN class=extract>
+<P>Callee &#30340;&#36820;&#22238;&#20540;&#20250;&#34987;&#20445;&#23384;&#21040;&#21738;&#20010;&#23492;&#23384;&#22120;&#20013;&#65311;EAX</P>
+<P></SPAN><SPAN class=extract>Callee&nbsp;epilogue &#30340;&#31532;&#19968;&#27493;&#26159;&#20160;&#20040;&#65311;&#20445;&#23384;&#36820;&#22238;&#20540;</SPAN></P>
+<P><SPAN class=extract>Callee&nbsp;epilogue &#30340;&#31532;&#20108;&#27493;&#26159;&#20160;&#20040;&#65311;&#24674;&#22797;&#23492;&#23384;&#22120;&#20013;&#30340;&#21407;&#20540;</SPAN></P><SPAN class=extract>
+<P>Callee&nbsp;epilogue &#30340;&#31532;&#19977;&#27493;&#26159;&#20160;&#20040;&#65311;&#37322;&#25918;&#26412;&#22320;&#21464;&#37327;</P>
+<P></SPAN><SPAN class=extract>Callee epilogue &#23454;&#36341;&#20013;&#19968;&#33324;&#36890;&#36807;&#20160;&#20040;&#26041;&#24335;&#26469;&#37322;&#25918;&#26412;&#22320;&#21464;&#37327;&#65311;&#23558; ESP &#35774;&#32622;&#20026; EBP</SPAN></P>
+<P><SPAN class=extract>Callee epilogue&nbsp;&#30340;&#31532;&#22235;&#27493;&#26159;&#20160;&#20040;&#65311;&#24674;&#22797; EBP &#20013;&#30340;&#20540;</SPAN></P><SPAN class=extract>
+<P>Callee epilogue&nbsp; &#30340;&#31532;&#20116;&#27493;&#26159;&#20160;&#20040;&#65311;&#23558;&#36820;&#22238;&#22320;&#22336;&#20174;&#26632;&#20013;&#24377;&#20986;&#24182;&#36339;&#36716;&#21040;&#35813;&#22320;&#22336;</P>
+<P></SPAN>1. Store the return value in eax. </P>
+<P>2. Restore callee-saved GPRs (if any) from the prologue. 
+<P>3. Deallocate local variables. While subtracting the correct amount will technically work, a less error prone way is to set esp to be the current ebp, e&#64256;ectively clearing the stack frame. </P>
+<P>4. Restore caller&#8217;s ebp from the stack. </P>
+<P>5. Return from the function by popping the return address pushed by the caller in its prologue and jumping to it.

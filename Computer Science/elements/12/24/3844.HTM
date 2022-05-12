@@ -1,0 +1,13 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>7.7 Case Study: Servers in a Data Center</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">We can illustrate the application of the ideas discussed in this chapter, by considering how we should manage a collection of servers in a data center to provide responsive web service. Many web services, such as Google, Facebook, and Amazon, are organized as a set of front-end machines that redirect incoming requests to a larger set of back-end machines. We illustrate this in Figure&nbsp;</FONT><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-13500123"}'>7.23</A><FONT style="BACKGROUND-COLOR: #ffffff">. This architecture isolates clients from the architecture of the back-end systems, so that more capacity can be added to the back-end simply by changing the configuration of the front-end systems. Back-end servers can also be taken off-line, have their software upgraded, and so forth, completely transparently to clients. </FONT>
+<P>To provide good response time to the clients of the web service: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>When clients first connect to the service, the front-end node assigns each customer to a back-end server to balance load. Customers can be spread evenly across the back-end servers or they can be assigned to a node with low current load, much as customers at a supermarket select the shortest line for a cashier. </P>
+<LI class=itemize>
+<P>Additional requests from the same client can be assigned to the same back-end server, as a form of affinity scheduling. Once a server has fetched client data, it will be faster for it to handle additional requests. </P>
+<LI class=itemize>
+<P>We need to prevent individual users from hogging resources, because that can disrupt performance for other users. A back-end server can favor short tasks over long ones; they can also keep track of the total resources used by each client, reducing the scheduling priority of any client consuming more than their fair share of resources. </P>
+<LI class=itemize>
+<P>It is often crucial to the usability of a web service to keep response time small. This requires monitoring both the rate of arrivals and the average amount of computing, disk, and network resources consumed by each request. Back-end servers should be added before average server utilization gets too high. </P>
+<LI class=itemize>
+<P>Since it often takes considerable time to bring new servers online, we need to predict future load and have a backup plan for overload conditions.</P></LI></UL><A id=x1-134001r232 name=x1-134001r232></A><A id=x1-1350008 name=x1-1350008>

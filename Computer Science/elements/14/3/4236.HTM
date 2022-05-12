@@ -1,0 +1,26 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : 4.4 Thread Data Structures and Life Cycle : </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 4.4.2 Shared State</SPAN></FONT></H4><SPAN class=extract>As opposed to per-thread state that is allocated for each thread, some state is <EM>shared</EM> between threads running in the same process or within the operating system kernel </SPAN>(Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-190018"}'>4.8</A>). In particular, program <EM>code</EM> is shared by all threads in a process, although each thread may be executing at a different place within that code. Additionally, statically allocated <EM>global variables</EM> and dynamically allocated <EM>heap variables</EM> can store information that is accessible to all threads. 
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>Other per-thread state: Thread-local variables</I></B></SPAN> </P>
+<P>In addition to the per-thread state that corresponds to execution state in the single-threaded case, <SPAN class=extract>some systems include additional <EM>thread-local variables</EM>. These variables are similar to global variables in that their scope spans different procedures, but they differ in that each thread has its own copy of these variables</SPAN>. </P>
+<P>Consider these examples: </P>
+<UL class=itemize1>
+<LI class=itemize><B><SPAN class=extract>
+<P><B>Errno.</B> In UNIX, the return value of system calls is intentionally kept simple. For example, the UNIX read system call returns either the number of bytes read (if successful) or -1 (if there was a problem). Often, an application needs additional information about the cause of the error (e.g., permission error, disk offline, etc.). To provide this, the kernel sets a variable in the application memory, the errno, with a diagnostic code for the most recent system call. As UNIX originally had only one thread per process, there was no confusion: the errno referred to the most recent system call of that process. </P>
+<P>In a multi-threaded program, however, multiple threads can perform system calls concurrently. Rather than redefine the entire UNIX system call interface for a multi-threaded environment, errno is now a macro that maps to a thread-local variable containing the error code for that thread&#8217;s most recent system call</P>
+<P></SPAN></B>. </P>
+<LI class=itemize>
+<P><B><SPAN class=extract><B>Heap internals.</B> Although a program&#8217;s heap is logically shared &#8212; it is acceptable for one thread to allocate an object on the heap and then pass a pointer to that object to another thread &#8212; for performance reasons heaps may internally subdivide their space into per-thread regions. The advantage of subdividing the heap is that multiple threads can each allocate objects at the same time without interfering with one another. Further, by allocating objects used by the same thread from the same memory region, cache hit rates may improve. To implement these optimizations, each subdivision of the heap has thread-local variables that track what parts of the thread-local heap are in use, what parts are free, and so on. Then, the code that allocates new memory (e.g., malloc and new) is written to use these thread-local data structures and only take memory from the shared heap if the local heap is empty</SPAN></B>.</P></LI></UL>
+<P>Thread-local variables are often useful, but, for simplicity, the rest of our discussion focuses only on the TCB, registers, and stack as the core pieces of per-thread state. </P>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P><B>WARNING</B>: <SPAN class=extract>Although there is an important logical division between per-thread state and shared state, the operating system typically does not enforce this division. Nothing prevents one buggy thread from accessing another thread&#8217;s (conceptually private) per-thread state. </SPAN>Writing to a bad pointer in one thread can corrupt the stack of another. Or a careless programmer might pass a pointer to a local variable on one thread&#8217;s stack to another thread, giving the second thread a pointer to a stack location whose contents may change as the first thread calls and returns from various procedures. <SPAN class=extract>Or the first thread can exit after handing out a pointer to a variable on its stack; the heap will reassign that memory to an unrelated purpose</SPAN>. Because these bugs can depend on the specific interleavings of the threads&#8217; executions, they can be extremely hard to locate and correct. </P>
+<P><SPAN class=extract>To avoid unexpected behaviors, it is therefore important when writing multi-threaded programs to know which variables are designed to be shared across threads (global variables, objects on the heap) and which are designed to be private (local/automatic variables)</SPAN>. <A id=x1-21001r36 name=x1-21001r36></A></P><A id=x1-220005 name=x1-220005>

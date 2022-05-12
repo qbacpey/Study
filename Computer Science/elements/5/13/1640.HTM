@@ -1,0 +1,161 @@
+<FONT color=blue><FONT style="BACKGROUND-COLOR: #7be1e1"><STRONG>:</STRONG>What is the system call interface for process management?<STRONG> </STRONG></FONT></FONT>
+<H3 class=sectionHead><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3.1 Process Management</SPAN></FONT></FONT></H3></A><FONT style="BACKGROUND-COLOR: #7be1e1">On a modern computer, when a user clicks on a file or application icon, the application starts up. How does this happen and who is called? Of course, we could implement everything that needs to happen in the kernel &#8212; draw the icon for every item in the file system, map mouse positions to the intended icon, catch the mouse click, and start the process. In early batch processing systems, the kernel was in control by necessity. Users submitted jobs, and the operating system took it from there, instantiating the process when it was time to run the job. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">A different approach is to allow user programs to create and manage their own processes. This has fostered a blizzard of innovation. Today, programs that create and manage processes include window managers, web servers, web browsers, shell command line interpreters, source code control systems, databases, compilers, and document preparation systems. We could go on, but you get the idea. If creating a process is something a process can do, then anyone can build a new version of any of these applications, without recompiling the kernel or forcing anyone else to use it. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">An early motivation for user-level process management was to allow developers to write their own shell command line interpreters. A <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:shell"}'>shell</A></EM> is a job control system; both Windows and UNIX have a shell. Many tasks involve a sequence of steps to do something, each of which can be its own program. With a shell, you can write down the sequence of steps, as a sequence of programs to run to do each step. Thus, you can view it as a very early version of a scripting system. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">For example, to compile a C program from multiple source files, you might type: </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"><BR></FONT></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;cc&nbsp;-c&nbsp;sourcefile1.c
+   &nbsp;cc&nbsp;-c&nbsp;sourcefile2.c
+   &nbsp;ln&nbsp;-o&nbsp;program&nbsp;sourcefile1.o&nbsp;sourcefile2.o</FONT></PRE><BR>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">If we put those commands into a file, the shell reads the file and executes it, creating, in turn, a process to compile sourcefile1.c, a process to compile sourcefile2, and a process to link them together. Once a shell script is a program, we can create other programs by combining scripts together. In fact, on UNIX, the C compiler is itself a shell program! The compiler first invokes a process to expand header include files, then a separate process to parse the output, another process to generate (text) assembly code, and yet another to convert assembly into executable machine instructions. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>There is an app for that</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">User-level process management is another way of saying &#8220;there is an app for that.&#8221; Instead of a single program that does everything, we can create specialized programs for each task, and mix and match what we need. The formatting system for this textbook uses over fifty separate programs. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">The web is a good example of the power of composing complex applications from more specialized services. A web page does not need to do everything itself: it can mash up the results of many different web pages, and it can invoke process creation on the local server to generate part of the page. The flexibility to create processes was extremely important early on in the development of the web. HTML was initially just a way to describe the formatting for static information, but it included a way to escape to a process, e.g., to do a lookup in a database or to authenticate a user. Over time, HTML has added support for many different features that were first prototyped via execution by a separate process. And of course, HTML can still execute a process for any format not supported by the standard. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV><A id=x1-55001r71 name=x1-55001r71></A>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.1.1 </FONT><A id=x1-560001 name=x1-560001></A><FONT style="BACKGROUND-COLOR: #7be1e1">Windows Process Management</FONT></H4><FONT style="BACKGROUND-COLOR: #7be1e1">One approach to process management is to just add a system call to create a process, and other system calls for other process operations. This turns out to be simple in theory and complex in practice. In Windows, there is a routine called, unsurprisingly, CreateProcess, in simplified form below: </FONT>
+<P><BR></P><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">   &nbsp;boolean&nbsp;CreateProcess(char&nbsp;*prog,&nbsp;char&nbsp;*args);
+</FONT></PRE><BR>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">We call the process creator the <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:parent process"}'>parent</A></EM> and the process being created, the <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:child process"}'>child</A></EM>. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">What steps does CreateProcess take? As we explained in the previous chapter, the kernel needs to: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Create and initialize the process control block (PCB) in the kernel. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Create and initialize a new address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Load the program prog into the address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Copy arguments args into memory in the address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Initialize the hardware context to start execution at &#8220;start&#8221;. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Inform the scheduler that the new process is ready to run.</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Unfortunately, there are quite a few aspects of the process that the parent might like to control, such as: its privileges, where it sends its input and output, what it should store its files, what to use as a scheduling priority, and so forth. We cannot trust the child process itself to set its own privileges and priority, and it would be inconvenient to expect every application to include code for figuring out its context. So the real interface to CreateProcess is quite a bit more complicated in practice, given in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-560013"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.3</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. </FONT><A id=x1-560013 name=x1-560013></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;//&nbsp;Start&nbsp;the&nbsp;child&nbsp;process
+&nbsp;if&nbsp;(!CreateProcess(NULL,&nbsp;&nbsp;&nbsp;//&nbsp;No&nbsp;module&nbsp;name&nbsp;(use&nbsp;command&nbsp;line)
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;argv[1],&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Command&nbsp;line
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Process&nbsp;handle&nbsp;not&nbsp;inheritable
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Thread&nbsp;handle&nbsp;not&nbsp;inheritable
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;FALSE,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Set&nbsp;handle&nbsp;inheritance&nbsp;to&nbsp;FALSE
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;No&nbsp;creation&nbsp;flags
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Use&nbsp;parent&#8217;s&nbsp;environment&nbsp;block
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NULL,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Use&nbsp;parent&#8217;s&nbsp;starting&nbsp;directory
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;si,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Pointer&nbsp;to&nbsp;STARTUPINFO&nbsp;structure
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&amp;pi&nbsp;)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Pointer&nbsp;to&nbsp;PROCESS_INFORMATION&nbsp;structure
+&nbsp;)</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.3: </B>Excerpt from an example of how to use the Windows CreateProcess system call. The first two arguments specify the program and its arguments; the rest concern aspects of the process runtime environment.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><A id=x1-56002r96 name=x1-56002r96></A>
+<H4 class=subsectionHead><FONT style="BACKGROUND-COLOR: #7be1e1">3.1.2 </FONT><A id=x1-570002 name=x1-570002></A><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX Process Management</FONT></H4><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX takes a different approach to process management, one that is complex in theory and simple in practice. UNIX splits CreateProcess in two steps, called fork and exec, illustrated in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-570014"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.4</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. </FONT><A id=x1-570014 name=x1-570014></A><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<CENTER><FONT style="BACKGROUND-COLOR: #7be1e1"><img alt="" src="file:///[PrimaryStorage]Images/image00208.gif" data-calibre-src="OEBPS/Images/image00208.gif"> </FONT></CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.4: </B>The operation of the UNIX fork and exec system calls. UNIX fork makes a copy of the parent process; UNIX exec changes the child process to run the new program.</FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P><EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX fork"}'><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX fork</FONT></A></EM><FONT style="BACKGROUND-COLOR: #7be1e1"> creates a complete copy of the parent process, with one key exception. (We need some way to distinguish between which copy is the parent and which is the child.) The child process sets up privileges, priorities, and I/O for the program that is about to be started, e.g., by closing some files, opening others, reducing its priority if it is to run in the background, etc. Because the child runs exactly the same code as the parent, it can be trusted to set up the context for the new program correctly. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Once the context is set, the child process calls <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX exec"}'>UNIX exec</A></EM>. UNIX exec brings the new executable image into memory and starts it running. It may seem wasteful to make a complete copy of the parent process, just to overwrite that copy when we bring in the new executable image into memory using exec. It turns out that fork and exec can be implemented efficiently, using a set of techniques we will describe in Chapter&nbsp;8. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">With this design, UNIX fork takes no arguments and returns an integer. UNIX exec takes two arguments (the name of the program to run and an array of arguments to pass to the program). This is in place of the ten parameters needed for CreateProcess. In part because of the simplicity of UNIX fork and exec, this interface has remained nearly unchanged since UNIX was designed in the early 70&#8217;s. (Although the interface has not changed, the word fork is now a bit ambiguous. It is used for creating a new copy of a UNIX process, and in thread systems for creating a new thread. To disambiguate, we will always use the term &#8220;UNIX fork&#8221; to refer to UNIX&#8217;s copy process system call.) </FONT></P>
+<H5 class=subsubsectionHead><A id=x1-580002 name=x1-580002></A><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX fork</FONT></H5><FONT style="BACKGROUND-COLOR: #7be1e1">The steps for implementing UNIX fork in the kernel are: </FONT>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Create and initialize the process control block (PCB) in the kernel </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Create a new address space </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Initialize the address space with a copy of the entire contents of the address space of the parent </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Inherit the execution context of the parent (e.g., any open files) </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Inform the scheduler that the new process is ready to run</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">A strange aspect of UNIX fork is that the system call returns <EM>twice</EM>: once to the parent and once to the child. To the parent, UNIX returns the process ID of the child; to the child, it returns zero indicating success. Just as if you made a clone of yourself, you would need some way to tell who was the clone and who was the original, UNIX uses the return value from fork to distinguish the two copies. Some sample code to call fork is given in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-580015"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.5</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">. </FONT><A id=x1-580015 name=x1-580015></A></P><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT><PRE class=code><FONT style="BACKGROUND-COLOR: #7be1e1">&nbsp;int&nbsp;child_pid&nbsp;=&nbsp;fork();
+&nbsp;
+&nbsp;if&nbsp;(child_pid&nbsp;==&nbsp;0)&nbsp;{&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;child&nbsp;process.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("I&nbsp;am&nbsp;process&nbsp;#%d\n",&nbsp;getpid());
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;}&nbsp;else&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;parent&nbsp;process.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;#%d\n",&nbsp;child_pid);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;
+&nbsp;}
+&nbsp;
+&nbsp;Possible&nbsp;output:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;495
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;process&nbsp;495
+&nbsp;
+&nbsp;Another&nbsp;less&nbsp;likely&nbsp;but&nbsp;still&nbsp;possible&nbsp;output:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;process&nbsp;456
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;456</FONT></PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><B>Figure&nbsp;3.5: </B>Example UNIX code to fork a process, and some possible outputs of running the code. getpid is a system call to get the current process&#8217;s ID.</FONT></P></TD></TR></TBODY></TABLE></DIV><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">If we run the program in Figure&nbsp;</FONT><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-580015"}'><FONT style="BACKGROUND-COLOR: #7be1e1">3.5</FONT></A><FONT style="BACKGROUND-COLOR: #7be1e1">, what happens? If you have access to a UNIX system, you can try it and see for yourself. UNIX fork returns twice, once in the child, with a return value of zero, and once in the parent with a return value of the child&#8217;s process ID. However, we do not know whether the parent will run next or the child. The parent had been running, and so it is likely that it will reach its print statement first. However, a timer interrupt could intervene between when the parent forks the process and when it reaches the print statement, so that the processor is reassigned to the child. Or we could be running on a multicore system, where both the parent and child are running simultaneously. In either case, the child could print its output before the parent. We will talk in much more depth about the implications of different orderings of concurrent execution in the next chapter. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>UNIX fork and the Chrome Web browser</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Although UNIX fork is normally paired with a call to exec, in some cases UNIX fork is useful on its own. A particularly interesting example is in Google&#8217;s Chrome web browser. When the user clicks on a link, Chrome forks a process to fetch and render the web page at the link, in a new tab on the browser. The parent process continues to display the original referring web page, while the child process runs the same browser, but in its own address space and protection boundary. The motivation for this design is to isolate the new link, so that if the web site is infected with a virus, it will not infect the rest of the browser. Closing the infected browser tab will then remove the link and the virus from the system. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Some security researchers take this a step further. They set up their browsers and email systems to create a new <EM>virtual machine</EM> for every new link, running a copy of the browser in each virtual machine; even if the web site has a virus that corrupts the guest operating system running in the virtual machine, the rest of the system will remain unaffected. In this case, closing the virtual machine cleans the system of the virus. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Interestingly, on Windows, Google Chrome does not use CreateProcess to fork new copies of the browser on demand. The difficulty is that if Chrome is updated while Chrome is running, CreateProcess will create a copy of the new version, and that may not interoperate correctly with the old version. Instead, they create a pool of helper processes that wait in the background for new links to render. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV>
+<H5 class=subsubsectionHead><A id=x1-590002 name=x1-590002></A><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX exec and wait</FONT></H5><FONT style="BACKGROUND-COLOR: #7be1e1">The UNIX system call exec completes the steps needed to start running a new program. The child process typically calls UNIX exec once it has returned from UNIX fork and configured the execution environment for the new process. We will describe more about how this works when we discuss UNIX pipes in the next section. </FONT>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX exec does the following steps: </FONT></P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Load the program prog into the current address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Copy arguments args into memory in the address space. </FONT></P>
+<LI class=itemize>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Initialize the hardware context to start execution at &#8220;start.&#8221;</FONT></P></LI></UL>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Note that exec does not create a new process! </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">On the other side, often the parent process needs to pause until the child process completes, e.g., if the next step depends on the output of the previous step. In the shell example we started the chapter with, we need to wait for the two compilations to finish before it is safe to start the linker. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">UNIX has a system call, naturally enough called <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX wait"}'>wait</A></EM>, that pauses the parent until the child finishes, crashes, or is terminated. Since the parent could have created many child processes, wait is parameterized with the process ID of the child. With wait, a shell can create a new process to perform some step of its instructions, and then pause for that step to complete before proceeding to the next step. It would be hard to build a usable shell without wait. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">However, the call to wait is optional in UNIX. For example, the Chrome browser does not need to wait for its forked clones to finish. Likewise, most UNIX shells have an option to run operations in the background, signified by appending &#8216;&amp;&#8217; to the command line. (As with fork, the word wait is now a bit ambiguous. It is used for pausing the current UNIX process to wait for another process to complete; it is also used in thread synchronization, for waiting on a condition variable. To disambiguate, we will always use the term &#8220;UNIX wait&#8221; to refer to UNIX&#8217;s wait system call. Oddly, waiting for a thread to complete is called &#8220;thread join&#8221;, even though it is most analogous to UNIX wait. Windows is simpler, with a single function called &#8220;WaitForSingleObject&#8221; that can wait for process completion, thread completion, or on a condition variable.) </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P>
+<DIV class=sidebar align=center><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><FONT style="BACKGROUND-COLOR: #7be1e1"><SPAN class=sidebar_name><B><I>Kernel handles and garbage collection</I></B></SPAN> </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">As we discussed in the previous chapter, when a UNIX process finishes, it calls the system call exit. Exit can release various resources associated with the process, such as the user stack, heap, and code segments. It must be careful, however, in how it garbage collects the process control block (PCB). Even though the child process has finished, if it deletes the PCB, then the parent process will be left with a dangling pointer if later on it calls UNIX wait. Of course, we don&#8217;t know for sure if the parent will ever call wait, so to be safe, the PCB can only be reclaimed when both the parent and the child have finished or crashed. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Generalizing, both Windows and UNIX have various system calls that return a handle to some kernel object; these handles are used in later calls as an ID. The process ID returned by UNIX fork is used in later calls to UNIX wait; we will see below that UNIX open returns a file descriptor that is used in other system calls. It is important to realize that these handles are <EM>not</EM> pointers to kernel data structures; otherwise, an erroneous user program could cause havoc in the kernel by making system calls with fake handles. Rather, they are specific to the process and checked for validity on each use. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Further, in both Windows and UNIX, handles are reference counted. Whenever the kernel returns a handle, it bumps a reference counter, and whenever the process releases a handle (or exits), the reference counter is decremented. UNIX fork sets the process ID reference count to two, one for the parent and one for the child. The underlying data structure, the PCB, is reclaimed only when the reference count goes to zero, that is, when both the parent and child terminate. </FONT></P>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1"></FONT></P></TD></TR></TBODY></TABLE><FONT style="BACKGROUND-COLOR: #7be1e1">
+<HR>
+</FONT></DIV>
+<P><FONT style="BACKGROUND-COLOR: #7be1e1">Finally, as we outlined in the previous chapter, UNIX provides a facility for one process to send another an instant notification, or upcall. In UNIX, the notification is sent by calling <EM><A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:UNIX signal"}'>signal</A></EM>. Signals are used for terminating an application, suspending it temporarily for debugging, resuming after a suspension, timer expiration, and a host of other reasons. In the default case, where the receiving application did not specify a signal handler, the kernel implements a standard one on its behalf. </FONT><A id=x1-59001r95 name=x1-59001r95></A></P><A id=x1-600002 name=x1-600002></A><BR><BR><FONT style="BACKGROUND-COLOR: #7be1e1">

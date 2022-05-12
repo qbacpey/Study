@@ -1,0 +1,48 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 4.3.2 Fork-Join Parallelism</SPAN></FONT></H4>Although the interface in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-160015"}'>4.5</A> is simple, it is remarkably powerful. Many multi-threaded applications can be designed using only these thread operations and no additional synchronization. <SPAN class=extract>With <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:fork-join parallelism"}'>fork-join parallelism</A></EM>, a thread can create child threads to perform work (&#8220;fork&#8221;, or thread_create), and it can wait for their results (&#8220;join&#8221;). Data may be safely shared between threads, provided it is (a) written by the parent before the child thread starts or (b) written by the child and read by the parent after the join. 
+<P>If these sharing restrictions are followed, each thread executes independently and in a deterministic fashion, unaffected by the behavior of any other concurrently executing thread. The multiplexing of threads onto processors has no effect other than performance.</P></SPAN><A id=x1-180017 name=x1-180017></A>
+<HR>
+<PRE class=code>&nbsp;<BR><FONT size=2>//&nbsp;To&nbsp;pass&nbsp;two&nbsp;arguments,&nbsp;we&nbsp;need&nbsp;a&nbsp;struct&nbsp;to&nbsp;hold&nbsp;them.
+&nbsp;typedef&nbsp;struct&nbsp;bzeroparams&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unsigned&nbsp;char&nbsp;*buffer;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;length;
+&nbsp;};
+&nbsp;
+&nbsp;#define&nbsp;NTHREADS&nbsp;10
+&nbsp;
+&nbsp;void&nbsp;go&nbsp;(struct&nbsp;bzeroparams&nbsp;*p)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;memset(p-&gt;buffer,&nbsp;0,&nbsp;p-&gt;length);
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;Zero&nbsp;a&nbsp;block&nbsp;of&nbsp;memory&nbsp;using&nbsp;multiple&nbsp;threads.
+&nbsp;void&nbsp;blockzero&nbsp;(unsigned&nbsp;char&nbsp;*p,&nbsp;int&nbsp;length)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;i;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_t&nbsp;threads[NTHREADS];
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;struct&nbsp;bzeroparams&nbsp;params[NTHREADS];
+&nbsp;
+&nbsp;//&nbsp;For&nbsp;simplicity,&nbsp;assumes&nbsp;length&nbsp;is&nbsp;divisible&nbsp;by&nbsp;NTHREADS.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;assert((length&nbsp;%&nbsp;NTHREADS)&nbsp;==&nbsp;0);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;NTHREADS;&nbsp;i++)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params[i].buffer&nbsp;=&nbsp;p&nbsp;+&nbsp;i&nbsp;*&nbsp;length/NTHREADS;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;params[i].length&nbsp;=&nbsp;length/NTHREADS;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_create_p(&amp;(threads[i]),&nbsp;&amp;go,&nbsp;&amp;params[i]);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;(i&nbsp;=&nbsp;0;&nbsp;i&nbsp;&lt;&nbsp;NTHREADS;&nbsp;i++)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_join(threads[i]);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;}</FONT>
+&nbsp;</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;4.7: </B>Routine to zero a contiguous region of memory in parallel using multiple threads. To pass two arguments (the pointer to the buffer and the length of the buffer) to the child thread, the program passes a pointer to a struct holding the two parameters.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P><B>EXAMPLE: Parallel block zero.</B> A simple example of fork-join parallelism in operating systems is the procedure to zero a contiguous block of memory. To prevent unintentional data leakage, whenever a process exits, the operating system must zero the memory that had been allocated to the exiting process. Otherwise, a new process may be re-assigned the memory, enabling it to read potentially sensitive data. For example, an operating system&#8217;s remote login program might temporarily store a user&#8217;s password in memory, but the next process to use the same physical memory might be a memory-scanning program launched by a different, malicious user. </P>
+<P>For a large process, parallelizing the zeroing function can make sense. Zeroing 1 GB of memory takes about 50 milliseconds on a modern computer; by contrast, creating and starting a new thread takes a few tens of microseconds. </P>
+<P>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-180017"}'>4.7</A> illustrates the code for a parallel zero function using fork-join parallelism. The multi-threaded blockzero creates a set of threads and assigns each a disjoint portion of the memory region; the region is empty when all threads have completed their work. </P><SPAN class=extract>
+<P>In practice, the operating system will often create a thread to run blockzero in the background. The memory of an exiting process does not need to be cleared until the memory is needed &#8212; that is, when the next process is created. </P>
+<P>To exploit this flexibility, the operating system can create a set of low priority threads to run blockzero. The kernel can then return immediately and resume running application code. Later on, when the memory is needed, the kernel can call thread_join. If the zero is complete by that point, the join will return immediately; otherwise, it will wait until the memory is safe to use.</P>
+<P></SPAN>&nbsp;<A id=x1-18002r30 name=x1-18002r30></A></P><A id=x1-190004 name=x1-190004>

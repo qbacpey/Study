@@ -1,0 +1,4 @@
+<B>EXAMPLE: </B>For the threadHello program in Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-170016"}'>4.6</A>, when thread_join&nbsp;returns for thread i, what is thread i&#8217;s thread state? 
+<P></P>
+<P><B>ANSWER: </B>When join returns, thread i has finished running and exited. The runtime system saved the exit value in the TCB and moved the TCB to the finished list (so that its exit value can be found by the parent thread). <B>The thread is thus in the FINISHED&nbsp;state.</B> &#9633;</P>
+<P><SPAN class=extract>&#24403; thread_join &#36820;&#22238;&#26102;&#65292;&#34987; join &#30340;&#32447;&#31243;&#24517;&#28982;&#22788;&#20110;&#20160;&#20040;&#29366;&#24577;&#65311;<STRONG>FINISHED&nbsp;</STRONG></SPAN>

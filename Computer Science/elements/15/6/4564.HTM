@@ -1,0 +1,460 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : </FONT></STRONG>
+<H4 class=subsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 4.6.3 Thread Context Switch</SPAN></FONT></H4>To support multiple threads, we also need a mechanism to switch which threads are RUNNING&nbsp;and which are READY. 
+<P><SPAN class=extract>&nbsp;</P>
+<P>A <EM><A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "glo:thread context switch"}'>thread context switch</A></EM> suspends execution of a currently running thread and resumes execution of some other thread. The switch saves the currently running thread&#8217;s registers to the thread&#8217;s TCB and stack, and then it restores the new thread&#8217;s registers from that thread&#8217;s TCB and stack into the processor. </P>
+<P>&#32447;&#31243;&#30340;&#19978;&#19979;&#25991;&#20999;&#25442;&#20284;&#20046;&#20250;&#23558;&#23492;&#23384;&#22120;&#20445;&#23384;&#21040;&#20004;&#20010;&#19981;&#21516;&#30340;&#22320;&#26041;&#65306;TCB &#21644;&#32447;&#31243;&#30340;&#26632;&#65288;&#20013;&#26029;&#26632;&#65289;</P></SPAN>
+<P>We need to answer several questions: </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>What triggers a context switch? </P>
+<LI class=itemize>
+<P>How does a voluntary context switch (e.g., a call to thread_yield) work? </P>
+<LI class=itemize>
+<P>How does an involuntary context switch differ from a voluntary one? </P>
+<LI class=itemize>
+<P>What thread should the scheduler choose to run next?</P></LI></UL>
+<P>We discuss these in turn, but we defer the last question to Chapter&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-1070007"}'>7</A>. <SPAN class=extract>The <EM>mechanisms</EM> we discuss in this Chapter work regardless of the <EM>policy</EM> the scheduler uses when choosing threads</SPAN>. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left><SPAN class=sidebar_name><SPAN class=extract>
+<P width=0><EM><STRONG><SPAN class=sidebar_name>Separating mechanism from policy</SPAN> </STRONG></EM></P>
+<P>Separating mechanism from policy is a useful and widely applied principle in operating system design. When mechanism and policy are cleanly separated, it is easier to introduce new policies to optimize a system for a new workload or new technology. </P>
+<P>For example, the thread context switch abstraction cleanly separates mechanism (how to switch between threads) from policy (which thread to run) so that the mechanism works no matter what policy is used. Some systems can elect to do something simple (e.g., FIFO scheduling); other systems can optimize scheduling to meet their goals (e.g., a periodic scheduler to smoothly run real-time multimedia streams for a media device, a round-robin scheduler to balance responsiveness and throughput for a server, or a priority scheduler that devotes most resources to the visible application on a smartphone). </P>
+<P>We will see this principle many times in this book. For example, thread synchronization mechanisms work regardless of the scheduling policy; file metadata mechanisms for locating a file&#8217;s blocks work regardless of the policy for where to place the file&#8217;s blocks on disk; and page translation mechanisms for mapping virtual to physical addresses work regardless of which physical pages the operating system assigns to each process.<EM><STRONG> </STRONG></EM></P></SPAN></SPAN>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV><SPAN class=extract>
+<P><STRONG>What Triggers a Kernel Thread Context Switch? </STRONG>A thread context switch can be triggered by either a voluntary call into the thread library, or an involuntary interrupt or processor exception. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Voluntary. The thread could call a thread library function that triggers a context switch. For example, most thread libraries provide a thread_yield&nbsp;call that lets the currently running thread voluntarily give up the processor to the next thread on the ready list. Similarly, the thread_join&nbsp;and thread_exit&nbsp;calls suspend execution of the current thread and start running a different one. </P>
+<LI class=itemize>
+<P>Involuntary. An <EM>interrupt</EM> or <EM>processor exception</EM> could invoke an interrupt handler. The interrupt hardware saves the state of the running thread and executes the handler&#8217;s code. The handler can decide that some other thread should run, and then switch to it. Alternatively, if the current thread should continue running, the handler restores the state of the interrupted thread and resumes execution. </P>
+<P>For example, many thread systems are designed to ensure that no thread can monopolize the processor. To accomplish this, they set a hardware timer to interrupt the processor periodically (e.g., every few milliseconds). The timer interrupt handler saves the state of the running thread, chooses another thread to run, and runs that thread by restoring its state to the processor. </P>
+<P>Other I/O hardware events (e.g., a keyboard key is pressed, a network packet arrives, or a disk operation completes) also invoke interrupt handlers. In these cases as well, the handlers save the state of the currently running thread so that it can be restored later. They then execute the handler code, and when the handler is done, they either restore the state of the current thread, or switch to a new thread. A new thread will be run if the I/O event moves a thread onto the ready list with a higher priority than the previously running thread.</P></LI></UL>
+<P>Regardless, the thread system must save the current processor state, so that when the current thread resumes execution, it appears <EM>to the thread</EM> as if the event never occurred except for some time having elapsed. This provides the abstraction of thread execution on a virtual processor with unpredictable and variable speed. </P>
+<P>To keep things simple, we do not want to do an involuntary context switch while we are in the middle of a voluntary one. When switching between two threads, we need to temporarily defer interrupts until the switch is complete, to avoid confusion. Processors contain privileged instructions to defer and re-enable interrupts; we make use of these in our implementation below. </P></SPAN>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left><SPAN class=sidebar_name><SPAN class=extract>
+<P width=0><EM><STRONG><SPAN class=sidebar_name>Why is it necessary to turn off interrupts during thread switch?</SPAN> </STRONG></EM></P>
+<P>Our implementation of thread_yield&nbsp;defers any interrupts that might occur during the procedure, until the yield is complete. This might seem unnecessary: after all, even if the thread context switch is interrupted, the state of the switch will be saved onto the stack. Eventually the kernel will re-schedule the thread, restore its state, and complete the thread switch. </P>
+<P>However, a subtle inconsistency might arise. Suppose a low priority thread (e.g., the idle thread) is about to voluntarily switch to a high priority thread. It pulls the high priority thread off the ready list, and at that precise moment, an interrupt occurs. Supppose the interrupt moves a medium priority thread from WAITING&nbsp;to READY. Since it appears that the processor is still running the low priority thread, the interrupt handler immediately switches to the new thread. The high priority thread is in limbo! It is ready to run, but unable to do so until the low priority thread is re-scheduled. And that may not happen for a long time. </P>
+<P>Of course, this sequence of events would not occur very often, but when it does, it would be difficult to locate or debug. </P></SPAN></SPAN>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P><B>Voluntary Kernel Thread Context Switch.</B> Because a voluntary switch is simpler to understand, we start there. Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-2600114"}'>4.14</A> shows pseudo-code for a simple implementation of thread_yield&nbsp;for the Intel x86 hardware architecture. A thread calls thread_yield&nbsp;to voluntarily relinquish the processor to another thread. The calling thread&#8217;s registers are copied to its TCB and stack, and it resumes running later, when the scheduler chooses it. <A id=x1-2600114 name=x1-2600114></A></P>
+<HR>
+
+<P></P><PRE class=code><BR> <FONT size=2>//&nbsp;We&nbsp;enter&nbsp;as&nbsp;oldThread,&nbsp;but&nbsp;we&nbsp;return&nbsp;as&nbsp;newThread.
+&nbsp;//&nbsp;Returns&nbsp;with&nbsp;newThread&#8217;s&nbsp;registers&nbsp;and&nbsp;stack.
+&nbsp;void&nbsp;thread_switch(oldThreadTCB,&nbsp;newThreadTCB)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pushad;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Push&nbsp;general&nbsp;register&nbsp;values&nbsp;onto&nbsp;the&nbsp;old&nbsp;stack.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;oldThreadTCB-&gt;sp&nbsp;=&nbsp;%esp;&nbsp;//&nbsp;Save&nbsp;the&nbsp;old&nbsp;thread&#8217;s&nbsp;stack&nbsp;pointer.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;%esp&nbsp;=&nbsp;newThreadTCB-&gt;sp;&nbsp;//&nbsp;Switch&nbsp;to&nbsp;the&nbsp;new&nbsp;stack.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;popad;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Pop&nbsp;register&nbsp;values&nbsp;from&nbsp;the&nbsp;new&nbsp;stack.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;
+&nbsp;}
+&nbsp;
+&nbsp;void&nbsp;thread_yield()&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TCB&nbsp;*chosenTCB,&nbsp;*finishedTCB;
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Prevent&nbsp;an&nbsp;interrupt&nbsp;from&nbsp;stopping&nbsp;us&nbsp;in&nbsp;the&nbsp;middle&nbsp;of&nbsp;a&nbsp;switch.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;disableInterrupts();
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Choose&nbsp;another&nbsp;TCB&nbsp;from&nbsp;the&nbsp;ready&nbsp;list.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;chosenTCB&nbsp;=&nbsp;readyList.getNextThread();
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(chosenTCB&nbsp;==&nbsp;NULL)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Nothing&nbsp;else&nbsp;to&nbsp;run,&nbsp;so&nbsp;go&nbsp;back&nbsp;to&nbsp;running&nbsp;the&nbsp;original&nbsp;thread.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}&nbsp;else&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Move&nbsp;running&nbsp;thread&nbsp;onto&nbsp;the&nbsp;ready&nbsp;list.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runningThread-&gt;state&nbsp;=&nbsp;ready;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;readyList.add(runningThread);
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_switch(runningThread,&nbsp;chosenTCB);&nbsp;//&nbsp;Switch&nbsp;to&nbsp;the&nbsp;new&nbsp;thread.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;runningThread-&gt;state&nbsp;=&nbsp;running;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Delete&nbsp;any&nbsp;threads&nbsp;on&nbsp;the&nbsp;finished&nbsp;list.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while&nbsp;((finishedTCB&nbsp;=&nbsp;finishedList-&gt;getNextThread())&nbsp;!=&nbsp;NULL)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;delete&nbsp;finishedTCB-&gt;stack;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;delete&nbsp;finishedTCB;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;enableInterrupts();
+&nbsp;}
+&nbsp;
+&nbsp;//&nbsp;thread_create&nbsp;must&nbsp;put&nbsp;a&nbsp;dummy&nbsp;frame&nbsp;at&nbsp;the&nbsp;top&nbsp;of&nbsp;its&nbsp;stack:
+&nbsp;//&nbsp;the&nbsp;return&nbsp;PC&nbsp;and&nbsp;space&nbsp;for&nbsp;pushad&nbsp;to&nbsp;have&nbsp;stored&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;registers.
+&nbsp;//&nbsp;This&nbsp;way,&nbsp;when&nbsp;someone&nbsp;switches&nbsp;to&nbsp;a&nbsp;newly&nbsp;created&nbsp;thread,
+&nbsp;//&nbsp;the&nbsp;last&nbsp;two&nbsp;lines&nbsp;of&nbsp;thread_switch&nbsp;work&nbsp;correctly.
+&nbsp;void&nbsp;thread_dummySwitchFrame(newThread)&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*(tcb-&gt;sp)&nbsp;=&nbsp;stub;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;Return&nbsp;to&nbsp;the&nbsp;beginning&nbsp;of&nbsp;stub.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcb-&gt;sp--;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tcb-&gt;sp&nbsp;-=&nbsp;SizeOfPopad;
+&nbsp;}</FONT>
+</PRE>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left><B><SPAN class=extract>
+<P class=caption width=0><B>Figure&nbsp;4.14: </B>Pseudo-code for thread_switch&nbsp;and thread_yield&nbsp;on the Intel x86 architecture. Note that thread_yield&nbsp;is a no-op if there are no other threads to run. Otherwise, it saves the old thread state and restores the new thread state. When the old thread is re-scheduled, it returns from thread_switch&nbsp;as the running thread.</P>
+<P class=caption width=0></SPAN></B>&nbsp;</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>The pseudo-code for thread_yield&nbsp;first turns off interrupts to prevent the thread system from attempting to make two context switches at the same time. The pseudo-code then pulls the next thread to run off the ready list (if any), and switches to it. </P>
+<P><SPAN class=extract>The thread_switch&nbsp;code may seem tricky, since it is called in the context of the old thread and finishes in the context of the new thread.</SPAN> To make this work, thread_switch&nbsp;saves the state of the registers to the stack and saves the stack pointer to the TCB. It then switches to the stack of the new thread, restores the new thread&#8217;s state from the new thread&#8217;s stack, and returns to whatever program counter is stored on the new stack. </P>
+<P>A twist is that the return location may not be to thread_yield! The return is to whatever the new thread was doing beforehand. For example, the new thread might have been WAITING&nbsp;in thread_join&nbsp;and is now READY&nbsp;to run. The thread might have called thread_yield. Or it might be a newly created thread just starting to run. </P><SPAN class=extract>
+<P>It is essential that any routine that causes the thread to yield or block call thread_switch&nbsp;in the same way. Equally, to create a new thread, thread_create&nbsp;must set up the stack of the new thread to be as if it had suspended execution just before performing its first instruction. Then, if the newly created thread is the next thread to run, a thread can call thread_yield, switch to the newly created thread, switch to its stack pointer, pop the register values off the stack, and &#8220;return&#8221; to the new thread, even though it had never called switch in the first place. </P>
+<P></SPAN><B>EXAMPLE: </B>Suppose two threads each loop, calling thread_yield&nbsp;on each iteration. </P>
+<P><BR></P><PRE class=code>   &nbsp;go()&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;while(1)&nbsp;{
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;thread_yield();
+   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}
+   &nbsp;}</PRE><BR>
+<P>What is the sequence of steps as seen by the physical processor and by each thread? </P>
+<P><B>ANSWER: </B>From the processor&#8217;s point of view, one instruction follows the next, but now the instructions from different threads are interleaved (as they must be if they are multiplexed). </P>
+<P><B>Figure&nbsp;<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-2600215"}'>4.15</A> shows the interleaving:</B> thread_yield&nbsp;is called by one thread but returns in a different thread. thread_yield&nbsp;deliberately violates the procedure call conventions compilers normally follow by manipulating the stack and program counter to switch between threads. </P>
+<P>However, the threads themselves can ignore this complexity. From their point of view, they each run this loop on their own (variable-speed) virtual processor. &#9633; <A id=x1-2600215 name=x1-2600215></A></P>
+<HR>
+
+<P></P>
+<DIV align=center>
+<TABLE class=texttable border=0>
+<TBODY>
+<TR class=tr>
+<TD class=td colSpan=3 align=left>
+<P class=tabp></P>
+<DIV class=multicolumn align=center noWrap><B>Logical View</B></DIV></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Thread 1</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp><B>Thread 2</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>go(){ </P></TD>
+<TD class=td align=left>
+<P class=tabp>go(){ </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>&nbsp; while(1){ </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; while(1){ </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; thread_yield(); </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp;&nbsp; thread_yield(); </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>&nbsp; } </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; } </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>} </P></TD>
+<TD class=td align=left>
+<P class=tabp>} </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD></TR>
+<TR class=tr>
+<TD class=td colSpan=3 align=left>
+<P class=tabp></P>
+<DIV class=multicolumn align=center noWrap><B>Physical Reality</B></DIV></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp><B>Thread 1&#8217;s instructions </B></P></TD>
+<TD class=td align=left>
+<P class=tabp><B>Thread 2&#8217;s instructions</B> </P></TD>
+<TD class=td align=left>
+<P class=tabp><B>Processor&#8217;s instructions</B> </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>&#8220;return&#8221; from thread_switch </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&#8220;return&#8221; from thread_switch</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>&nbsp; into stub </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; into stub </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>call go </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call go</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>call thread_yield </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_yield </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>choose another thread </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>choose another thread </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>call thread_switch </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_switch </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>save thread 1 state to TCB </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>save thread 1 state to TCB </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>load thread 2 state </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>load thread 2 state</P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&#8220;return&#8221; from thread_switch </P></TD>
+<TD class=td align=left>
+<P class=tabp>&#8220;return&#8221; from thread_switch </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; into stub </P></TD>
+<TD class=td align=left>
+<P class=tabp>&nbsp; into stub </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call go </P></TD>
+<TD class=td align=left>
+<P class=tabp>call go </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_yield </P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_yield </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>choose another thread </P></TD>
+<TD class=td align=left>
+<P class=tabp>choose another thread </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_switch </P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_switch </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>save thread 2 state to TCB </P></TD>
+<TD class=td align=left>
+<P class=tabp>save thread 2 state to TCB </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>load thread 1 state </P></TD>
+<TD class=td align=left>
+<P class=tabp>load thread 1 state </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>return from thread_switch </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>return from thread_switch </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>return from thread_yield </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>return from thread_yield </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>call thread_yield </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_yield </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>choose another thread </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>choose another thread </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>call thread_switch </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_switch </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>save thread 1 state to TCB </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>save thread 1 state to TCB </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>load thread 2 state </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>load thread 2 state </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>return from thread_switch </P></TD>
+<TD class=td align=left>
+<P class=tabp>return from thread_switch </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>return from thread_yield </P></TD>
+<TD class=td align=left>
+<P class=tabp>return from thread_yield </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_yield </P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_yield </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>choose another thread </P></TD>
+<TD class=td align=left>
+<P class=tabp>choose another thread </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_switch </P></TD>
+<TD class=td align=left>
+<P class=tabp>call thread_switch </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>save thread 2 state to TCB </P></TD>
+<TD class=td align=left>
+<P class=tabp>save thread 2 state to TCB </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>load thread 1 state </P></TD>
+<TD class=td align=left>
+<P class=tabp>load thread 1 state </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>return from thread_switch </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>return from thread_switch </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>return from thread_yield </P></TD>
+<TD class=td align=left>
+<P class=tabp></P></TD>
+<TD class=td align=left>
+<P class=tabp>return from thread_yield </P></TD></TR>
+<TR class=tr>
+<TD class=td align=left>
+<P class=tabp>... </P></TD>
+<TD class=td align=left>
+<P class=tabp>... </P></TD>
+<TD class=td align=left>
+<P class=tabp>... </P></TD></TR></TBODY></TABLE></DIV>
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;4.15: </B>Interleaving of instructions when two threads loop and call thread_yield().</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left><SPAN class=sidebar_name><B><I><SPAN class=extract>
+<P width=0><SPAN class=sidebar_name><B><I>A zero-thread kernel</I></B></SPAN> </P>
+<P>Not only can we have a single-threaded kernel or a multi-threaded kernel, it is actually possible to have a kernel with no threads of its own &#8212; a zero-threaded kernel! In fact, this used to be quite common&nbsp;[<A data-9uzdtcnnj6xqoalwmdp3qa='{"name": "OEBPS/Text/part0000.xhtml", "frag": "XLions:1996:LCU"}'>107</A>]. </P>
+<P>Consider the simple picture of the operating system described in Chapter&nbsp;2. Once the system has booted, initialized its device drivers, and started some user-level processes like a login shell, everything else the kernel does is event-driven, i.e., done in response to an interrupt, processor exception, or system call. </P>
+<P>In a simple operating system like this, there is no need for a &#8220;kernel thread&#8221; or &#8220;kernel thread control block&#8221; to keep track of an ongoing computation. Instead, when an interrupt, trap, or exception occurs, the stack pointer gets set to the base of the interrupt stack, and the instruction pointer gets set to the address of the handler. Then, the handler executes and either returns immediately to the interrupted user-level process or suspends the user-level process and &#8220;returns&#8221; to some other user-level process. In either case, the next event (interrupt, processor exception, or system call) starts this process anew. </P></SPAN></I></B></SPAN>
+<P></P></TD></TR></TBODY></TABLE>
+<HR>
+</DIV>
+<P><B>Involuntary Kernel Thread Context Switch.</B> Chapter&nbsp;2 explained what happens when an interrupt, exception, or trap interrupts a running user-level process: hardware and software work together to save the state of the interrupted process, run the kernel&#8217;s handler, and restore the state of the interrupted process. </P>
+<P>The mechanism is almost identical when an interrupt or trap triggers a thread switch between threads in the kernel. The three steps described in Chapter&nbsp;2 are slightly modified (<EM>changes are written in italics</EM>): </P>
+<OL class=enumerate1>
+<LI class=enumerate><A id=x1-26004x1 name=x1-26004x1></A>
+<P><B>Save the state.</B> Save the currently running <EM>thread&#8217;s</EM> registers so that the handler can run code without disrupting the interrupted <EM>thread</EM>. </P>
+<P>Hardware saves some state when the interrupt or exception occurs, and software saves the rest of the state when the handler runs. </P>
+<LI class=enumerate><A id=x1-26006x2 name=x1-26006x2></A>
+<P><B>Run the kernel&#8217;s handler.</B> Run the kernel&#8217;s handler code to handle the interrupt or exception. <EM><SPAN class=extract><EM>Since we are already in kernel mode, we do not need to change from user to kernel mode in this step.</EM> <EM>We also do not need to change the stack pointer to the base of the kernel&#8217;s interrupt stack. Instead, we can just push saved state or handler variables onto the current stack, starting from the current stack pointer.</EM> </SPAN></EM></P>
+<LI class=enumerate><A id=x1-26008x3 name=x1-26008x3></A>
+<P><B>Restore the state.</B> Restore the <EM>next ready thread&#8217;s</EM> registers so that the thread can resume running where it left off. </P></LI></OL>
+<P>In short, comparing a switch between kernel threads to what happens on a user-mode transfer: (1) there is no need to switch modes (and therefore no need to switch stacks) and (2) <SPAN class=extract>the handler can resume any thread on the ready list rather than always resuming the thread or process that was just suspended</SPAN>. </P><B><SPAN class=extract>
+<P><B>Implementation Details.</B> On most processor architectures, a simple (but inefficient) way to swap to the next thread from within an interrupt handler is to call thread_switch&nbsp;just before the handler returns. As we have already seen, thread_switch&nbsp;saves the state of the current thread (that is, the state of the interrupt handler) and switches to the new kernel thread. When the original thread resumes, it will return from thread_switch, and immediately pop the interrupt context off the stack, resuming execution at the point where it was interrupted. </P>
+<P>Most systems, such as Linux, make a small optimization to improve interrupt handling performance. The state of the interrupted thread is already saved on the stack, albeit in the format specified by the interrupt hardware. If we modify thread_switch&nbsp;to save and restore registers exactly as the interrupt hardware does, then returning from an interrupt and resuming a thread are the same action: they both pop the interrupt frame off the stack to resume the next thread to run. </P>
+<P>For example, to be compatible with x86 interrupt hardware, the software implementation of thread_switch&nbsp;would simulate the hardware case, saving the return instruction pointer and eflags register before calling pushad to save the general-purpose registers. After switching to the new stack, it would call iret to resume the new thread, whether the new thread was suspended by a hardware event or a software call.</P>
+<P></SPAN></B>&nbsp;<A id=x1-26009r43 name=x1-26009r43></A></P><A id=x1-270007 name=x1-270007>

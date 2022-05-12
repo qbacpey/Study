@@ -1,0 +1,20 @@
+<strong><font color="blue">Operating Systems: Principles and Practice (Second Edition) Volume II : </font></strong><h3 class=sectionHead>7.8 Summary and Future Directions</H3></A><FONT style="BACKGROUND-COLOR: #ffffff">Resource scheduling is an ancient topic in computer science. Almost from the moment that computers were first multiprogrammed, operating system designers have had to decide which tasks to do first and which to leave for later. This decision &#8212; the system&#8217;s scheduling policy &#8212; can have a significant impact on system responsiveness and usability. </FONT>
+<P>Fortunately, the cumulative effect of Moore&#8217;s Law has shifted the balance towards a focus on improving response time for users, rather than on efficient utilization of resources for the computer. At the same time, the massive scale of the Internet means that many services need to be designed to provide good response time across a wide range of load conditions. Our goal in this chapter is to give you the conceptual basis for making those design choices. </P>
+<P>Several ongoing trends pose new and interesting challenges to effective resource scheduling. </P>
+<UL class=itemize1>
+<LI class=itemize>
+<P><B>Multicore systems.</B> Although almost all new servers, desktops, laptops and smartphones are multicore systems, relatively few widely used applications have been redesigned to take full advantage of multiple processors. This is likely to change over the next few years as multicore systems become ubiquitous and as they scale to larger numbers of processors per chip. Although we have the concepts in place to manage resource sharing among multiple parallel applications, commercial systems are only just now starting to deploy these ideas. It will be interesting to see how the theory works out in practice. </P>
+<LI class=itemize>
+<P><B>Cache affinity.</B> Over the past twenty years, processor architects have radically increased both the size and number of levels of on-chip caches. There is little reason to believe that this trend will reverse. Although processor clock rates are improving slowly, transistor density is still increasing at a rapid rate. This will make it both possible and desirable to have even larger, multi-level on-chip caches to achieve good performance. Thus, it is likely that scheduling for cache affinity will be an even larger factor in the future than it is today. Balancing when to respect affinity and when to migrate is still somewhat of an open question, as is deciding how to spread or coalesce application threads across caches. </P>
+<LI class=itemize>
+<P><B>Energy-aware scheduling.</B> The number of energy-constrained computers such as smartphones, tablets, and laptops, now far outstrips powered computers such as desktops and servers. As a result, we are likely to see the development of hardware to monitor and manage energy use by applications, and the operating system will need to make use of that hardware support. We are likely to see operating systems sandbox application energy use to prevent faulty or malicious applications from running down the battery. Likewise, just as applications can adapt to changing numbers of processors, we are likely to see applications that adapt their behavior to energy availability. </P></LI></UL><A id=x1-13500123 name=x1-13500123></A>
+<HR>
+
+<CENTER><img alt="" src="about:../Images/image00438.gif" data-calibre-src="OEBPS/Images/image00438.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;7.23: </B>A web service often consists of a number of front-end servers who redirect incoming client requests to a larger set of back-end servers.</P></TD></TR></TBODY></TABLE>
+<HR>
+<A id=Q1-1-235 name=Q1-1-235></A><A id=Q1-1-236 name=Q1-1-236></A><A id=x1-1360008 name=x1-1360008>

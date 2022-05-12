@@ -1,0 +1,37 @@
+<H5 class=subsubsectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 3.1 Process Management : 3.1.2 UNIX Process Management : UNIX fork</SPAN></FONT></H5><SPAN class=extract>The steps for implementing UNIX fork in the kernel are: 
+<UL class=itemize1>
+<LI class=itemize>
+<P>Create and initialize the process control block (PCB) in the kernel </P>
+<LI class=itemize>
+<P>Create a new address space </P>
+<LI class=itemize>
+<P>Initialize the address space with a copy of the entire contents of the address space of the parent </P>
+<LI class=itemize>
+<P>Inherit the execution context of the parent (e.g., any open files) </P>
+<LI class=itemize>
+<P>Inform the scheduler that the new process is ready to run</P></LI></UL></SPAN>~ 
+<P><SPAN class=extract>A strange aspect of UNIX fork is that the system call returns <EM>twice</EM>: once to the parent and once to the child. To the parent, UNIX returns the process ID of the child; to the child, it returns zero indicating success</SPAN>. Just as if you made a clone of yourself, you would need some way to tell who was the clone and who was the original, UNIX uses the return value from fork to distinguish the two copies. Some sample code to call fork is given in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-580015"}'>3.5</A>. <A id=x1-580015 name=x1-580015></A></P>
+<HR>
+<FONT size=2>&nbsp;<BR>int&nbsp;child_pid&nbsp;=&nbsp;fork();&nbsp;<BR>&nbsp;if&nbsp;(child_pid&nbsp;==&nbsp;0)&nbsp;{&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;child&nbsp;process.<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("I&nbsp;am&nbsp;process&nbsp;#%d\n",&nbsp;getpid());<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;<BR>&nbsp;}&nbsp;else&nbsp;{&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;//&nbsp;I&#8217;m&nbsp;the&nbsp;parent&nbsp;process.<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;printf("I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;#%d\n",&nbsp;child_pid);<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;0;<BR>&nbsp;}<BR>&nbsp;Possible&nbsp;output:<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;495<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;process&nbsp;495<BR>&nbsp;Another&nbsp;less&nbsp;likely&nbsp;but&nbsp;still&nbsp;possible&nbsp;output:<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;process&nbsp;456<BR>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;I&nbsp;am&nbsp;the&nbsp;parent&nbsp;of&nbsp;process&nbsp;456</FONT> 
+<DIV class=caption align=center>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left>
+<P class=caption width=0><B>Figure&nbsp;3.5: </B>Example UNIX code to fork a process, and some possible outputs of running the code. getpid is a system call to get the current process&#8217;s ID.</P></TD></TR></TBODY></TABLE></DIV>
+<HR>
+
+<P>If we run the program in Figure&nbsp;<A data-ixbpernmnjoud4qz9ktzkg='{"name": "OEBPS/Text/part0000.xhtml", "frag": "x1-580015"}'>3.5</A>, what happens? If you have access to a UNIX system, you can try it and see for yourself. UNIX fork returns twice, once in the child, with a return value of zero, and once in the parent with a return value of the child&#8217;s process ID. <SPAN class=extract>However, we do not know whether the parent will run next or the child. The parent had been running, and so it is likely that it will reach its print statement first. However, a timer interrupt could intervene between when the parent forks the process and when it reaches the print statement, so that the processor is reassigned to the child. Or we could be running on a multicore system, where both the parent and child are running simultaneously. In either case, the child could print its output before the parent</SPAN>. We will talk in much more depth about the implications of different orderings of concurrent execution in the next chapter. </P>
+<P></P>
+<DIV class=sidebar align=center>
+<HR>
+
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD style="BACKGROUND-COLOR: #f0f0f0" align=left>
+<P width=0><SPAN class=sidebar_name><B><I>UNIX fork and the Chrome Web browser</I></B></SPAN> </P>
+<P><SPAN class=extract>Although UNIX fork is normally paired with a call to exec, in some cases UNIX fork is useful on its own. A particularly interesting example is in Google&#8217;s Chrome web browser. When the user clicks on a link, Chrome forks a process to fetch and render the web page at the link, in a new tab on the browser. The parent process continues to display the original referring web page, while the child process runs the same browser, but in its own address space and protection boundary. The motivation for this design is to isolate the new link, so that if the web site is infected with a virus, it will not infect the rest of the browser. Closing the infected browser tab will then remove the link and the virus from the system</SPAN>. </P>
+<P>Some security researchers take this a step further. They set up their browsers and email systems to create a new <EM>virtual machine</EM> for every new link, running a copy of the browser in each virtual machine; even if the web site has a virus that corrupts the guest operating system running in the virtual machine, the rest of the system will remain unaffected. In this case, closing the virtual machine cleans the system of the virus. </P>
+<P>Interestingly, on Windows, Google Chrome does not use CreateProcess to fork new copies of the browser on demand. The difficulty is that if Chrome is updated while Chrome is running, CreateProcess will create a copy of the new version, and that may not interoperate correctly with the old version. Instead, they create a pool of helper processes that wait in the background for new links to render. </P>
+<P></P></TD></TR></TBODY></TABLE>

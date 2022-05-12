@@ -1,0 +1,14 @@
+<STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : 4.4 Thread Data Structures and Life Cycle : </FONT></STRONG><STRONG><FONT color=blue>Operating Systems: Principles and Practice (Second Edition) Volume II : </FONT></STRONG>
+<H3 class=sectionHead><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Operating Systems: Principles and Practice (Second Edition) Volume II : 4. Concurrency and Threads : 4.4 Thread Data Structures and Life Cycle</SPAN></FONT></H3></A><FONT style="BACKGROUND-COLOR: #ffffff">As we have seen, each thread represents a sequential stream of execution. <SPAN class=extract>The operating system provides the illusion that each thread runs on its own virtual processor by transparently suspending and resuming threads. For the illusion to work, the operating system must precisely save and restore the state of a thread.</SPAN> <SPAN class=extract><FONT style="BACKGROUND-COLOR: #ffffff">However, because threads run either in a process or in the kernel, there is also </FONT><EM>shared</EM><FONT style="BACKGROUND-COLOR: #ffffff"> state that is not saved or restored when switching the processor between threads</FONT></SPAN></FONT><FONT style="BACKGROUND-COLOR: #ffffff">. </FONT>
+<P>Thus, to understand how the operating system implements the thread abstraction, we must define both the per-thread state and the state that is shared among threads. Then we can describe a thread&#8217;s life cycle &#8212; how the operating system can create, start, stop, and delete threads to provide the abstraction. <A id=x1-190018 name=x1-190018></A></P>
+<HR>
+
+<CENTER><img alt="" src="file:///[PrimaryStorage]Images/image00392.gif" data-calibre-src="OEBPS/Images/image00392.gif"> </CENTER>
+<TABLE cellPadding=10>
+<TBODY>
+<TR>
+<TD align=left><B><SPAN class=extract>
+<P class=caption width=0><B>Figure&nbsp;4.8: </B>A multi-threaded process or operating system kernel has both <EM>per-thread state</EM> and <EM>shared state</EM>. The thread control block stores the per-thread state: the current state of the thread&#8217;s computation (e.g., saved processor registers and a pointer to the stack) and metadata needed to manage the thread (e.g., the thread&#8217;s ID, scheduling priority, owner, and resource consumption). Shared state includes the program&#8217;s code, global static variables, and the heap.</P>
+<P class=caption width=0></SPAN></B>&nbsp;</P></TD></TR></TBODY></TABLE>
+<HR>
+<A id=x1-19002r34 name=x1-19002r34></A>
