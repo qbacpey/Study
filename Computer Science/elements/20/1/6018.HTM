@@ -1,0 +1,19 @@
+The steps for implementing UNIX fork in the kernel are: 
+<P></P><SPAN class=extract>
+<P>UNIX &#30340; fork &#38656;&#35201;&#25191;&#34892;&#22914;&#19979;&#20960;&#27493;&#65306;</P>
+<P>1.&nbsp;&#21019;&#24314;&#21644;&#21021;&#22987;&#21270; PCB&#65307;</P>
+<P>2. &#21019;&#24314;&#26032;&#22320;&#22336;&#31354;&#38388;&#65307;</P>
+<P>3. &#20351;&#29992;&#29238;&#36827;&#31243;&#30340;&#25972;&#20010;&#22320;&#22336;&#31354;&#38388;&#21021;&#22987;&#21270;&#23376;&#36827;&#31243;&#30340;&#22320;&#22336;&#31354;&#38388;&#65307;</P>
+<P>4. &#32487;&#25215;&#29238;&#36827;&#31243;&#30340;&#25191;&#34892;&#29615;&#22659;&#65307;</P>
+<P>5. &#36890;&#30693;&#35843;&#24230;&#22120;&#26032;&#36827;&#31243;&#21487;&#25191;&#34892;&#65307;&nbsp;</P></SPAN>
+<UL class=itemize1>
+<LI class=itemize>
+<P>Create and initialize the process control block (PCB) in the kernel </P>
+<LI class=itemize>
+<P>Create a new address space </P>
+<LI class=itemize>
+<P>Initialize the address space with a copy of the entire contents of the address space of the parent </P>
+<LI class=itemize>
+<P>Inherit the execution context of the parent (e.g., any open files) </P>
+<LI class=itemize>
+<P>Inform the scheduler that the new process is ready to run</P></LI></UL>
