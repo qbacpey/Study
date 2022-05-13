@@ -1,3 +1,2 @@
-Most operating system kernels go one step farther and allocate a kernel interrupt stack for every user-level process (and as we discuss in Chapter 4, every thread that executes user code). 
-<P></P>
-<P>&#27599;&#20010;&#32447;&#31243;&#37117;&#26377;&#33258;&#24049;&#30340;&#20013;&#26029;&#26632;&#65292;&#27492;&#22806;&#65292;&#32447;&#31243;&#20063;&#34987;&#31216;&#20026;&#29992;&#25143;&#32423;&#36827;&#31243;
+Since the PCB and TCB each represent one thread, the kernel&#8217;s ready list can contain a mix of PCBs for processes and TCBs for kernel threads.</P>
+<P>&#20869;&#26680;&#30340;&#20934;&#22791;&#38431;&#21015;&#20013;&#26159;&#21542;&#26377;&#21487;&#33021;&#21516;&#26102;&#21253;&#21547; PCB &#21644; TCB&#65311;&#26377;&#21487;&#33021;&#65292;TCB &#26159;&#20869;&#26680;&#32447;&#31243;&#30340;&#65292;PCB &#26159;&#29992;&#25143;&#36827;&#31243;&#30340;
