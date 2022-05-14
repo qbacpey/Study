@@ -1,0 +1,125 @@
+<H1 id=page-title><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Implementing threads</SPAN></H1>
+<P>A thread library provides programmers with an API for creating and managing threads. Support for threads must be provided either at the user level or by the kernel.</P>
+<UL><SPAN class=extract>
+<UL>
+<LI>Kernel level threads are supported and managed directly by the operating system. 
+<LI>User level threads are supported above the kernel in user space and are managed without kernel support.</LI></UL>
+<LI>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/user-level-and-kernel-level-threads.png?width=777px" data-featherlight="image"><img style="HEIGHT: 309px; WIDTH: 512px" alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/user-level-and-kernel-level-threads.png?width=777px" width=1478 height=785></A></P></SPAN><SPAN class=extract>
+<UL>
+<LI>Kernel level threads<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#kernel-level-threads"><I class="fa fa-link fa-lg"></I></SPAN></LI></UL>
+<P>Kernel level threads are supported and managed directly by the operating system.</P>
+<UL>
+<LI>The kernel knows about and manages all threads. 
+<LI>One process control block (PCP) per process. 
+<LI>One thread control block (TCB) per thread in the system. 
+<LI>Provide system calls to create and manage threads from user space.</LI></UL>
+<P><STRONG>Advantages</STRONG></P>
+<UL>
+<LI>The kernel has full knowledge of all threads. 
+<LI>Scheduler may decide to give more CPU time to a process having a large numer of threads. 
+<LI>Good for applications that frequently block.</LI></UL>
+<P><STRONG>Disadvantages</STRONG></P>
+<UL>
+<LI>Kernel manage and schedule all threads. 
+<LI>Significant overhead and increase in kernel complexity. 
+<LI>Kernel level threads are slow and inefficient compared to user level threads. 
+<LI>Thread operations are hundreds of times slower compared to user-level threads</LI></UL></SPAN>.</LI></UL>
+<H2 id=user-level-threads><SPAN class=extract>
+<H2 id=user-level-threads>User level threads<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#user-level-threads"><I class="fa fa-link fa-lg"></I></SPAN></H2>
+<P>User level threads are supported above the kernel in user space and are managed without kernel support.</P>
+<UL>
+<LI>Threads managed entirely by the run-time system (user-level library). 
+<LI>Ideally, thread operations should be as fast as a function call. 
+<LI>The kernel knows nothing about user-level threads and manage them as if they where single-threaded processes.</LI></UL>
+<P><STRONG>Advantages</STRONG></P>
+<UL>
+<LI>Can be implemented on an OS that does not suport kernel-level threads. 
+<LI>Does not require modifications of the OS. 
+<LI>Simple representation: PC, registers, stack and small thread control block all stored in the user-level process address space. 
+<LI>Simple management: Creating, switching and synchronizing threads done in user-space without kernel intervention. 
+<LI>Fast and efficient: switching threads not much more expensive than a function call.</LI></UL>
+<P><STRONG>Disadvantages</STRONG></P>
+<UL>
+<LI>Not a perfect solution (a trade off). 
+<LI>Lack of coordination between the user-level thread manager and the kernel. 
+<LI>OS may make poor decisions like: 
+<UL>
+<LI>scheduling a process with idle threads 
+<LI>blocking a process due to a blocking thread even though the process has other threads that can run 
+<LI>giving a process as a whole one time slice irrespective of whether the process has 1 or 1000 threads 
+<LI>unschedule a process with a thread holding a lock.</LI></UL>
+<LI>May require communication between the kernel and the user-level thread manager (scheduler activations) to overcome the above problems.</LI></UL></SPAN></H2>
+<H2 id=user-level-thread-models><SPAN class=extract>
+<H2 id=user-level-thread-models>User-level thread models<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#user-level-thread-models"><I class="fa fa-link fa-lg"></I></SPAN></H2>
+<P>In general, user-level threads can be implemented using one of four models.</P>
+<UL>
+<LI>Many-to-one 
+<LI>One-to-one 
+<LI>Many-to-many 
+<LI>Two-level</LI></UL></SPAN></H2><SPAN class=extract>
+<P>All models maps user-level threads to kernel-level threads. A<SPAN>&nbsp;</SPAN><STRONG>kernel thread</STRONG><SPAN>&nbsp;</SPAN>is similar to a process in a non-threaded (single-threaded) system. The kernel thread is the unit of execution that is scheduled by the kernel to execute on the CPU. The term<SPAN>&nbsp;</SPAN><STRONG>virtual processor</STRONG><SPAN>&nbsp;</SPAN>is often used instead of kernel thread.</P>
+<P>&#20869;&#26680;&#32447;&#31243;&#26159;&#20869;&#26680;&#35843;&#24230;&#22120;&#30340;&#21487;&#35843;&#24230;&#25191;&#34892;&#21333;&#20803;&#65292;&#34394;&#25311;&#22788;&#29702;&#22120;&#36890;&#24120;&#20250;&#34987;&#29992;&#20110;&#25351;&#20195;&#20869;&#26680;&#32447;&#31243;</P></SPAN>
+<H3 id=many-to-one><SPAN class=extract>
+<H3 id=many-to-one>Many-to-one<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#many-to-one"><I class="fa fa-link fa-lg"></I></SPAN></H3>
+<P>In the many-to-one model all user level threads execute on the same kernel thread. The process can only run one user-level thread at a time because there is only one kernel-level thread associated with the process.</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/many-to-one.png?width=300px" data-featherlight="image"><img alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/many-to-one.png?width=300px"></A></P>
+<P>The kernel has no knowledge of user-level threads. From its perspective, a process is an opaque black box that occasionally makes system calls.</P></SPAN></H3>
+<H3 id=one-to-one><SPAN class=extract>
+<H3 id=one-to-one>One-to-one<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#one-to-one"><I class="fa fa-link fa-lg"></I></SPAN></H3>
+<P>In the one-to-one model every user-level thread execute on a separate kernel-level thread.</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/one-to-one.png?width=315px" data-featherlight="image"><img alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/one-to-one.png?width=315px"></A></P>
+<P>In this model the kernel must provide a system call for creating a new kernel thread.</P>
+<P>&#22312;&#36825;&#31181;&#24773;&#20917;&#19979;&#65292;&#27599;&#21019;&#24314;&#19968;&#20010;&#29992;&#25143;&#32447;&#31243;&#23601;&#38656;&#35201;&#21019;&#24314;&#19968;&#20010;&#20869;&#26680;&#32447;&#31243;</P></SPAN></H3>
+<H3 id=many-to-many><SPAN class=extract>
+<H3 id=many-to-many>Many-to-many<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#many-to-many"><I class="fa fa-link fa-lg"></I></SPAN></H3>
+<P>In the many-to-many model the process is allocated m number of kernel-level threads to execute n number of user-level thread.&#65288;&#20063;&#23601;&#26159;&#35828;&#36825;&#37324;&#23454;&#38469;&#19978;&#36824;&#26159;&#36890;&#36807;&#20869;&#26680;&#35843;&#24230;&#22120;&#25191;&#34892;&#32447;&#31243;&#35843;&#24230;&#30340;&#65289;</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/many-to-many.png?width=290px" data-featherlight="image"><img alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/many-to-many.png?width=290px"></A></P></SPAN></H3>
+<H3 id=two-level><SPAN class=extract>
+<H3 id=two-level>Two-level<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#two-level"><I class="fa fa-link fa-lg"></I></SPAN></H3>
+<P>The two-level model is similar to the many-to-many model but also allows for certain user-level threads to be bound to a single kernel-level thread.</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/two-level.png?width=300px" data-featherlight="image"><img alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/two-level.png?width=300px"></A></P></SPAN></H3>
+<H2 id=scheduler-activations><SPAN class=extract>
+<H2 id=scheduler-activations>Scheduler activations<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#scheduler-activations"><I class="fa fa-link fa-lg"></I></SPAN></H2>
+<P>In both the many-to-many model and the two-level model there must be some way for the kernel to communicate with the user level thread manager to maintain an appropriate number of kernel threads allocated to the process.</P>
+<P>&#20063;&#23601;&#26159;&#35828;&#35843;&#24230;&#22120;&#28608;&#27963;&#23454;&#38469;&#19978;&#26159;&#20869;&#26680;&#29992;&#26469;&#21644;&#29992;&#25143;&#32423;&#32447;&#31243;&#31649;&#29702;&#32773;&#36827;&#34892;&#20132;&#20114;&#30340;&#26041;&#24335;&#65292;&#26412;&#36136;&#26159;&#20026;&#20102;&#30830;&#23450;&#38656;&#35201;&#20026;&#36827;&#31243;&#20998;&#37197;&#22810;&#23569;&#20010;&#20869;&#26680;&#32447;&#31243;&#65288;&#20063;&#23601;&#26159;&#34394;&#25311;&#22788;&#29702;&#22120;&#65289;&nbsp;&#65292;&#24403;&#28982;&#65292;&#38656;&#35201;&#26159;&#22810;&#23545;&#22810;&#20197;&#21450;&#20004;&#23618;&#35843;&#24230;&#27169;&#24335;&#25165;&#38656;&#35201;&#21644;&#29992;&#25143;&#32423;&#32447;&#31243;&#31649;&#29702;&#22120;&#36827;&#34892;&#20132;&#20114;</P>
+<P>This mechanism is called<SPAN>&nbsp;</SPAN><STRONG>scheduler activations</STRONG>.</P>
+<P>The kernel provides the application with a set of kernel threads (virtual processors), and then the application has complete control over what threads to run on each of the kernel threads (virtual processors). The number of kernel threads (virtual processors) in the set is controlled by the kernel, in response to the competing demands of different processes in the system.<SUP id=fnref:scheduler-activations class=footnote-ref><A class=highlight href="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#fn:scheduler-activations"><FONT color=#0066cc>1</FONT></A></SUP></P>
+<P>&#20869;&#26680;&#20250;&#20026;&#24212;&#29992;&#31243;&#24207;&#25552;&#20379;&#19968;&#31995;&#21015;&#30340;&#20869;&#26680;&#32447;&#31243;&#65288;&#34394;&#25311;&#22788;&#29702;&#22120;&#65289;&#24212;&#29992;&#31243;&#24207;&#33021;&#23436;&#20840;&#25511;&#21046;&#22312;&#36825;&#20123;&#20869;&#26680;&#32447;&#31243;&#19978;&#31350;&#31455;&#36816;&#34892;&#21738;&#19968;&#20010;&#12289;&#20197;&#24590;&#26679;&#30340;&#35843;&#24230;&#26041;&#24335;&#36816;&#34892;&#29992;&#25143;&#32447;&#31243;&#30340;&#20195;&#30721;&#12290;&#32780;&#20869;&#26680;&#32447;&#31243;&#30340;&#20010;&#25968;&#23454;&#38469;&#19978;&#23601;&#26159;&#36890;&#36807;&#20869;&#26680;&#19982;&#29992;&#25143;&#32423;&#32447;&#31243;&#31649;&#29702;&#22120;&#36890;&#36807;&#35843;&#24230;&#22120;&#28608;&#27963;&#30340;&#26041;&#24335;&#65292;&#26681;&#25454;&#29992;&#25143;&#36827;&#31243;&#30340;&#38656;&#27714;&#30830;&#23450;&#19979;&#26469;&#30340;</P>
+<P>The kernel notify the user-level thread manager of important kernel events using<SPAN>&nbsp;</SPAN><STRONG>upcalls</STRONG><SPAN>&nbsp;</SPAN>from the kernel to the user-level thread manager.</P>
+<P>&#20869;&#26680;&#20250;&#20351;&#29992;&#35832;&#22914;&#19978;&#34892;&#35843;&#29992;&#30340;&#26041;&#24335;&#65292;&#24403;&#26576;&#20123;&#20869;&#26680;&#20107;&#20214;&#21457;&#29983;&#26102;&#36890;&#30693;&#29992;&#25143;&#32423;&#32447;&#31243;&#31649;&#29702;&#22120;</P>
+<P>&#36825;&#37324;&#30340;&#20869;&#26680;&#20107;&#20214;&#21253;&#25324;&#65306;&#29992;&#25143;&#32447;&#31243;&#25191;&#34892;&#31995;&#32479;&#35843;&#29992;&#12290;&#31995;&#32479;&#35843;&#29992;&#36820;&#22238;&#12289;&#20869;&#26680;&#20026;&#24212;&#29992;&#31243;&#24207;&#20998;&#37197;&#26032;&#30340;&#20869;&#26680;&#32447;&#31243;&#12289;&#20869;&#26680;&#22238;&#25910;&#26576;&#20010;&#20998;&#37197;&#30340;&#20869;&#26680;&#32447;&#31243;&#31561;</P>
+<P>&nbsp;Examples of such events includes a thread making a blocking system call and the kernel allocating a new kernel thread to the process.</P></SPAN><SUP id=fnref:scheduler-activations class=footnote-ref><A class=highlight href="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#fn:scheduler-activations"><FONT color=#0066cc>1</FONT></A></SUP></H2>
+<H3 id=example><SPAN class=extract>
+<H3 id=example>Example<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#example"><I class="fa fa-link fa-lg"></I></SPAN></H3>
+<P>Let&#8217;s study an example of how scheduler activations can be used. The kernel has allocated<SPAN>&nbsp;</SPAN><STRONG>one kernel thread</STRONG><SPAN>&nbsp;</SPAN>(1) to a process with<SPAN>&nbsp;</SPAN><STRONG>three user-level threads</STRONG><SPAN>&nbsp;</SPAN>(2). The three user level threads take turn executing on the single kernel-level thread.</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/scheduler-activations-1-2.png?height=444px" data-featherlight="image"><img style="HEIGHT: 412px; WIDTH: 268px" alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/scheduler-activations-1-2.png?height=444px" width=521 height=812></A></P>
+<P>The executing thread makes a<SPAN>&nbsp;</SPAN><STRONG>blocking system call</STRONG><SPAN>&nbsp;</SPAN>(3) and the the kernel blocks the calling user-level thread and the kernel-level thread used to execute the user-level thread (4).</P>
+<P>&#36825;&#37324;&#24212;&#35813;&#26159;&#23558;&#25191;&#34892;&#31995;&#32479;&#35843;&#29992;&#30340;&#29992;&#25143;&#32423;&#32447;&#31243;&#21644;&#20869;&#26680;&#32447;&#31243;&#37117;&#32473;&#38459;&#22622;&#20102;</P>
+<P><STRONG>Scheduler activation:</STRONG><SPAN>&nbsp;</SPAN>the kernel decides to allocate a<SPAN>&nbsp;</SPAN><STRONG>new kernel-level thread</STRONG><SPAN>&nbsp;</SPAN>to the process (5).<SPAN>&nbsp;</SPAN><STRONG>Upcall:</STRONG><SPAN>&nbsp;</SPAN>the kernel<SPAN>&nbsp;</SPAN><STRONG>notifies</STRONG><SPAN>&nbsp;</SPAN>the user-level<SPAN>&nbsp;</SPAN><STRONG>thread manager</STRONG><SPAN>&nbsp;</SPAN>which user-level thread that is now blocked and that a new kernel-level thread is available (6).</P>
+<P>&#20869;&#26680;&#20915;&#23450;&#20026;&#24212;&#29992;&#31243;&#24207;&#20998;&#37197;&#19968;&#20010;&#26032;&#30340;&#20869;&#26680;&#32423;&#32447;&#31243;&#65288;&#34394;&#25311;&#22788;&#29702;&#22120;&#65289;&#22240;&#27492;&#20351;&#29992;&#19978;&#34892;&#35843;&#29992;&#36890;&#30693;&#29992;&#25143;&#32423;&#32447;&#31243;&#31649;&#29702;&#22120;&#65306;&#21738;&#19968;&#20010;&#29992;&#25143;&#32423;&#32447;&#31243;&#34987;&#38459;&#22622;&#20102;&#20197;&#21450;&#29616;&#22312;&#26377;&#19968;&#20010;&#26032;&#30340;&#20869;&#26680;&#32423;&#32447;&#31243;&#21487;&#29992;</P>
+<P>&nbsp;The user-level thread manager move the other threads to the new kernel thread and resumes one of the ready threads (7).</P>
+<P>&#29992;&#25143;&#32423;&#32447;&#31243;&#31649;&#29702;&#22120;&#23558;&#19968;&#20010;&#26032;&#30340;&#29992;&#25143;&#32423;&#32447;&#31243;&#31227;&#21160;&#21040;&#36825;&#20010;&#26032;&#20998;&#37197;&#30340;&#20869;&#26680;&#32423;&#32447;&#31243;&#20013;&#65292;&#24182;&#20196;&#20854;&#24320;&#22987;&#25191;&#34892;</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/scheduler-activations-3-7.png?height=444px" data-featherlight="image"><img style="HEIGHT: 343px; WIDTH: 309px" alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/scheduler-activations-3-7.png?height=444px" width=737 height=812></A></P>
+<P>While one user-level thread is blocked (8) the other threads can take turn executing on the new kernel thread (9).</P>
+<P>&#29616;&#22312;&#65292;&#23613;&#31649;&#19968;&#20010;&#29992;&#25143;&#32423;&#32447;&#31243;&#22240;&#20026;&#25191;&#34892;&#31995;&#32479;&#35843;&#29992;&#65288;&#19988;&#31995;&#32479;&#35843;&#29992;&#22240;&#20026;&#27491;&#22312;&#25191;&#34892;&#65292;&#23578;&#26410;&#36820;&#22238;&#65292;&#21487;&#33021;&#26159; IO &#25805;&#20316;&#65289;&#32780;&#38459;&#22622;&#20102;&#26576;&#20010;&#20869;&#26680;&#32447;&#31243;&#65292;&#20294;&#26159;&#20854;&#20182;&#29992;&#25143;&#32447;&#31243;&#20381;&#28982;&#33021;&#24471;&#20197;&#36816;&#34892;</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/scheduler-activations-8-9.png?height=444px" data-featherlight="image"><img style="HEIGHT: 234px; WIDTH: 216px" alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/scheduler-activations-8-9.png?height=444px" width=739 height=807></A></P></SPAN></H3>
+<H2 id=user-level-thread-scheduling><SPAN class=extract>
+<H2 id=user-level-thread-scheduling>User-level thread scheduling<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#user-level-thread-scheduling"><I class="fa fa-link fa-lg"></I></SPAN></H2>
+<P>Scheduling of the usea-level threads among the available kernel-level threads is done by a thread scheduler implemented in user space. There are two main methods: cooperative and preemptive thread scheduling.</P>
+<H3 id=cooperative-scheduling-of-user-level-threads>Cooperative scheduling of user-level threads<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#cooperative-scheduling-of-user-level-threads"><I class="fa fa-link fa-lg"></I></SPAN></H3>
+<P>The cooperative model is similar to multiprogramming where a process executes on the CPU until making a I/O request. Cooperative user-level threads execute on the assigned kernel-level thread until they voluntarily give back the kernel thread to the thread manager.</P>
+<P>In the cooperative model, threads<SPAN>&nbsp;</SPAN><STRONG>yield</STRONG><SPAN>&nbsp;</SPAN>to each other, either explicitly (e.g., by calling a<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">yield()</FONT></CODE><SPAN>&nbsp;</SPAN>provided by the user-level thread library) or implicitly (e.g., requesting a lock held by another thread). In the below figure a many-to-one system with cooperative user-level threads is shown.</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/cooperative.png?height=333px" data-featherlight="image"><img style="HEIGHT: 207px; WIDTH: 314px" alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/cooperative.png?height=333px" width=631 height=441></A></P>
+<H3 id=preemptive-scheduling-of-user-level-threads>Preemptive scheduling of user-level threads<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#preemptive-scheduling-of-user-level-threads"><I class="fa fa-link fa-lg"></I></SPAN></H3>
+<P>The preemptive model is similar to multitasking (aka time sharing). Multitasking is a logical extension of multiprogramming where a timer is set to cause an interrupt at a regular time interval and the running process is replaced if the job requests I/O or if the job is interrupted by the timer. This way, the running job is given a time slice of execution than cannot be exceeded.</P>
+<P>In the preemptive model, a timer is used to cause execution flow to jump to a central dispatcher thread, which chooses the next thread to run. In the below figure a many-to-one system with preemptive user-level threads is shown.</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/preemptive.png?height=333px" data-featherlight="image"><img style="HEIGHT: 263px; WIDTH: 410px" alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/preemptive.png?height=333px" width=632 height=439></A></P>
+<H3 id=cooperative-and-preemptive-hybrid-scheduling-of-user-level-threads>Cooperative and preemptive (hybrid) scheduling of user-level threads<SPAN class=anchor data-clipboard-text="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#cooperative-and-preemptive-hybrid-scheduling-of-user-level-threads"><I class="fa fa-link fa-lg"></I></SPAN></H3>
+<P>A hybrid model between cooperative and preemptive scheduling is also possible where a running thread may<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">yield()</FONT></CODE><SPAN>&nbsp;</SPAN>or preempted by a timer.</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/cooperative-and-preemptive.png?height=333px" data-featherlight="image"><img style="HEIGHT: 293px; WIDTH: 434px" alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/cooperative-and-preemptive.png?height=333px" width=631 height=441></A></P></SPAN></H2>
+<DIV class=footnotes>
+<HR>
+
+<OL>
+<LI id=fn:scheduler-activations><A class=highlight href="http://web.mit.edu/nathanw/www/usenix/freenix-sa/freenix-sa.html" target=_blank><FONT color=#0066cc>An Implementation of Scheduler Activations on the NetBSD Operating System</FONT></A><SPAN>&nbsp;</SPAN><A class="footnote-return highlight" href="http://www.it.uu.se/education/course/homepage/os/vt18/module-4/implementing-threads/#fnref:scheduler-activations"><FONT color=#0066cc>&#8617;</FONT></A></LI></OL>

@@ -1,0 +1,24 @@
+<H2 id=user-level-threads><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Implementing threads : User level threads</SPAN></FONT></H2>
+<P>User level threads are supported above the kernel in user space and are managed without kernel support.</P>
+<UL>
+<LI>Threads managed entirely by the run-time system (user-level library). 
+<LI>Ideally, thread operations should be as fast as a function call. 
+<LI>The kernel knows nothing about user-level threads and manage them as if they where single-threaded processes.</LI></UL>
+<P><STRONG>Advantages</STRONG></P>
+<UL>
+<LI>Can be implemented on an OS that does not suport kernel-level threads. 
+<LI>Does not require modifications of the OS. 
+<LI>Simple representation: PC, registers, stack and small thread control block all stored in the user-level process address space. 
+<LI>Simple management: Creating, switching and synchronizing threads done in user-space without kernel intervention. 
+<LI>Fast and efficient: switching threads not much more expensive than a function call.</LI></UL>
+<P><STRONG>Disadvantages</STRONG></P>
+<UL>
+<LI>Not a perfect solution (a trade off). 
+<LI>Lack of coordination between the user-level thread manager and the kernel. 
+<LI>OS may make poor decisions like: 
+<UL>
+<LI>scheduling a process with idle threads 
+<LI>blocking a process due to a blocking thread even though the process has other threads that can run 
+<LI>giving a process as a whole one time slice irrespective of whether the process has 1 or 1000 threads 
+<LI>unschedule a process with a thread holding a lock.</LI></UL>
+<LI>May require communication between the kernel and the user-level thread manager (scheduler activations) to overcome the above problems.</LI></UL>

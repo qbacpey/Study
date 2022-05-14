@@ -1,1 +1,11 @@
-<B>Decreasing the number of virtual processors.</B> When the kernel preempts a virtual processor (e.g., to give the processor to a different process), the kernel makes an upcall on one of the other processors assigned to the parallel program. The thread system can then move the preempted user-level thread onto the ready list, so that a different processor can run it. <BR>&#24403;&#20869;&#26680;&#25250;&#20808;&#19968;&#20010;&#34394;&#25311;&#22788;&#29702;&#22120;&#26102;&#65288;&#31867;&#20284;&#20110;&#20043;&#21069;&#25552;&#21040;&#30340; time-slice&#65289;&#20869;&#26680;&#23601;&#38656;&#35201;&#28608;&#27963;&#20854;&#20182;&#32473;&#20104;&#35813;&#31243;&#24207;&#30340;&#34394;&#25311;&#22788;&#29702;&#22120;&#65292;&#35813;&#31243;&#24207;&#30340;&#32447;&#31243;&#31995;&#32479;&#23601;&#33021;&#23558;&#34987;&#25250;&#20808;&#30340;&#29992;&#25143;&#32423;&#32447;&#31243;&#31227;&#21160;&#21040;&#31561;&#24453;&#38431;&#21015;&#20013;&#65288;&#23454;&#38469;&#19978;&#23601;&#26159;&#35753;&#32447;&#31243;&#31995;&#32479;&#30340;&#35843;&#24230;&#22120;&#25110;&#32773;&#35828;&#21035;&#30340;&#32447;&#31243;&#23558;&#36825;&#20010;&#32447;&#31243;&#30340;&#29366;&#24577;&#20445;&#23384;&#21040;&#20854;&#23545;&#24212;&#30340; TCB &#20013;&#65289;&#36825;&#26679;&#20854;&#20182;&#34394;&#25311;&#22788;&#29702;&#22120;&#23601;&#33021;&#36816;&#34892;&#36825;&#20010;&#32447;&#31243;&#20102;
+In a multithreaded process, synchronization adopted using four different models :&nbsp;</P>
+<P>&nbsp;</P>
+<OL>
+<LI><STRONG>Mutex Locks &#8211;</STRONG><SPAN>&nbsp;</SPAN>This allows only one thread at a time to access the shared resource.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Read/Write Locks &#8211;</STRONG><SPAN>&nbsp;</SPAN>This allows exclusive writes and concurrent read of a shared resource.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Counting Semaphore &#8211;</STRONG><SPAN>&nbsp;</SPAN>This count refers to the number of shared resource that can be accessed simultaneously at a time. Once the count limit is reached, the remaining threads are blocked.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Condition Variables &#8211;</STRONG><SPAN>&nbsp;</SPAN>This blocks the thread until the condition satisfies(Busy Waiting).&nbsp; 
+<P>All these synchronization models are carried out within each process using thread library. The memory space for the lock variables is allocated in the user address space. Thus, requires no kernel intervention.&nbsp; </P></LI></OL>

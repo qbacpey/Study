@@ -1,0 +1,10 @@
+<STRONG>Dependency between ULT and KLT :</STRONG>&nbsp; 
+<P>The one and only major dependency between KLT and ULT arise when an ULT is in need of the<SPAN>&nbsp;</SPAN><STRONG>Kernel resources</STRONG>. Every ULT thread is associated to a virtual processor called Light-weight process (LWP). This is created and bined to ULT by the thread library according to the application need. Whenever a system call invoked, a kernel level thread is created and scheduled to the LWPs by the system scheduler. These KLT are scheduled to access the kernel resources by the system scheduler which is unaware of the ULT. Whereas the KLT is aware of each ULT associated toit via LWPs. </P>
+<P>&nbsp;</P>
+<P><img src="https://media.geeksforgeeks.org/wp-content/uploads/20200425143125/lwp32.png"></P>
+<P>What if the relationship does not exist?&nbsp; 
+<P>If there is no association between KLT and ULT, then according to kernel every process is a single-threaded process. In that case,&nbsp; 
+<OL>
+<LI>The system scheduler may schedule a process with threads that are of less priority or idle threads. This leads to starvation of high-prioritized thread, which in turn reduces the efficiency of the system.&nbsp; 
+<LI>When a single thread gets blocked, the entire process gets blocked. Then the CPU utilization even in a multicore system will become much less. Though there may exist executable threads, kernel considers every process as a single threaded process and allocates only one core at a time.&nbsp; 
+<LI>System scheduler may provide a single time slice irrespective of the number of threads within a process. A single threaded process and a process with 1000 threads provided with same time slice will make system more inefficient.&nbsp;</LI></OL>

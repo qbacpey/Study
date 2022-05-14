@@ -1,0 +1,70 @@
+<H1><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Relationship between User level thread and Kernel level thread</SPAN></FONT></H1>
+<DIV class=media>
+<DIV class=meta>
+<UL>
+<LI><SPAN class=strong>Last Updated :</SPAN><SPAN>&nbsp;</SPAN><SPAN>22 Jul, 2021</SPAN></LI></UL></DIV></DIV>
+<DIV class=text>
+<P>A task is accomplished on the execution of a program, which results in a process. Every task incorporates one or many sub tasks, whereas these sub tasks are carried out as functions within a program by the threads. The operating system (kernel) is unaware of the threads in the user space.&nbsp;</P>
+<P>There are two types of threads, User level threads (ULT) and Kernel level threads (KLT).&nbsp;</P>
+<OL>
+<LI><STRONG>User Level Threads :</STRONG>&nbsp; 
+<P>Threads in the user space designed by the application developer using a thread library to perform unique subtask.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Kernel Level Threads :</STRONG>&nbsp; 
+<P>Threads in the kernel space designed by the os developer to perform unique functions of OS. Similar to a interrupt handler.&nbsp; 
+<P>&nbsp;</P></LI></OL>
+<P>There exist a strong a relationship between user level threads and kernel level threads.&nbsp;</P>
+<P><STRONG>Dependencies between ULT and KLT :</STRONG>&nbsp; 
+<P>&nbsp;</P>
+<OL>
+<LI><STRONG>Use of Thread Library :</STRONG>&nbsp; 
+<P>Thread library acts as an interface for the application developer to create number of threads (according to the number of subtasks) and to manage those threads. This API for a process can be implemented in kernel space or user space. In real-time application, the necessary thread library is implemented in user space. This reduces the system call to kernel whenever the application is in need of thread creation, scheduling or thread management activities. Thus, the thread creation is faster as it requires only function calls within the process. The user address space for each thread is allocated at run-time. Overall it reduces various interface and architectural overheads as all these functions are independent of kernel support.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Synchronization :</STRONG>&nbsp; 
+<P>The subtasks (functions) within each task (process) can be executed concurrently or parallelly depending on the application. In that case, single-threaded process is not suitable. There evokes multithreaded process. A unique subtask is allocated to every thread within the process. These threads may use the same data section or different data section. Typically, threads within the same process will share the code section, data section, address space, open files etc.&nbsp; 
+<P>&nbsp;</P></LI></OL>
+<P><img style="HEIGHT: 257px; WIDTH: 445px" src="https://media.geeksforgeeks.org/wp-content/uploads/20200425231208/relation2.png" width=887 height=489></P>
+<P>When subtasks are concurrently performed by sharing the code section, it may result in data inconsistency. Ultimately, requires suitable synchronization techniques to maintain the control flow to access the shared data (<A href="https://www.geeksforgeeks.org/g-fact-70/">critical section</A>).&nbsp;</P><SPAN class=extract>
+<P>In a multithreaded process, synchronization adopted using four different models :&nbsp;</P>
+<P>&nbsp;</P>
+<OL>
+<LI><STRONG>Mutex Locks &#8211;</STRONG><SPAN>&nbsp;</SPAN>This allows only one thread at a time to access the shared resource.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Read/Write Locks &#8211;</STRONG><SPAN>&nbsp;</SPAN>This allows exclusive writes and concurrent read of a shared resource.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Counting Semaphore &#8211;</STRONG><SPAN>&nbsp;</SPAN>This count refers to the number of shared resource that can be accessed simultaneously at a time. Once the count limit is reached, the remaining threads are blocked.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Condition Variables &#8211;</STRONG><SPAN>&nbsp;</SPAN>This blocks the thread until the condition satisfies(Busy Waiting).&nbsp; 
+<P>All these synchronization models are carried out within each process using thread library. The memory space for the lock variables is allocated in the user address space. Thus, requires no kernel intervention.&nbsp; </P></LI></OL></SPAN>
+<OL>
+<LI>
+<P>&nbsp;</P></LI></OL>
+<P><STRONG>1. Scheduling :</STRONG>&nbsp; 
+<P>The application developer during the thread creation sets the priority and scheduling policy of each ULT thread using the thread library. On the execution of program, based on the defined attributes the scheduling takes place by the thread library. In this case, the system scheduler has no control over thread scheduling as the kernel is unaware of the ULT threads.&nbsp;</P>
+<P><STRONG>2. Context Switching :</STRONG>&nbsp; 
+<P>Switching from one ULT thread to other ULT thread is faster within the same process, as each thread has its own unique thread control block, registers, stack. <SPAN class=extract>Thus, registers are saved and restored. Does not require any change of address space.</SPAN> Entire switching takes place within the user address space under the control of thread library.&nbsp;</P>
+<P><STRONG>3. Asynchronous I/O :</STRONG>&nbsp; 
+<P>After an I/O request ULT threads remains in blocked state, until it receives the acknowledgment(ack) from the receiver. Although it follows asynchronous I/O, it creates a synchronous environment to the application user. This is because the thread library itself schedules an other ULT to execute until the blocked thread sends<SPAN>&nbsp;</SPAN><I>sigpoll</I><SPAN>&nbsp;</SPAN>as an ack to the process thread library. Only then the thread library, reschedules the blocked thread.&nbsp;</P>
+<P>For example, consider a program to copy the content(read) from one file and to paste(write) in the other file. Additionaly, a pop-up that displays the percentage of progress completion.&nbsp;</P>
+<P>This process contains three subtasks each allocated to a ULT,&nbsp;</P>
+<P>&nbsp;</P>
+<UL>
+<LI><STRONG>Thread A &#8211;</STRONG><SPAN>&nbsp;</SPAN>Read the content from source file. Store in a global variable X within the process address space.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Thread B &#8211;</STRONG><SPAN>&nbsp;</SPAN>Read the global variable X. Write in the destination file.&nbsp; 
+<P>&nbsp;</P>
+<LI><STRONG>Thread C &#8211;</STRONG><SPAN>&nbsp;</SPAN>Display the percentage of progress done in a graphical representation.&nbsp; 
+<P>&nbsp;</P></LI></UL>
+<P>Here, the application developer will schedule the multiple flow of control within a program using the thread library.&nbsp;</P>
+<P>Order of execution: Begins with Thread A, Then thread B and Then thread C.&nbsp; 
+<P>Thread A and Thread B shares the global variable X. Only when after thread A writes on X, thread B can read X. In that case, synchronization is to be adopted on the shared variable to avoid thread B from reading old data.Context switching from thread A to Thread B and then Thread C takes place within the process address space. Each thread saves and restores the registers in its own thread control block (TCB). Thread C remains in blocked state, until thread B starts its first write operation on the destination file. This is the reason behind, the graphical indication of 100% pops-up a few seconds later although process completion.&nbsp;</P><STRONG><SPAN class=extract>
+<P><STRONG>Dependency between ULT and KLT :</STRONG>&nbsp; 
+<P>The one and only major dependency between KLT and ULT arise when an ULT is in need of the<SPAN>&nbsp;</SPAN><STRONG>Kernel resources</STRONG>. Every ULT thread is associated to a virtual processor called Light-weight process (LWP). This is created and bined to ULT by the thread library according to the application need. Whenever a system call invoked, a kernel level thread is created and scheduled to the LWPs by the system scheduler. These KLT are scheduled to access the kernel resources by the system scheduler which is unaware of the ULT. Whereas the KLT is aware of each ULT associated toit via LWPs. </P>
+<P>&nbsp;</P>
+<P><img src="https://media.geeksforgeeks.org/wp-content/uploads/20200425143125/lwp32.png"></P>
+<P>What if the relationship does not exist?&nbsp; 
+<P>If there is no association between KLT and ULT, then according to kernel every process is a single-threaded process. In that case,&nbsp; 
+<OL>
+<LI>The system scheduler may schedule a process with threads that are of less priority or idle threads. This leads to starvation of high-prioritized thread, which in turn reduces the efficiency of the system.&nbsp; 
+<LI>When a single thread gets blocked, the entire process gets blocked. Then the CPU utilization even in a multicore system will become much less. Though there may exist executable threads, kernel considers every process as a single threaded process and allocates only one core at a time.&nbsp; 
+<LI>System scheduler may provide a single time slice irrespective of the number of threads within a process. A single threaded process and a process with 1000 threads provided with same time slice will make system more inefficient.&nbsp;</LI></OL></SPAN></STRONG>
