@@ -1,0 +1,9 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> D.3 The Process Struct</SPAN></P>
+<P><SPAN class=RefText></SPAN></FONT>The skeleton de&#64257;nition of struct process is copied below for your convenience.</P>
+<P>/* The process control block for a given process. Since there can be multiple threads per process, we need a separate PCB from the TCB. All TCBs in a process will have a pointer to the PCB, and the PCB will have a pointer to the main thread of the process, which is `special`. */ </P>
+<P>struct process { </P>
+<P>/* Owned by process.c. */ </P>
+<P>uint32_t* pagedir; /* Page directory. */ </P>
+<P>char process_name[16]; /* Name of the main thread */ </P>
+<P>struct thread* main_thread; /* Pointer to main thread */ </P>
+<P>};

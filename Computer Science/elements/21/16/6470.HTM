@@ -1,0 +1,11 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> B.6 80x86 Calling Convention</SPAN></FONT></P>
+<P>This section summarizes important points of the convention used for normal function calls on 32-bit 80x86 implementations of Unix. Some details are omitted for brevity.</P>
+<P>The calling convention works like this: </P>
+<P>1. The caller pushes each of the function&#8217;s arguments on the stack one by one, normally using the push x86 instruction. Arguments are pushed in right-to-left order.</P>
+<P>The stack grows downward: each push decrements the stack pointer, then stores into the location it now points to, like the C expression *(--sp) = value. </P>
+<P>2. The caller pushes the address of its next instruction (the return address ) on the stack and jumps to the &#64257;rst instruction of the callee. A single 80x86 instruction, call, does both. </P>
+<P>3. The callee executes. When it takes control, the stack pointer points to the return address, the &#64257;rst argument is just above it, the second argument is just above the &#64257;rst argument, and so on. </P>
+<P>4. If the callee has a return value, it stores it into register eax. </P>
+<P>5. The callee returns by popping the return address from the stack and jumping to the location it speci&#64257;es, using the 80x86 ret instruction. </P>
+<P>6. The caller pops the arguments o&#64256; the stack.</P>
+<P>Consider a function f() that takes three int arguments. This diagram shows a sample stack frame as seen by the callee at the beginning of step 3 above, supposing that f() is invoked as f(1, 2, 3). The initial stack address is arbitrary:

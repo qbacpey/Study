@@ -1,0 +1,6 @@
+<STRONG>PIDs and TIDs</STRONG> In the starter code, we de&#64257;ne the process ID (PID) of a process to be the thread ID (TID) of its main thread. The following two functions in userprog/process.c are related:</P>
+<P>&#22312;&#29992;&#25143;&#36827;&#31243;&#30340;&#21551;&#21160;&#20195;&#30721;&#20013;&#65292;&#25105;&#20204;&#23558;&#36827;&#31243; ID &#35774;&#32622;&#20026;&#20854;&#20027;&#32447;&#31243;&#30340; ID</P>
+<P>&#8226; bool is_main_thread(struct thread* t, struct process* p)</P>
+<P>Returns true if t is the main thread of p</P>
+<P>&#8226; pid_t get_pid(struct process* p)</P>
+<P>Returns the pid_t of the process p. The pid_t type is the same type as tid_t, which is typedef&#8217;d to be an int.

@@ -1,0 +1,8 @@
+<SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> G.2 ASSERT</SPAN>
+<P></P>
+<P><SPAN class=RefText></SPAN></FONT>Assertions are useful because they can catch problems early, before they&#8217;d otherwise be noticed. Ideally, each function should begin with a set of assertions that check its arguments for validity. (Initializers for functions&#8217; local variables are evaluated before assertions are checked, so be careful not to assume that an argument is valid in an initializer.) You can also sprinkle assertions throughout the body of functions in places where you suspect things are likely to go wrong. They are especially useful for checking loop invariants.</P><SPAN class=extract>
+<P>Pintos provides the ASSERT macro, de&#64257;ned in &lt;debug.h&gt;, for checking assertions.</P>
+<P><STRONG>ASSERT (expression)</STRONG> Tests the value of expression. If it evaluates to zero (false), the kernel panics.</P>
+<P>Pintos &#20013;&#25152;&#23450;&#20041;&#30340;&#26029;&#35328;&#26159;&#19968;&#20010;&#20301;&#20110; debug.h &#20013;&#30340;&#23439;&#65292;&#20854;&#38169;&#35823;&#20869;&#23481;&#21253;&#25324;&#25991;&#20214;&#20197;&#21450;&#34892;&#21495;</P>
+<P>The panic message includes the expression that failed, its &#64257;le and line number, and a backtrace, which should help you to &#64257;nd the problem. See Backtraces, for more information.</P>
+<P></SPAN>
