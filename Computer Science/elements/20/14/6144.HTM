@@ -1,19 +1,19 @@
 <UL>
-<LI><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Implementing threads : Kernel level threads</SPAN></FONT></LI></UL>
+<LI><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Implementing threads : Kernel level threads</SPAN></FONT></LI></UL><SPAN class=extract>
 <P>Kernel level threads are supported and managed directly by the operating system.</P>
 <UL>
 <LI>The kernel knows about and manages all threads. 
-<LI>One process control block (PCP) per process. 
+<LI>One process control block (PCB) per process. 
 <LI>One thread control block (TCB) per thread in the system. 
-<LI>Provide system calls to create and manage threads from user space.</LI></UL>
+<LI>Provide system calls to create and manage threads from user space.</LI></UL></SPAN><STRONG><SPAN class=extract>
 <P><STRONG>Advantages</STRONG></P>
 <UL>
 <LI>The kernel has full knowledge of all threads. 
 <LI>Scheduler may decide to give more CPU time to a process having a large numer of threads. 
-<LI>Good for applications that frequently block.</LI></UL>
+<LI>Good for applications that frequently block.</LI></UL></SPAN></STRONG><STRONG><SPAN class=extract>
 <P><STRONG>Disadvantages</STRONG></P>
 <UL>
 <LI>Kernel manage and schedule all threads. 
 <LI>Significant overhead and increase in kernel complexity. 
 <LI>Kernel level threads are slow and inefficient compared to user level threads. 
-<LI>Thread operations are hundreds of times slower compared to user-level threads</LI></UL>
+<LI>Thread operations are hundreds of times slower compared to user-level threads</LI></UL></SPAN></STRONG>
