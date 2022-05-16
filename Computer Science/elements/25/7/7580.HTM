@@ -1,0 +1,11 @@
+<STRONG>Disadvantages</STRONG></P>
+<UL>
+<LI>Not a perfect solution (a trade off). 
+<LI>Lack of coordination between the user-level thread manager and the kernel. 
+<LI>OS may make poor decisions like: 
+<UL>
+<LI>scheduling a process with idle threads 
+<LI>blocking a process due to a blocking thread even though the process has other threads that can run 
+<LI>giving a process as a whole one time slice irrespective of whether the process has 1 or 1000 threads 
+<LI>unschedule a process with a thread holding a lock.</LI></UL>
+<LI>May require communication between the kernel and the user-level thread manager (scheduler activations) to overcome the above problems.</LI></UL>

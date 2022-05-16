@@ -1,0 +1,25 @@
+<H2 id=user-level-threads><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Implementing threads : User level threads</SPAN></FONT></H2><SPAN class=extract>
+<P>User level threads are supported above the kernel in user space and are managed without kernel support.</P>
+<P>&#29992;&#25143;&#32423;&#32447;&#31243;&#65288;&#31995;&#32479;&#65289;&#30340;&#35843;&#24230;&#22312;&#29992;&#25143;&#22320;&#22336;&#31354;&#38388;&#20013;&#23454;&#29616;&#65292;&#24182;&#19981;&#38656;&#35201;&#20869;&#26680;&#30340;&#25903;&#25345;</P>
+<UL>
+<LI>Threads managed entirely by the run-time system (user-level library). <BR>&#32447;&#31243;&#23436;&#20840;&#21463;&#36816;&#34892;&#26102;&#31995;&#32479;&#65288;&#29992;&#25143;&#32423;&#32447;&#31243;&#24211;&#65289;&#35843;&#24230; 
+<LI>Ideally, thread operations should be as fast as a function call. <BR>&#29702;&#24819;&#29366;&#24577;&#19979;&#65292;&#32447;&#31243;&#30456;&#20851;&#25805;&#20316;&#30340;&#36895;&#24230;&#24212;&#24403;&#21644;&#36827;&#31243;&#20869;&#37096;&#20989;&#25968;&#35843;&#29992;&#19968;&#26679;&#24555; 
+<LI>The kernel knows nothing about user-level threads and manage them as if they where single-threaded processes.<BR>&#20869;&#26680;&#23545;&#29992;&#25143;&#32423;&#32447;&#31243;&#23436;&#20840;&#27809;&#26377;&#20219;&#20309;&#35748;&#35782;&#65292;&#21482;&#20250;&#23558;&#20182;&#20204;&#24403;&#25104;&#21333;&#32447;&#31243;&#30340;&#36827;&#31243;&#30475;&#24453;</LI></UL></SPAN><STRONG><SPAN class=extract>
+<P><STRONG>Advantages</STRONG></P>
+<UL>
+<LI>Can be implemented on an OS that does not suport kernel-level threads. <BR>&#33021;&#22312;&#19981;&#25903;&#25345;&#20869;&#26680;&#32423;&#32447;&#31243;&#30340; OS &#20013;&#23454;&#29616; 
+<LI>Does not require modifications of the OS. <BR>&#19981;&#38656;&#35201;&#25805;&#20316;&#31995;&#32479;&#30340;&#25903;&#25345; 
+<LI>Simple representation: PC, registers, stack and small thread control block all stored in the user-level process address space. <BR>&#25152;&#26377;&#29992;&#25143;&#32447;&#31243;&#29366;&#24577;&#37117;&#20445;&#23384;&#22312;&#29992;&#25143;&#22320;&#22336;&#31354;&#38388;&#20013; 
+<LI>Simple management: Creating, switching and synchronizing threads done in user-space without kernel intervention. <BR>&#32447;&#31243;&#25805;&#20316;&#26080;&#38656;&#20869;&#26680;&#24178;&#39044;&#65292;&#23436;&#20840;&#22312;&#29992;&#25143;&#22320;&#22336;&#31354;&#38388;&#20013;&#23436;&#25104; 
+<LI>Fast and efficient: switching threads not much more expensive than a function call.<BR>&#32447;&#31243;&#19978;&#19979;&#25991;&#20999;&#25442;&#30340;&#24320;&#38144;&#22522;&#26412;&#19978;&#31561;&#20110;&#20989;&#25968;&#35843;&#29992;</LI></UL></SPAN></STRONG><STRONG><SPAN class=extract>
+<P><STRONG>Disadvantages</STRONG></P>
+<UL>
+<LI>Not a perfect solution (a trade off). 
+<LI>Lack of coordination between the user-level thread manager and the kernel. 
+<LI>OS may make poor decisions like: 
+<UL>
+<LI>scheduling a process with idle threads 
+<LI>blocking a process due to a blocking thread even though the process has other threads that can run 
+<LI>giving a process as a whole one time slice irrespective of whether the process has 1 or 1000 threads 
+<LI>unschedule a process with a thread holding a lock.</LI></UL>
+<LI>May require communication between the kernel and the user-level thread manager (scheduler activations) to overcome the above problems.</LI></UL></SPAN></STRONG>
