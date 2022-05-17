@@ -1,1 +1,4 @@
-<U><STRONG>&#20197;&#22826;&#32593;</STRONG></U>&#65288;<EM>Ethernet</EM>&#65289;&#20316;&#20026;&#19968;&#31181;&#34987;&#24191;&#27867;&#24212;&#29992;&#21516;&#26102;&#20063;&#21382;&#21490;&#24736;&#20037;&#30340; LAN &#25216;&#26415;
+<H3 id=many-to-one><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> Implementing threads : Many-to-one</SPAN></FONT></H3>
+<P>In the many-to-one model all user level threads execute on the same kernel thread. The process can only run one user-level thread at a time because there is only one kernel-level thread associated with the process.</P>
+<P><A href="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/many-to-one.png?width=300px" data-featherlight="image"><img alt="" src="http://www.it.uu.se/education/course/homepage/os/vt18/images/module-4/many-to-one.png?width=300px"></A></P>
+<P>The kernel has no knowledge of user-level threads. From its perspective, a process is an opaque black box that occasionally makes system calls.
