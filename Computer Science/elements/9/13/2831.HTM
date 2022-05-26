@@ -1,0 +1,6 @@
+Be sure to keep track of each thread&#8217;s address and state, and what procedures are on the call stack for each thread (try &#8220;backtrace&#8221;). 
+<P></P>
+<P><SPAN class=extract>&#22312; thread_switch &#25191;&#34892;&#36807;&#31243;&#20013;&#65292;&#36776;&#21035;&#24403;&#21069;&#32447;&#31243;&#26159;&#26087;&#32447;&#31243;&#36824;&#26159;&#26032;&#32447;&#31243;&#30340;&#26368;&#22909;&#26041;&#24335;&#23601;&#26159;&#26597;&#30475;&#32447;&#31243;&#30340;&#22320;&#22336;&#12289;&#29366;&#24577;&#20197;&#21450;&#35843;&#29992;&#26632;&#65288;backtrace&#65289;</SPAN></P>
+<P>You will notice that when one thread calls switch_threads(), another thread starts running, and the &#64257;rst thing the new thread does is to return from switch_threads(). You will understand the thread system once you understand why and how the switch_threads() that gets called is di&#64256;erent from the switch_threads() that returns.</P>
+<P></P>
+<P><SPAN class=extract>&#24403;&#26576;&#20010;&#32447;&#31243;&#35843;&#29992;&#20102; switch_threads() &#20043;&#21518;&#65292;&#21478;&#19968;&#20010;&#32447;&#31243;&#23601;&#20250;&#24320;&#22987;&#36816;&#34892;&#65292;&#26032;&#32447;&#31243;&#25152;&#20570;&#30340;&#31532;&#19968;&#20214;&#20107;&#26159;&#20174; switch_threads() &#20013;&#36820;&#22238;</SPAN>
