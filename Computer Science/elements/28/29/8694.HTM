@@ -1,1 +1,17 @@
-<SPAN>&#27599;&#23545;&#36827;&#31243;&#20043;&#38388;&#21482;&#26377;&#19968;&#20010;&#32447;&#36335;</SPAN>
+<DT><CODE><FONT face="Courier New">info symbol<SPAN>&nbsp;</SPAN><VAR>addr</VAR></FONT></CODE> 
+<DT>Print the name of a symbol which is stored at the address<SPAN>&nbsp;</SPAN><VAR>addr</VAR>. If no symbol is stored exactly at<SPAN>&nbsp;</SPAN><VAR>addr</VAR>,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>prints the nearest symbol and an offset from it: 
+<DD>
+<DIV class=smallexample><PRE class=smallexample>(gdb) info symbol 0x54320
+_initialize_vx + 396 in section .text
+</PRE></DIV>
+<P>This is the opposite of the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">info address</FONT></CODE><SPAN>&nbsp;</SPAN>command. You can use it to find out the name of a variable or a function given its address.</P>
+<DD>
+<P><SPAN class=extract>&#22914;&#26524;&#25105;&#20204;&#24819;&#35201;&#25171;&#21360;&#26576;&#20010;&#31526;&#21495;&#30340;&#25152;&#22312;&#22320;&#22336;&#65292;&#21487;&#20197;&#20351;&#29992;&#20160;&#20040;&#25351;&#20196;&#65311;info symbol &lt;name&gt;</SPAN></P>
+<DD>
+<P><SPAN class=extract>&#22914;&#26524;&#25105;&#20204;&#24819;&#35201;&#26597;&#30475;&#26576;&#20010;&#22320;&#22336;&#19978;&#25351;&#23450;&#31526;&#21495;&#30340;&#21517;&#31216;&#65292;&#25105;&#20204;&#21487;&#20197;&#20351;&#29992;&#20160;&#20040;&#25351;&#20196;&#65311;info adddress &lt;addr&gt;</SPAN></P>
+<P>For dynamically linked executables, the name of executable or shared library containing the symbol is also printed:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) info symbol 0x400225
+_start + 5 in section .text of /tmp/a.out
+(gdb) info symbol 0x2aaaac2811cf
+__read_nocancel + 6 in section .text of /usr/lib64/libc.so.6
+</PRE>
