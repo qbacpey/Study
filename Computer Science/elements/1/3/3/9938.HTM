@@ -1,0 +1,457 @@
+<DIV class=header>
+<DIV class=header><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 16 Examining the Symbol Table</SPAN></FONT></DIV>
+<P>The commands described in this chapter allow you to inquire about the symbols (names of variables, functions and types) defined in your program. This information is inherent in the text of your program and does not change as your program executes.<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>finds it in your program&#8217;s symbol table, in the file indicated when you started<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>(see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/File-Options.html#File-Options">Choosing Files</A>), or by one of the file-management commands (see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Files.html#Files">Commands to Specify Files</A>).</P><A name=index-symbol-names></A><SPAN></SPAN><A name=index-names-of-symbols></A><SPAN></SPAN><A name=index-quoting-names></A><SPAN></SPAN><A name=quoting-names></A>
+<P>Occasionally, you may need to refer to symbols that contain unusual characters, which<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>ordinarily treats as word delimiters. The most frequent case is in referring to static variables in other source files (see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Variables.html#Variables">Program Variables</A>). <SPAN class=extract></P>
+<P>File names are recorded in object files as debugging symbols, but<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>would ordinarily parse a typical file name, like<SPAN>&nbsp;</SPAN><SAMP>foo.c</SAMP>, as the three words &#8216;<SAMP>foo</SAMP>&#8217; &#8216;<SAMP>.</SAMP>&#8217; &#8216;<SAMP>c</SAMP>&#8217;. To allow<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to recognize &#8216;<SAMP>foo.c</SAMP>&#8217; as a single symbol, enclose it in single quotes; for example,</P>
+<DIV class=smallexample><PRE class=smallexample>p 'foo.c'::x
+</PRE></DIV>
+<P>looks up the value of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">x</FONT></CODE><SPAN>&nbsp;</SPAN>in the scope of the file<SPAN>&nbsp;</SPAN><SAMP>foo.c</SAMP>.</P>
+<P></SPAN>
+<DD><A name=index-case_002dinsensitive-symbol-names></A><A name=index-case-sensitivity-in-symbol-names></A><A name=index-set-case_002dsensitive></A><CODE><FONT face="Courier New">set case-sensitive on</FONT></CODE> 
+<P></P>
+<DL compact>
+<DT><CODE><FONT face="Courier New">set case-sensitive off</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set case-sensitive auto</FONT></CODE> 
+<DD>
+<P>Normally, when<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>looks up symbols, it matches their names with case sensitivity determined by the current source language. Occasionally, you may wish to control that. The command<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">set case-sensitive</FONT></CODE><SPAN>&nbsp;</SPAN>lets you do that by specifying<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">on</FONT></CODE><SPAN>&nbsp;</SPAN>for case-sensitive matches or<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">off</FONT></CODE><SPAN>&nbsp;</SPAN>for case-insensitive ones. If you specify<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">auto</FONT></CODE>, case sensitivity is reset to the default suitable for the source language. The default is case-sensitive matches for all languages except for Fortran, for which the default is case-insensitive matches.</P><A name=index-show-case_002dsensitive></A>
+<DT><CODE><FONT face="Courier New">show case-sensitive</FONT></CODE> 
+<DD>
+<P>This command shows the current setting of case sensitivity for symbols lookups.</P><A name=index-set-print-type-methods></A>
+<DT><CODE><FONT face="Courier New">set print type methods</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print type methods on</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print type methods off</FONT></CODE> 
+<DD>
+<P>Normally, when<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>prints a class, it displays any methods declared in that class. You can control this behavior either by passing the appropriate flag to<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE>, or using<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">set print type methods</FONT></CODE>. Specifying<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">on</FONT></CODE><SPAN>&nbsp;</SPAN>will cause<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to display the methods; this is the default. Specifying<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">off</FONT></CODE><SPAN>&nbsp;</SPAN>will cause<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to omit the methods.</P><A name=index-show-print-type-methods></A>
+<DT><CODE><FONT face="Courier New">show print type methods</FONT></CODE> 
+<DD>
+<P>This command shows the current setting of method display when printing classes.</P><A name=index-set-print-type-nested_002dtype_002dlimit></A>
+<DT><CODE><FONT face="Courier New">set print type nested-type-limit<SPAN>&nbsp;</SPAN><VAR>limit</VAR></FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print type nested-type-limit unlimited</FONT></CODE> 
+<DD>
+<P>Set the limit of displayed nested types that the type printer will show. A<SPAN>&nbsp;</SPAN><VAR>limit</VAR><SPAN>&nbsp;</SPAN>of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">unlimited</FONT></CODE><SPAN>&nbsp;</SPAN>or<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">-1</FONT></CODE><SPAN>&nbsp;</SPAN>will show all nested definitions. By default, the type printer will not show any nested types defined in classes.</P><A name=index-show-print-type-nested_002dtype_002dlimit></A>
+<DT><CODE><FONT face="Courier New">show print type nested-type-limit</FONT></CODE> 
+<DD>
+<P>This command shows the current display limit of nested types when printing classes.</P><A name=index-set-print-type-typedefs></A>
+<DT><CODE><FONT face="Courier New">set print type typedefs</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print type typedefs on</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print type typedefs off</FONT></CODE> 
+<DD>
+<P>Normally, when<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>prints a class, it displays any typedefs defined in that class. You can control this behavior either by passing the appropriate flag to<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE>, or using<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">set print type typedefs</FONT></CODE>. Specifying<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">on</FONT></CODE><SPAN>&nbsp;</SPAN>will cause<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to display the typedef definitions; this is the default. Specifying<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">off</FONT></CODE><SPAN>&nbsp;</SPAN>will cause<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to omit the typedef definitions. Note that this controls whether the typedef definition itself is printed, not whether typedef names are substituted when printing other types.</P><A name=index-show-print-type-typedefs></A>
+<DT><CODE><FONT face="Courier New">show print type typedefs</FONT></CODE> 
+<DD>
+<P>This command shows the current setting of typedef display when printing classes.</P><A name=index-set-print-type-hex></A>
+<DT><CODE><FONT face="Courier New">set print type hex</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print type hex on</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print type hex off</FONT></CODE> 
+<DD>
+<P>When<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>prints sizes and offsets of struct members, it can use either the decimal or hexadecimal notation. You can select one or the other either by passing the appropriate flag to<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE>, or by using the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">set print type hex</FONT></CODE><SPAN>&nbsp;</SPAN>command.</P><A name=index-show-print-type-hex></A>
+<DT><CODE><FONT face="Courier New">show print type hex</FONT></CODE> 
+<DD>
+<P>This command shows whether the sizes and offsets of struct members are printed in decimal or hexadecimal notation.</P><A name=index-info-address></A><A name=index-address-of-a-symbol></A><CODE><FONT face="Courier New"><SPAN class=extract>
+<DT><CODE><FONT face="Courier New">info address<SPAN>&nbsp;</SPAN><VAR>symbol</VAR></FONT></CODE> 
+<DD>
+<P>Describe where the data for<SPAN>&nbsp;</SPAN><VAR>symbol</VAR><SPAN>&nbsp;</SPAN>is stored. For a register variable, this says which register it is kept in. For a non-register local variable, this prints the stack-frame offset at which the variable is always stored.</P>
+<P>Note the contrast with &#8216;<SAMP>print &amp;<VAR>symbol</VAR></SAMP>&#8217;, which does not work at all for a register variable, and for a stack local variable prints the exact address of the current instantiation of the variable.</P>
+<DT></SPAN></FONT></CODE><A name=index-info-symbol></A><A name=index-symbol-from-address></A><A name=index-closest-symbol-and-offset-for-an-address></A>&nbsp; <CODE><FONT face="Courier New"><SPAN class=extract>
+<DT><CODE><FONT face="Courier New">info symbol<SPAN>&nbsp;</SPAN><VAR>addr</VAR></FONT></CODE> 
+<DD>
+<P>Print the name of a symbol which is stored at the address<SPAN>&nbsp;</SPAN><VAR>addr</VAR>. If no symbol is stored exactly at<SPAN>&nbsp;</SPAN><VAR>addr</VAR>,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>prints the nearest symbol and an offset from it:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) info symbol 0x54320
+_initialize_vx + 396 in section .text
+</PRE></DIV>
+<P>This is the opposite of the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">info address</FONT></CODE><SPAN>&nbsp;</SPAN>command. You can use it to find out the name of a variable or a function given its address.</P>
+<P>For dynamically linked executables, the name of executable or shared library containing the symbol is also printed:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) info symbol 0x400225
+_start + 5 in section .text of /tmp/a.out
+(gdb) info symbol 0x2aaaac2811cf
+__read_nocancel + 6 in section .text of /usr/lib64/libc.so.6
+</PRE></DIV></SPAN></FONT></CODE><A name=index-demangle-1></A><A name=index-demangle></A>
+<DT><CODE><FONT face="Courier New">demangle<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-l<SPAN>&nbsp;</SPAN><VAR>language</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>--</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><VAR>name</VAR></FONT></CODE> 
+<DD>
+<P>Demangle<SPAN>&nbsp;</SPAN><VAR>name</VAR>. If<SPAN>&nbsp;</SPAN><VAR>language</VAR><SPAN>&nbsp;</SPAN>is provided it is the name of the language to demangle<SPAN>&nbsp;</SPAN><VAR>name</VAR><SPAN>&nbsp;</SPAN>in. Otherwise<SPAN>&nbsp;</SPAN><VAR>name</VAR><SPAN>&nbsp;</SPAN>is demangled in the current language.</P>
+<P>The &#8216;<SAMP>--</SAMP>&#8217; option specifies the end of options, and is useful when<SPAN>&nbsp;</SPAN><VAR>name</VAR><SPAN>&nbsp;</SPAN>begins with a dash.</P>
+<P>The parameter<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">demangle-style</FONT></CODE><SPAN>&nbsp;</SPAN>specifies how to interpret the kind of mangling used. See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Print-Settings.html#Print-Settings">Print Settings</A>.</P><A name=index-whatis></A><CODE><FONT face="Courier New"><SPAN class=extract>
+<DT><CODE><FONT face="Courier New">whatis[/<VAR>flags</VAR>] [<VAR>arg</VAR>]</FONT></CODE> 
+<DD>
+<P>Print the data type of<SPAN>&nbsp;</SPAN><VAR>arg</VAR>, which can be either an expression or a name of a data type. With no argument, print the data type of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">$</FONT></CODE>, the last value in the value history.</P>
+<P>If<SPAN>&nbsp;</SPAN><VAR>arg</VAR><SPAN>&nbsp;</SPAN>is an expression (see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Expressions.html#Expressions">Expressions</A>), it is not actually evaluated, and any side-effecting operations (such as assignments or function calls) inside it do not take place.</P>
+<P>If<SPAN>&nbsp;</SPAN><VAR>arg</VAR><SPAN>&nbsp;</SPAN>is a variable or an expression,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>prints its literal type as it is used in the source code. If the type was defined using a<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>will<SPAN>&nbsp;</SPAN><EM>not</EM><SPAN>&nbsp;</SPAN>print the data type underlying the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>. If the type of the variable or the expression is a compound data type, such as<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct</FONT></CODE><SPAN>&nbsp;</SPAN>or<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">class</FONT></CODE>,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>never prints their fields or methods. It just prints the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct</FONT></CODE>/<CODE><FONT face="Courier New">class</FONT></CODE><SPAN>&nbsp;</SPAN>name (a.k.a. its<SPAN>&nbsp;</SPAN><EM>tag</EM>). If you want to see the members of such a compound data type, use<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE>.</P>
+<P>If<SPAN>&nbsp;</SPAN><VAR>arg</VAR><SPAN>&nbsp;</SPAN>is a type name that was defined using<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN><EM>unrolls</EM><SPAN>&nbsp;</SPAN>only one level of that<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>. Unrolling means that<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>will show the underlying type used in the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE><SPAN>&nbsp;</SPAN>declaration of<SPAN>&nbsp;</SPAN><VAR>arg</VAR>. However, if that underlying type is also a<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>will not unroll it.</P>
+<P>For C code, the type names may also have the form &#8216;<SAMP>class<SPAN>&nbsp;</SPAN><VAR>class-name</VAR></SAMP>&#8217;, &#8216;<SAMP>struct<SPAN>&nbsp;</SPAN><VAR>struct-tag</VAR></SAMP>&#8217;, &#8216;<SAMP>union<SPAN>&nbsp;</SPAN><VAR>union-tag</VAR></SAMP>&#8217; or &#8216;<SAMP>enum<SPAN>&nbsp;</SPAN><VAR>enum-tag</VAR></SAMP>&#8217;.</P>
+<P><VAR>flags</VAR><SPAN>&nbsp;</SPAN>can be used to modify how the type is displayed. Available flags are:</P>
+<DL compact>
+<DT><CODE><FONT face="Courier New">r</FONT></CODE> 
+<DD>
+<P>Display in &#8220;raw&#8221; form. Normally,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>substitutes template parameters and typedefs defined in a class when printing the class&#8217; members. The<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">/r</FONT></CODE><SPAN>&nbsp;</SPAN>flag disables this.</P>
+<DT><CODE><FONT face="Courier New">m</FONT></CODE> 
+<DD>
+<P>Do not print methods defined in the class.</P>
+<DT><CODE><FONT face="Courier New">M</FONT></CODE> 
+<DD>
+<P>Print methods defined in the class. This is the default, but the flag exists in case you change the default with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">set print type methods</FONT></CODE>.</P>
+<DT><CODE><FONT face="Courier New">t</FONT></CODE> 
+<DD>
+<P>Do not print typedefs defined in the class. Note that this controls whether the typedef definition itself is printed, not whether typedef names are substituted when printing other types.</P>
+<DT><CODE><FONT face="Courier New">T</FONT></CODE> 
+<DD>
+<P>Print typedefs defined in the class. This is the default, but the flag exists in case you change the default with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">set print type typedefs</FONT></CODE>.</P>
+<DT><CODE><FONT face="Courier New">o</FONT></CODE> 
+<DD>
+<P>Print the offsets and sizes of fields in a struct, similar to what the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">pahole</FONT></CODE><SPAN>&nbsp;</SPAN>tool does. This option implies the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">/tm</FONT></CODE><SPAN>&nbsp;</SPAN>flags.</P>
+<DT><CODE><FONT face="Courier New">x</FONT></CODE> 
+<DD>
+<P>Use hexadecimal notation when printing offsets and sizes of fields in a struct.</P>
+<DT><CODE><FONT face="Courier New">d</FONT></CODE> 
+<DD>
+<P>Use decimal notation when printing offsets and sizes of fields in a struct.</P>
+<P>For example, given the following declarations:</P>
+<DIV class=smallexample><PRE class=smallexample>struct tuv
+{
+  int a1;
+  char *a2;
+  int a3;
+};
+
+struct xyz
+{
+  int f1;
+  char f2;
+  void *f3;
+  struct tuv f4;
+};
+
+union qwe
+{
+  struct tuv fff1;
+  struct xyz fff2;
+};
+
+struct tyu
+{
+  int a1 : 1;
+  int a2 : 3;
+  int a3 : 23;
+  char a4 : 2;
+  int64_t a5;
+  int a6 : 5;
+  int64_t a7 : 3;
+};
+</PRE></DIV>
+<P>Issuing a<SPAN>&nbsp;</SPAN><KBD>ptype /o struct tuv</KBD><SPAN>&nbsp;</SPAN>command would print:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) ptype /o struct tuv
+/* offset      |    size */  type = struct tuv {
+/*      0      |       4 */    int a1;
+/* XXX  4-byte hole      */
+/*      8      |       8 */    char *a2;
+/*     16      |       4 */    int a3;
+
+                               /* total size (bytes):   24 */
+                             }
+</PRE></DIV>
+<P>Notice the format of the first column of comments. There, you can find two parts separated by the &#8216;<SAMP>|</SAMP>&#8217; character: the<SPAN>&nbsp;</SPAN><EM>offset</EM>, which indicates where the field is located inside the struct, in bytes, and the<SPAN>&nbsp;</SPAN><EM>size</EM><SPAN>&nbsp;</SPAN>of the field. Another interesting line is the marker of a<SPAN>&nbsp;</SPAN><EM>hole</EM><SPAN>&nbsp;</SPAN>in the struct, indicating that it may be possible to pack the struct and make it use less space by reorganizing its fields.</P>
+<P>It is also possible to print offsets inside an union:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) ptype /o union qwe
+/* offset      |    size */  type = union qwe {
+/*                    24 */    struct tuv {
+/*      0      |       4 */        int a1;
+/* XXX  4-byte hole      */
+/*      8      |       8 */        char *a2;
+/*     16      |       4 */        int a3;
+
+                                   /* total size (bytes):   24 */
+                               } fff1;
+/*                    40 */    struct xyz {
+/*      0      |       4 */        int f1;
+/*      4      |       1 */        char f2;
+/* XXX  3-byte hole      */
+/*      8      |       8 */        void *f3;
+/*     16      |      24 */        struct tuv {
+/*     16      |       4 */            int a1;
+/* XXX  4-byte hole      */
+/*     24      |       8 */            char *a2;
+/*     32      |       4 */            int a3;
+
+                                       /* total size (bytes):   24 */
+                                   } f4;
+
+                                   /* total size (bytes):   40 */
+                               } fff2;
+
+                               /* total size (bytes):   40 */
+                             }
+</PRE></DIV>
+<P>In this case, since<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct tuv</FONT></CODE><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct xyz</FONT></CODE><SPAN>&nbsp;</SPAN>occupy the same space (because we are dealing with an union), the offset is not printed for them. However, you can still examine the offset of each of these structures&#8217; fields.</P>
+<P>Another useful scenario is printing the offsets of a struct containing bitfields:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) ptype /o struct tyu
+/* offset      |    size */  type = struct tyu {
+/*      0:31   |       4 */    int a1 : 1;
+/*      0:28   |       4 */    int a2 : 3;
+/*      0: 5   |       4 */    int a3 : 23;
+/*      3: 3   |       1 */    signed char a4 : 2;
+/* XXX  3-bit hole       */
+/* XXX  4-byte hole      */
+/*      8      |       8 */    int64_t a5;
+/*     16: 0   |       4 */    int a6 : 5;
+/*     16: 5   |       8 */    int64_t a7 : 3;
+/* XXX  7-byte padding   */
+
+                               /* total size (bytes):   24 */
+                             }
+</PRE></DIV>
+<P>Note how the offset information is now extended to also include the first bit of the bitfield.</P></DD></DL></SPAN></FONT></CODE><A name=index-ptype></A><CODE><FONT face="Courier New"><SPAN class=extract>
+<DT><CODE><FONT face="Courier New">ptype[/<VAR>flags</VAR>] [<VAR>arg</VAR>]</FONT></CODE> 
+<DD>
+<P><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>accepts the same arguments as<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>, but prints a detailed description of the type, instead of just the name of the type. See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Expressions.html#Expressions">Expressions</A>.</P>
+<P>Contrary to<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>always unrolls any<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>s in its argument declaration, whether the argument is a variable, expression, or a data type. This means that<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>of a variable or an expression will not print literally its type as present in the source code&#8212;use<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>for that.<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>s at the pointer or reference targets are also unrolled. Only<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>s of fields, methods and inner<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">class typedef</FONT></CODE>s of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct</FONT></CODE>s,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">class</FONT></CODE>es and<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">union</FONT></CODE>s are not unrolled even with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE>.</P>
+<P>For example, for this variable declaration:</P>
+<DIV class=smallexample><PRE class=smallexample>typedef double real_t;
+struct complex { real_t real; double imag; };
+typedef struct complex complex_t;
+complex_t var;
+real_t *real_pointer_var;
+</PRE></DIV>
+<P>the two commands give this output:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) whatis var
+type = complex_t
+(gdb) ptype var
+type = struct complex {
+    real_t real;
+    double imag;
+}
+(gdb) whatis complex_t
+type = struct complex
+(gdb) whatis struct complex
+type = struct complex
+(gdb) ptype struct complex
+type = struct complex {
+    real_t real;
+    double imag;
+}
+(gdb) whatis real_pointer_var
+type = real_t *
+(gdb) ptype real_pointer_var
+type = double *
+</PRE></DIV>
+<P>As with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>, using<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>without an argument refers to the type of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">$</FONT></CODE>, the last value in the value history.</P><A name=index-incomplete-type></A>
+<P>Sometimes, programs use opaque data types or incomplete specifications of complex data structure. If the debug information included in the program does not allow<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to display a full declaration of the data type, it will say &#8216;<SAMP>&lt;incomplete type&gt;</SAMP>&#8217;. For example, given these declarations:</P>
+<DIV class=smallexample><PRE class=smallexample>    struct foo;
+    struct foo *fooptr;
+</PRE></DIV>
+<P>but no definition for<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct foo</FONT></CODE><SPAN>&nbsp;</SPAN>itself,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>will say:</P>
+<DIV class=smallexample><PRE class=smallexample>  (gdb) ptype foo
+  $1 = &lt;incomplete type&gt;
+</PRE></DIV>
+<P>&#8220;Incomplete type&#8221; is C terminology for data types that are not completely specified.</P><A name=index-unknown-type></A>
+<P>Othertimes, information about a variable&#8217;s type is completely absent from the debug information included in the program. This most often happens when the program or library where the variable is defined includes no debug information at all.<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>knows the variable exists from inspecting the linker/loader symbol table (e.g., the ELF dynamic symbol table), but such symbols do not contain type information. Inspecting the type of a (global) variable for which<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>has no type information shows:</P>
+<DIV class=smallexample><PRE class=smallexample>  (gdb) ptype var
+  type = &lt;data variable, no debug info&gt;
+</PRE></DIV>
+<P>See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Variables.html#Variables">no debug info variables</A>, for how to print the values of such variables.</P>
+<DT></SPAN></FONT></CODE><A name=index-info-types></A>&nbsp; <CODE><FONT face="Courier New"><SPAN class=extract>
+<DT><CODE><FONT face="Courier New">info types [-q] [<VAR>regexp</VAR>]</FONT></CODE> 
+<DD>
+<P>Print a brief description of all types whose names match the regular expression<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>(or all types in your program, if you supply no argument). Each complete typename is matched as though it were a complete line; thus, &#8216;<SAMP>i type value</SAMP>&#8217; gives information on all types in your program whose names include the string<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">value</FONT></CODE>, but &#8216;<SAMP>i type ^value$</SAMP>&#8217; gives information only on types whose complete name is<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">value</FONT></CODE>.</P>
+<P>In programs using different languages,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>chooses the syntax to print the type description according to the &#8216;<SAMP>set language</SAMP>&#8217; value: using &#8216;<SAMP>set language auto</SAMP>&#8217; (see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Automatically.html#Automatically">Set Language Automatically</A>) means to use the language of the type, other values mean to use the manually specified language (see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Manually.html#Manually">Set Language Manually</A>).</P>
+<P>This command differs from<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>in two ways: first, like<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>, it does not print a detailed description; second, it lists all source files and line numbers where a type is defined.</P>
+<P>The output from &#8216;<SAMP>into types</SAMP>&#8217; is proceeded with a header line describing what types are being listed. The optional flag &#8216;<SAMP>-q</SAMP>&#8217;, which stands for &#8216;<SAMP>quiet</SAMP>&#8217;, disables printing this header information.</P>
+<DT></SPAN></FONT></CODE><A name=index-info-type_002dprinters></A>&nbsp; 
+<DT><CODE><FONT face="Courier New">info type-printers</FONT></CODE> 
+<DD>
+<P>Versions of<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>that ship with Python scripting enabled may have &#8220;type printers&#8221; available. When using<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>or<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>, these printers are consulted when the name of a type is needed. See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Type-Printing-API.html#Type-Printing-API">Type Printing API</A>, for more information on writing type printers.</P>
+<P><CODE><FONT face="Courier New">info type-printers</FONT></CODE><SPAN>&nbsp;</SPAN>displays all the available type printers.</P><A name=index-enable-type_002dprinter></A><A name=index-disable-type_002dprinter></A>
+<DT><CODE><FONT face="Courier New">enable type-printer<SPAN>&nbsp;</SPAN><VAR>name</VAR>&#8230;</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">disable type-printer<SPAN>&nbsp;</SPAN><VAR>name</VAR>&#8230;</FONT></CODE> 
+<DD>
+<P>These commands can be used to enable or disable type printers.</P><A name=index-info-scope></A><A name=index-local-variables></A><CODE><FONT face="Courier New"><SPAN class=extract>
+<DT><CODE><FONT face="Courier New">info scope<SPAN>&nbsp;</SPAN><VAR>location</VAR></FONT></CODE> 
+<DD>
+<P>List all the variables local to a particular scope. This command accepts a<SPAN>&nbsp;</SPAN><VAR>location</VAR><SPAN>&nbsp;</SPAN>argument&#8212;a function name, a source line, or an address preceded by a &#8216;<SAMP>*</SAMP>&#8217;, and prints all the variables local to the scope defined by that location. (See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Specify-Location.html#Specify-Location">Specify Location</A>, for details about supported forms of<SPAN>&nbsp;</SPAN><VAR>location</VAR>.) For example:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) <B>info scope command_line_handler</B>
+Scope for command_line_handler:
+Symbol rl is an argument at stack/frame offset 8, length 4.
+Symbol linebuffer is in static storage at address 0x150a18, length 4.
+Symbol linelength is in static storage at address 0x150a1c, length 4.
+Symbol p is a local variable in register $esi, length 4.
+Symbol p1 is a local variable in register $ebx, length 4.
+Symbol nline is a local variable in register $edx, length 4.
+Symbol repeat is a local variable at frame offset -8, length 4.
+</PRE></DIV>
+<P>This command is especially useful for determining what data to collect during a<SPAN>&nbsp;</SPAN><EM>trace experiment</EM>, see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Tracepoint-Actions.html#Tracepoint-Actions">collect</A>.</P></SPAN></FONT></CODE><A name=index-info-source></A><CODE><FONT face="Courier New"><SPAN class=extract>
+<DT><CODE><FONT face="Courier New">info source</FONT></CODE> 
+<DD>
+<P>Show information about the current source file&#8212;that is, the source file for the function containing the current point of execution:</P>
+<UL>
+<LI>the name of the source file, and the directory containing it, 
+<LI>the directory it was compiled in, 
+<LI>its length, in lines, 
+<LI>which programming language it is written in, 
+<LI>if the debug information provides it, the program that compiled the file (which may include, e.g., the compiler version and command line arguments), 
+<LI>whether the executable includes debugging information for that file, and if so, what format the information is in (e.g., STABS, Dwarf 2, etc.), and 
+<LI>whether the debugging information includes information about preprocessor macros.</LI></UL></SPAN></FONT></CODE><A name=index-info-sources></A>
+<DT><CODE><FONT face="Courier New">info sources<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-dirname | -basename<SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>--<SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>regexp</VAR><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DD>
+<P>With no options &#8216;<SAMP>info sources</SAMP>&#8217; prints the names of all source files in your program for which there is debugging information. The source files are presented based on a list of object files (executables and libraries) currently loaded into<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL>. For each object file all of the associated source files are listed.</P>
+<P>Each source file will only be printed once for each object file, but a single source file can be repeated in the output if it is part of multiple object files.</P>
+<P>If the optional<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>is provided, then only source files that match the regular expression will be printed. The matching is case-sensitive, except on operating systems that have case-insensitive filesystem (e.g., MS-Windows). &#8216;<SAMP>--</SAMP>&#8217; can be used before<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>to prevent<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>interpreting<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>as a command option (e.g. if<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>starts with &#8216;<SAMP>-</SAMP>&#8217;).</P>
+<P>By default, the<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>is used to match anywhere in the filename. If<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">-dirname</FONT></CODE>, only files having a dirname matching<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>are shown. If<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">-basename</FONT></CODE>, only files having a basename matching<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>are shown.</P>
+<P>It is possible that an object file may be printed in the list with no associated source files. This can happen when either no source files match<SPAN>&nbsp;</SPAN><VAR>regexp</VAR>, or, the object file was compiled without debug information and so<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>is unable to find any source file names.</P><A name=index-info-functions></A><CODE><FONT face="Courier New"><SPAN class=extract>
+<DT><CODE><FONT face="Courier New">info functions [-q] [-n]</FONT></CODE> 
+<DD>
+<P>Print the names and data types of all defined functions. Similarly to &#8216;<SAMP>info types</SAMP>&#8217;, this command groups its output by source files and annotates each function definition with its source line number.</P>
+<P>In programs using different languages,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>chooses the syntax to print the function name and type according to the &#8216;<SAMP>set language</SAMP>&#8217; value: using &#8216;<SAMP>set language auto</SAMP>&#8217; (see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Automatically.html#Automatically">Set Language Automatically</A>) means to use the language of the function, other values mean to use the manually specified language (see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Manually.html#Manually">Set Language Manually</A>).</P>
+<P>The &#8216;<SAMP>-n</SAMP>&#8217; flag excludes<SPAN>&nbsp;</SPAN><EM>non-debugging symbols</EM><SPAN>&nbsp;</SPAN>from the results. A non-debugging symbol is a symbol that comes from the executable&#8217;s symbol table, not from the debug information (for example, DWARF) associated with the executable.</P>
+<P>The optional flag &#8216;<SAMP>-q</SAMP>&#8217;, which stands for &#8216;<SAMP>quiet</SAMP>&#8217;, disables printing header information and messages explaining why no functions have been printed.</P>
+<DT><CODE><FONT face="Courier New">info functions [-q] [-n] [-t<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR>] [<VAR>regexp</VAR>]</FONT></CODE> 
+<DD>
+<P>Like &#8216;<SAMP>info functions</SAMP>&#8217;, but only print the names and data types of the functions selected with the provided regexp(s).</P>
+<P>If<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>is provided, print only the functions whose names match the regular expression<SPAN>&nbsp;</SPAN><VAR>regexp</VAR>. Thus, &#8216;<SAMP>info fun step</SAMP>&#8217; finds all functions whose names include<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">step</FONT></CODE>; &#8216;<SAMP>info fun ^step</SAMP>&#8217; finds those whose names start with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">step</FONT></CODE>. If a function name contains characters that conflict with the regular expression language (e.g. &#8216;<SAMP>operator*()</SAMP>&#8217;), they may be quoted with a backslash.</P>
+<P>If<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR><SPAN>&nbsp;</SPAN>is provided, print only the functions whose types, as printed by the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>command, match the regular expression<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR>. If<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR><SPAN>&nbsp;</SPAN>contains space(s), it should be enclosed in quote characters. If needed, use backslash to escape the meaning of special characters or quotes. Thus, &#8216;<SAMP>info fun -t '^int ('</SAMP>&#8217; finds the functions that return an integer; &#8216;<SAMP>info fun -t '(.*int.*'</SAMP>&#8217; finds the functions that have an argument type containing int; &#8216;<SAMP>info fun -t '^int (' ^step</SAMP>&#8217; finds the functions whose names start with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">step</FONT></CODE><SPAN>&nbsp;</SPAN>and that return int.</P>
+<P>If both<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR><SPAN>&nbsp;</SPAN>are provided, a function is printed only if its name matches<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>and its type matches<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR>.</P>
+<DT></SPAN></FONT></CODE><A name=index-info-variables></A>&nbsp; <CODE><FONT face="Courier New"><SPAN class=extract>
+<DT><CODE><FONT face="Courier New">info variables [-q] [-n]</FONT></CODE> 
+<DD>
+<P>Print the names and data types of all variables that are defined outside of functions (i.e. excluding local variables). The printed variables are grouped by source files and annotated with their respective source line numbers.</P>
+<P>In programs using different languages,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>chooses the syntax to print the variable name and type according to the &#8216;<SAMP>set language</SAMP>&#8217; value: using &#8216;<SAMP>set language auto</SAMP>&#8217; (see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Automatically.html#Automatically">Set Language Automatically</A>) means to use the language of the variable, other values mean to use the manually specified language (see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Manually.html#Manually">Set Language Manually</A>).</P>
+<P>The &#8216;<SAMP>-n</SAMP>&#8217; flag excludes non-debugging symbols from the results.</P>
+<P>The optional flag &#8216;<SAMP>-q</SAMP>&#8217;, which stands for &#8216;<SAMP>quiet</SAMP>&#8217;, disables printing header information and messages explaining why no variables have been printed.</P>
+<DT><CODE><FONT face="Courier New">info variables [-q] [-n] [-t<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR>] [<VAR>regexp</VAR>]</FONT></CODE> 
+<DD>
+<P>Like<SPAN>&nbsp;</SPAN><KBD>info variables</KBD>, but only print the variables selected with the provided regexp(s).</P>
+<P>If<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>is provided, print only the variables whose names match the regular expression<SPAN>&nbsp;</SPAN><VAR>regexp</VAR>.</P>
+<P>If<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR><SPAN>&nbsp;</SPAN>is provided, print only the variables whose types, as printed by the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>command, match the regular expression<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR>. If<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR><SPAN>&nbsp;</SPAN>contains space(s), it should be enclosed in quote characters. If needed, use backslash to escape the meaning of special characters or quotes.</P>
+<P>If both<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>and<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR><SPAN>&nbsp;</SPAN>are provided, an argument is printed only if its name matches<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>and its type matches<SPAN>&nbsp;</SPAN><VAR>type_regexp</VAR>.</P>
+<DT></SPAN></FONT></CODE><A name=index-info-modules></A><A name=index-modules></A>&nbsp; 
+<DT><CODE><FONT face="Courier New">info modules<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-q<SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>regexp</VAR><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DD>
+<P>List all Fortran modules in the program, or all modules matching the optional regular expression<SPAN>&nbsp;</SPAN><VAR>regexp</VAR>.</P>
+<P>The optional flag &#8216;<SAMP>-q</SAMP>&#8217;, which stands for &#8216;<SAMP>quiet</SAMP>&#8217;, disables printing header information and messages explaining why no modules have been printed.</P><A name=index-info-module></A><A name=index-Fortran-modules_002c-information-about></A><A name=index-functions-and-variables-by-Fortran-module></A><A name=index-module-functions-and-variables></A>
+<DT><CODE><FONT face="Courier New">info module functions<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-q<SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-m<SPAN>&nbsp;</SPAN><VAR>module-regexp</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-t<SPAN>&nbsp;</SPAN><VAR>type-regexp</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>regexp</VAR><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DT><CODE><FONT face="Courier New">info module variables<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-q<SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-m<SPAN>&nbsp;</SPAN><VAR>module-regexp</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-t<SPAN>&nbsp;</SPAN><VAR>type-regexp</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>regexp</VAR><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DD>
+<P>List all functions or variables within all Fortran modules. The set of functions or variables listed can be limited by providing some or all of the optional regular expressions. If<SPAN>&nbsp;</SPAN><VAR>module-regexp</VAR><SPAN>&nbsp;</SPAN>is provided, then only Fortran modules matching<SPAN>&nbsp;</SPAN><VAR>module-regexp</VAR><SPAN>&nbsp;</SPAN>will be searched. Only functions or variables whose type matches the optional regular expression<SPAN>&nbsp;</SPAN><VAR>type-regexp</VAR><SPAN>&nbsp;</SPAN>will be listed. And only functions or variables whose name matches the optional regular expression<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>will be listed.</P>
+<P>The optional flag &#8216;<SAMP>-q</SAMP>&#8217;, which stands for &#8216;<SAMP>quiet</SAMP>&#8217;, disables printing header information and messages explaining why no functions or variables have been printed.</P><A name=index-info-classes></A><A name=index-Objective_002dC_002c-classes-and-selectors></A>
+<DT><CODE><FONT face="Courier New">info classes</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">info classes<SPAN>&nbsp;</SPAN><VAR>regexp</VAR></FONT></CODE> 
+<DD>
+<P>Display all Objective-C classes in your program, or (with the<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>argument) all those matching a particular regular expression.</P><A name=index-info-selectors></A>
+<DT><CODE><FONT face="Courier New">info selectors</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">info selectors<SPAN>&nbsp;</SPAN><VAR>regexp</VAR></FONT></CODE> 
+<DD>
+<P>Display all Objective-C selectors in your program, or (with the<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>argument) all those matching a particular regular expression.</P><A name=index-opaque-data-types></A><A name=index-set-opaque_002dtype_002dresolution></A>
+<DT><CODE><FONT face="Courier New">set opaque-type-resolution on</FONT></CODE> 
+<DD>
+<P>Tell<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to resolve opaque types. An opaque type is a type declared as a pointer to a<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct</FONT></CODE>,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">class</FONT></CODE>, or<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">union</FONT></CODE>&#8212;for example,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct MyType *</FONT></CODE>&#8212;that is used in one source file although the full declaration of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct MyType</FONT></CODE><SPAN>&nbsp;</SPAN>is in another source file. The default is on.</P>
+<P>A change in the setting of this subcommand will not take effect until the next time symbols for a file are loaded.</P>
+<DT><CODE><FONT face="Courier New">set opaque-type-resolution off</FONT></CODE> 
+<DD>
+<P>Tell<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>not to resolve opaque types. In this case, the type is printed as follows:</P>
+<DIV class=smallexample><PRE class=smallexample>{&lt;no data fields&gt;}
+</PRE></DIV><A name=index-show-opaque_002dtype_002dresolution></A>
+<DT><CODE><FONT face="Courier New">show opaque-type-resolution</FONT></CODE> 
+<DD>
+<P>Show whether opaque types are resolved or not.</P><A name=index-set-print-symbol_002dloading></A><A name=index-print-messages-when-symbols-are-loaded></A>
+<DT><CODE><FONT face="Courier New">set print symbol-loading</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print symbol-loading full</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print symbol-loading brief</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">set print symbol-loading off</FONT></CODE> 
+<DD>
+<P>The<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">set print symbol-loading</FONT></CODE><SPAN>&nbsp;</SPAN>command allows you to control the printing of messages when<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>loads symbol information. By default a message is printed for the executable and one for each shared library, and normally this is what you want. However, when debugging apps with large numbers of shared libraries these messages can be annoying. When set to<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">brief</FONT></CODE><SPAN>&nbsp;</SPAN>a message is printed for each executable, and when<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>loads a collection of shared libraries at once it will only print one message regardless of the number of shared libraries. When set to<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">off</FONT></CODE><SPAN>&nbsp;</SPAN>no messages are printed.</P><A name=index-show-print-symbol_002dloading></A>
+<DT><CODE><FONT face="Courier New">show print symbol-loading</FONT></CODE> 
+<DD>
+<P>Show whether messages will be printed when a<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>command entered from the keyboard causes symbol information to be loaded.</P><A name=index-maint-print-symbols></A><A name=index-symbol-dump></A><A name=index-maint-print-psymbols></A><A name=index-partial-symbol-dump></A><A name=index-maint-print-msymbols></A><A name=index-minimal-symbol-dump></A>
+<DT><CODE><FONT face="Courier New">maint print symbols<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-pc<SPAN>&nbsp;</SPAN><VAR>address</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>filename</VAR><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DT><CODE><FONT face="Courier New">maint print symbols<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-objfile<SPAN>&nbsp;</SPAN><VAR>objfile</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-source<SPAN>&nbsp;</SPAN><VAR>source</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>--<SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>filename</VAR><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DT><CODE><FONT face="Courier New">maint print psymbols<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-objfile<SPAN>&nbsp;</SPAN><VAR>objfile</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-pc<SPAN>&nbsp;</SPAN><VAR>address</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>--<SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>filename</VAR><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DT><CODE><FONT face="Courier New">maint print psymbols<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-objfile<SPAN>&nbsp;</SPAN><VAR>objfile</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-source<SPAN>&nbsp;</SPAN><VAR>source</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>--<SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>filename</VAR><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DT><CODE><FONT face="Courier New">maint print msymbols<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>-objfile<SPAN>&nbsp;</SPAN><VAR>objfile</VAR><SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN>--<SPAN class=roman>]</SPAN><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><VAR>filename</VAR><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DD>
+<P>Write a dump of debugging symbol data into the file<SPAN>&nbsp;</SPAN><VAR>filename</VAR><SPAN>&nbsp;</SPAN>or the terminal if<SPAN>&nbsp;</SPAN><VAR>filename</VAR><SPAN>&nbsp;</SPAN>is unspecified. If<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">-objfile<SPAN>&nbsp;</SPAN><VAR>objfile</VAR></FONT></CODE><SPAN>&nbsp;</SPAN>is specified, only dump symbols for that objfile. If<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">-pc<SPAN>&nbsp;</SPAN><VAR>address</VAR></FONT></CODE><SPAN>&nbsp;</SPAN>is specified, only dump symbols for the file with code at that address. Note that<SPAN>&nbsp;</SPAN><VAR>address</VAR><SPAN>&nbsp;</SPAN>may be a symbol like<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">main</FONT></CODE>. If<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">-source<SPAN>&nbsp;</SPAN><VAR>source</VAR></FONT></CODE><SPAN>&nbsp;</SPAN>is specified, only dump symbols for that source file.</P>
+<P>These commands are used to debug the<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>symbol-reading code. These commands do not modify internal<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>state, therefore &#8216;<SAMP>maint print symbols</SAMP>&#8217; will only print symbols for already expanded symbol tables. You can use the command<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">info sources</FONT></CODE><SPAN>&nbsp;</SPAN>to find out which files these are. If you use &#8216;<SAMP>maint print psymbols</SAMP>&#8217; instead, the dump shows information about symbols that<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>only knows partially&#8212;that is, symbols defined in files that<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>has skimmed, but not yet read completely. Finally, &#8216;<SAMP>maint print msymbols</SAMP>&#8217; just dumps &#8220;minimal symbols&#8221;, e.g., &#8220;ELF symbols&#8221;.</P>
+<P>See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Files.html#Files">Commands to Specify Files</A>, for a discussion of how<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>reads symbols (in the description of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">symbol-file</FONT></CODE>).</P><A name=index-maint-info-symtabs></A><A name=index-maint-info-psymtabs></A><A name=index-listing-GDB_0027s-internal-symbol-tables></A><A name=index-symbol-tables_002c-listing-GDB_0027s-internal></A><A name=index-full-symbol-tables_002c-listing-GDB_0027s-internal></A><A name=index-partial-symbol-tables_002c-listing-GDB_0027s-internal></A>
+<DT><CODE><FONT face="Courier New">maint info symtabs<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DT><CODE><FONT face="Courier New">maint info psymtabs<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DD>
+<P>List the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct symtab</FONT></CODE><SPAN>&nbsp;</SPAN>or<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct partial_symtab</FONT></CODE><SPAN>&nbsp;</SPAN>structures whose names match<SPAN>&nbsp;</SPAN><VAR>regexp</VAR>. If<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>is not given, list them all. The output includes expressions which you can copy into a<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>debugging this one to examine a particular structure in more detail. For example:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) maint info psymtabs dwarf2read
+{ objfile /home/gnu/build/gdb/gdb
+  ((struct objfile *) 0x82e69d0)
+  { psymtab /home/gnu/src/gdb/dwarf2read.c
+    ((struct partial_symtab *) 0x8474b10)
+    readin no
+    fullname (null)
+    text addresses 0x814d3c8 -- 0x8158074
+    globals (* (struct partial_symbol **) 0x8507a08 @ 9)
+    statics (* (struct partial_symbol **) 0x40e95b78 @ 2882)
+    dependencies (none)
+  }
+}
+(gdb) maint info symtabs
+(gdb)
+</PRE></DIV>
+<P>We see that there is one partial symbol table whose filename contains the string &#8216;<SAMP>dwarf2read</SAMP>&#8217;, belonging to the &#8216;<SAMP>gdb</SAMP>&#8217; executable; and we see that<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>has not read in any symtabs yet at all. If we set a breakpoint on a function, that will cause<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to read the symtab for the compilation unit containing that function:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) break dwarf2_psymtab_to_symtab
+Breakpoint 1 at 0x814e5da: file /home/gnu/src/gdb/dwarf2read.c,
+line 1574.
+(gdb) maint info symtabs
+{ objfile /home/gnu/build/gdb/gdb
+  ((struct objfile *) 0x82e69d0)
+  { symtab /home/gnu/src/gdb/dwarf2read.c
+    ((struct symtab *) 0x86c1f38)
+    dirname (null)
+    fullname (null)
+    blockvector ((struct blockvector *) 0x86c1bd0) (primary)
+    linetable ((struct linetable *) 0x8370fa0)
+    debugformat DWARF 2
+  }
+}
+(gdb)
+</PRE></DIV><A name=index-maint-info-line_002dtable></A><A name=index-listing-GDB_0027s-internal-line-tables></A><A name=index-line-tables_002c-listing-GDB_0027s-internal></A>
+<DT><CODE><FONT face="Courier New">maint info line-table<SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DD>
+<P>List the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct linetable</FONT></CODE><SPAN>&nbsp;</SPAN>from all<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct symtab</FONT></CODE><SPAN>&nbsp;</SPAN>instances whose name matches<SPAN>&nbsp;</SPAN><VAR>regexp</VAR>. If<SPAN>&nbsp;</SPAN><VAR>regexp</VAR><SPAN>&nbsp;</SPAN>is not given, list the<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct linetable</FONT></CODE><SPAN>&nbsp;</SPAN>from all<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct symtab</FONT></CODE>. For example:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) maint info line-table
+objfile: /home/gnu/build/a.out ((struct objfile *) 0x6120000e0d40)
+compunit_symtab: simple.cpp ((struct compunit_symtab *) 0x6210000ff450)
+symtab: /home/gnu/src/simple.cpp ((struct symtab *) 0x6210000ff4d0)
+linetable: ((struct linetable *) 0x62100012b760):
+INDEX  LINE   ADDRESS            IS-STMT PROLOGUE-END
+0      3      0x0000000000401110 Y
+1      4      0x0000000000401114 Y       Y
+2      9      0x0000000000401120 Y
+3      10     0x0000000000401124 Y       Y
+4      10     0x0000000000401129
+5      15     0x0000000000401130 Y
+6      16     0x0000000000401134 Y       Y
+7      16     0x0000000000401139
+8      21     0x0000000000401140 Y
+9      22     0x000000000040114f Y       Y
+10     22     0x0000000000401154
+11     END    0x000000000040115a Y
+</PRE></DIV>
+<P>The &#8216;<SAMP>IS-STMT</SAMP>&#8217; column indicates if the address is a recommended breakpoint location to represent a line or a statement. The &#8216;<SAMP>PROLOGUE-END</SAMP>&#8217; column indicates that a given address is an adequate place to set a breakpoint at the first instruction following a function prologue.</P><A name=index-maint-set-symbol_002dcache_002dsize></A><A name=index-symbol-cache-size></A>
+<DT><CODE><FONT face="Courier New">maint set symbol-cache-size<SPAN>&nbsp;</SPAN><VAR>size</VAR></FONT></CODE> 
+<DD>
+<P>Set the size of the symbol cache to<SPAN>&nbsp;</SPAN><VAR>size</VAR>. The default size is intended to be good enough for debugging most applications. This option exists to allow for experimenting with different sizes.</P><A name=index-maint-show-symbol_002dcache_002dsize></A>
+<DT><CODE><FONT face="Courier New">maint show symbol-cache-size</FONT></CODE> 
+<DD>
+<P>Show the size of the symbol cache.</P><A name=index-maint-print-symbol_002dcache></A><A name=index-symbol-cache_002c-printing-its-contents></A>
+<DT><CODE><FONT face="Courier New">maint print symbol-cache</FONT></CODE> 
+<DD>
+<P>Print the contents of the symbol cache. This is useful when debugging symbol cache issues.</P><A name=index-maint-print-symbol_002dcache_002dstatistics></A><A name=index-symbol-cache_002c-printing-usage-statistics></A>
+<DT><CODE><FONT face="Courier New">maint print symbol-cache-statistics</FONT></CODE> 
+<DD>
+<P>Print symbol cache usage statistics. This helps determine how well the cache is being utilized.</P><A name=index-maint-flush-symbol_002dcache></A><A name=index-maint-flush_002dsymbol_002dcache></A><A name=index-symbol-cache_002c-flushing></A>
+<DT><CODE><FONT face="Courier New">maint flush symbol-cache</FONT></CODE> 
+<DT><CODE><FONT face="Courier New">maint flush-symbol-cache</FONT></CODE> 
+<DD>
+<P>Flush the contents of the symbol cache, all entries are removed. This command is useful when debugging the symbol cache. It is also useful when collecting performance data. The command<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">maint flush-symbol-cache</FONT></CODE><SPAN>&nbsp;</SPAN>is deprecated in favor of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">maint flush symbol-cache</FONT></CODE>..</P><A name=index-maint-set-ignore_002dprologue_002dend_002dflag></A><A name=index-prologue_002dend></A>
+<DT><CODE><FONT face="Courier New">maint set ignore-prologue-end-flag [on|off]</FONT></CODE> 
+<DD>
+<P>Enable or disable the use of the &#8216;<SAMP>PROLOGUE-END</SAMP>&#8217; flag from the line-table. When &#8216;<SAMP>off</SAMP>&#8217; (the default),<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>uses the &#8216;<SAMP>PROLOGUE-END</SAMP>&#8217; flag to place breakpoints past the end of a function prologue. When &#8216;<SAMP>on</SAMP>&#8217;,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>ignores the flag and relies on prologue analyzers to skip function prologues.</P><A name=index-maint-show-ignore_002dprologue_002dend_002dflag></A>
+<DT><CODE><FONT face="Courier New">maint show ignore-prologue-end-flag</FONT></CODE> 
+<DD>
+<P>Show whether<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>will ignore the &#8216;<SAMP>PROLOGUE-END</SAMP>&#8217; flag.</P></DD></DL>
+<HR>
+
+<DIV class=header>
+<P>Next:<SPAN>&nbsp;</SPAN><A accessKey=n href="https://sourceware.org/gdb/current/onlinedocs/gdb/Altering.html#Altering" rel=next>Altering</A>, Previous:<SPAN>&nbsp;</SPAN><A accessKey=p href="https://sourceware.org/gdb/current/onlinedocs/gdb/Languages.html#Languages" rel=prev>Languages</A>, Up:<SPAN>&nbsp;</SPAN><A accessKey=u href="https://sourceware.org/gdb/current/onlinedocs/gdb/index.html#Top" rel=up>Top</A><SPAN>&nbsp;</SPAN>&nbsp; [<A title="Table of contents" href="https://sourceware.org/gdb/current/onlinedocs/gdb/index.html#SEC_Contents" rel=contents>Contents</A>][<A title=Index href="https://sourceware.org/gdb/current/onlinedocs/gdb/Concept-Index.html#Concept-Index" rel=index>Index</A>]
