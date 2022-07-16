@@ -1,1 +1,16 @@
-<U>&#26377;&#38480;&#24310;&#36831;&#20445;&#35777;&#36865;&#36798;</U>&#65288;<EM>Guaranted delivery with bounded delay</EM>&#65289;&#65306;&#20445;&#35777;&#22312;&#19968;&#23450;&#26102;&#38388;&#20869;&#65292;&#24517;&#28982;&#36865;&#36798;
+<DT><CODE><FONT face="Courier New">info scope<SPAN>&nbsp;</SPAN><VAR>location</VAR></FONT></CODE> 
+<DD>
+<P><SPAN class=extract>&#22914;&#26524;&#25105;&#20204;&#24819;&#35201;&#26597;&#30475;&#25351;&#23450;&#20316;&#29992;&#22495;&#20013;&#21487;&#20197;&#33719;&#21462;&#21040;&#30340;&#25152;&#26377;&#21464;&#37327;&#65292;&#25105;&#20204;&#21487;&#20197;&#25191;&#34892;&#20160;&#20040;&#25351;&#20196;&#65311;info scope location</SPAN></P>
+<DD>
+<P>List all the variables local to a particular scope. This command accepts a<SPAN>&nbsp;</SPAN><VAR>location</VAR><SPAN>&nbsp;</SPAN>argument&#8212;a function name, a source line, or an address preceded by a &#8216;<SAMP>*</SAMP>&#8217;, and prints all the variables local to the scope defined by that location. (See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Specify-Location.html#Specify-Location">Specify Location</A>, for details about supported forms of<SPAN>&nbsp;</SPAN><VAR>location</VAR>.) For example:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) <B>info scope command_line_handler</B>
+Scope for command_line_handler:
+Symbol rl is an argument at stack/frame offset 8, length 4.
+Symbol linebuffer is in static storage at address 0x150a18, length 4.
+Symbol linelength is in static storage at address 0x150a1c, length 4.
+Symbol p is a local variable in register $esi, length 4.
+Symbol p1 is a local variable in register $ebx, length 4.
+Symbol nline is a local variable in register $edx, length 4.
+Symbol repeat is a local variable at frame offset -8, length 4.
+</PRE></DIV>
+<P>This command is especially useful for determining what data to collect during a<SPAN>&nbsp;</SPAN><EM>trace experiment</EM>, see<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Tracepoint-Actions.html#Tracepoint-Actions">collect</A>.

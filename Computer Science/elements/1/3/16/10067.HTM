@@ -1,0 +1,8 @@
+<H1>I/O processor</H1>
+<P>You can think I/O processor along the lines of DMA approach.<SPAN>&nbsp;</SPAN><STRONG>The I/O processor, generally used in large computer systems, is a coprocessor which is capable of executing the instructions in addition to transfer of data.</STRONG><SPAN>&nbsp;</SPAN>By the way, the coprocessor instruction system is different from the central processing unit.</P>
+<P><STRONG>CPU can execute the I/O specific program by initializing the basic operations like enabling the data path and setting up the I/O devices participating in operation.</STRONG><SPAN>&nbsp;</SPAN>And then it transfers the task to I/O processor,which then carry out rest of the tasks and upon completion notifies the processor. The processor meanwhile executes other important instructions.</P>
+<P>The I/O processor is essentially a small DMA dedicated processor that can execute limited input and output instructions and can be shared by multiple peripherals.</P>
+<P><STRONG>The I/O processor solves two problems:</STRONG></P>
+<UL>
+<LI>The job of input and output is assumed by the CPU. Although DMA does not require CPU for data exchange between peripherals and memory, it only reduces the burden of CPU. Because in DMA, the initialization of input and output is still done by CPU. 
+<LI>The problem of sharing DMA interface of high speed equipment in large computer system. A large computer system peripherals so much that it had to share the DMA interface Limited (small computer systems such as PC in each device is assigned a DMA high speed interface).</LI></UL>

@@ -1,0 +1,6 @@
+<H1>Direct Memory Access(DMA):</H1>
+<P>DMA provides this capability to carry out memory specific operations with minimal CPU intervention. </P>
+<P>When any I/O device needs a memory access. It sends a DMA request(in form of interrupt) to CPU.<SPAN>&nbsp;</SPAN></P>
+<P><SPAN></SPAN><STRONG>CPU initiates the the transfer by providing appropriate grant signals to the data bus</STRONG>. And passes the control to the DMA controller which controls the rest of the data transfer and transfers the data directly to I/O device. </P>
+<P>During this time, CPU continues with other instructions. Once the Read/Write operation in completed (or any exception is occurred )the DMA controller initiates an interrupt and notifies the processor about the status of read/write operation.</P>
+<P>In this way<SPAN>&nbsp;</SPAN><STRONG>the read/write operation is also carried out and CPU also executes some other instruction during that time. However, initialization of DMA still requires CPU intervention.</STRONG><SPAN>&nbsp;</SPAN>And so the overall performance is maximized.
