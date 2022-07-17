@@ -1,6 +1,7 @@
-<strong><font color="blue">grant : </font></strong>
-
-<P>&nbsp; 
-<P>In everyday English, people usually say give permission rather than grant permission: &#22312;&#26085;&#24120;&#33521;&#35821;&#20013;&#65292;&#20154;&#20204;&#19968;&#33324;&#35828;give permission&#65292;&#32780;&#19981;&#35828;grant permission 
-<P>They gave him permission to stay. 
-<P>&#20182;&#20204;&#20801;&#35768;&#20182;&#30041;&#19979;&#26469;&#12290;
+<STRONG>btpagefault</STRONG> Print a backtrace of the current thread after a page fault exception. Normally, when a page fault exception occurs, GDB will stop with a message that might say: 
+<P></P>
+<P><FONT size=3 face="Ubuntu Mono">program received signal 0, signal 0. 0xc0102320 in intr0e_stub ()</FONT></P>
+<P>In that case, the bt command might not give a useful backtrace. Use <STRONG>btpagefault</STRONG> instead.</P>
+<P><SPAN class=extract>&#22914;&#26524;&#22312;&#24403;&#21069;&#32447;&#31243;&#21457;&#29983; page fault &#20043;&#21518;&#24819;&#35201;&#26597;&#30475;&#24403;&#21069;&#32447;&#31243;&#30340; backtrace&#65292;&#38656;&#35201;&#25191;&#34892; btpagefault &#21629;&#20196;</SPAN></P>
+<P>You may also use <STRONG>btpagefault</STRONG> for page faults that occur in a user process. In this case, you may wish to also load the user program&#8217;s symbol table using the <STRONG>loadusersymbols</STRONG> macro, as described above. </P>
+<P>&#27492;&#22806;&#65292;<SPAN class=extract>&#22914;&#26524;&#24819;&#35201;&#22312; page fault &#21457;&#29983;&#20043;&#21518;&#26597;&#30475;&#21457;&#29983; page fault &#30340;&#29992;&#25143;&#36827;&#31243;&#30340; backtrace&#65292;&#38656;&#35201;&#20351;&#29992; loadusersymbols &#21152;&#36733;&#29992;&#25143;&#31243;&#24207;&#30340;&#31526;&#21495;&#34920;</SPAN>

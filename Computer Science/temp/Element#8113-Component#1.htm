@@ -1,0 +1,48 @@
+<DT><CODE><FONT face="Courier New">ptype[/<VAR>flags</VAR>] [<VAR>arg</VAR>]</FONT></CODE> 
+<DD>
+<P><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>accepts the same arguments as<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>, but prints a detailed description of the type, instead of just the name of the type. See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Expressions.html#Expressions">Expressions</A>.</P>
+<P>Contrary to<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>always unrolls any<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>s in its argument declaration, whether the argument is a variable, expression, or a data type. This means that<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>of a variable or an expression will not print literally its type as present in the source code&#8212;use<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>for that.<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>s at the pointer or reference targets are also unrolled. Only<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>s of fields, methods and inner<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">class typedef</FONT></CODE>s of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct</FONT></CODE>s,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">class</FONT></CODE>es and<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">union</FONT></CODE>s are not unrolled even with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE>.</P>
+<P>For example, for this variable declaration:</P>
+<DIV class=smallexample><PRE class=smallexample>typedef double real_t;
+struct complex { real_t real; double imag; };
+typedef struct complex complex_t;
+complex_t var;
+real_t *real_pointer_var;
+</PRE></DIV>
+<P>the two commands give this output:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) whatis var
+type = complex_t
+(gdb) ptype var
+type = struct complex {
+    real_t real;
+    double imag;
+}
+(gdb) whatis complex_t
+type = struct complex
+(gdb) whatis struct complex
+type = struct complex
+(gdb) ptype struct complex
+type = struct complex {
+    real_t real;
+    double imag;
+}
+(gdb) whatis real_pointer_var
+type = real_t *
+(gdb) ptype real_pointer_var
+type = double *
+</PRE></DIV>
+<P>As with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>, using<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>without an argument refers to the type of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">$</FONT></CODE>, the last value in the value history.</P><A name=index-incomplete-type></A>
+<P>Sometimes, programs use opaque data types or incomplete specifications of complex data structure. If the debug information included in the program does not allow<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to display a full declaration of the data type, it will say &#8216;<SAMP>&lt;incomplete type&gt;</SAMP>&#8217;. For example, given these declarations:</P>
+<DIV class=smallexample><PRE class=smallexample>    struct foo;
+    struct foo *fooptr;
+</PRE></DIV>
+<P>but no definition for<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct foo</FONT></CODE><SPAN>&nbsp;</SPAN>itself,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>will say:</P>
+<DIV class=smallexample><PRE class=smallexample>  (gdb) ptype foo
+  $1 = &lt;incomplete type&gt;
+</PRE></DIV>
+<P>&#8220;Incomplete type&#8221; is C terminology for data types that are not completely specified.</P><A name=index-unknown-type></A>
+<P>Othertimes, information about a variable&#8217;s type is completely absent from the debug information included in the program. This most often happens when the program or library where the variable is defined includes no debug information at all.<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>knows the variable exists from inspecting the linker/loader symbol table (e.g., the ELF dynamic symbol table), but such symbols do not contain type information. Inspecting the type of a (global) variable for which<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>has no type information shows:</P>
+<DIV class=smallexample><PRE class=smallexample>  (gdb) ptype var
+  type = &lt;data variable, no debug info&gt;
+</PRE></DIV>
+<P>See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Variables.html#Variables">no debug info variables</A>, for how to print the values of such variables.</P></DD><br><br><hr SuperMemo><SuperMemoReference><H5 dir=ltr align=left><Font size="1" style="color: transparent">#SuperMemo Reference:</font><br><FONT class=reference>#Title: 16 Examining the Symbol Table<br>#Article: <a href="SuperMemoElementNo=(4418)">4418</a>: 16 Examining the Symbol Table<br>#Concept group: TODO (<a href="SuperMemoElementNo=(98)">98</a>: TODO)</FONT></SuperMemoReference>

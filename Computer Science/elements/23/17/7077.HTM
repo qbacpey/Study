@@ -1,6 +1,1 @@
-<STRONG>btpagefault</STRONG> Print a backtrace of the current thread after a page fault exception. Normally, when a page fault exception occurs, GDB will stop with a message that might say:</P>
-<P><FONT size=3 face="Ubuntu Mono">program received signal 0, signal 0. 0xc0102320 in intr0e_stub ()</FONT></P>
-<P>In that case, the bt command might not give a useful backtrace. Use <STRONG>btpagefault</STRONG> instead.</P>
-<P>&#22914;&#26524;&#22312;&#24403;&#21069;&#32447;&#31243;&#21457;&#29983; page fault &#20043;&#21518;&#24819;&#35201;&#26597;&#30475;&#24403;&#21069;&#32447;&#31243;&#30340; backtrace&#65292;&#23601;&#21487;&#20197;&#25191;&#34892; btpagefault &#21629;&#20196;</P>
-<P>You may also use <STRONG>btpagefault</STRONG> for page faults that occur in a user process. In this case, you may wish to also load the user program&#8217;s symbol table using the <STRONG>loadusersymbols</STRONG> macro, as described above. </P>
-<P>&#27492;&#22806;&#65292;&#22914;&#26524;&#24819;&#35201;&#26597;&#30475;&#21457;&#29983; page fault &#30340;&#29992;&#25143;&#36827;&#31243;&#30340; backtrace&#65292;&#21487;&#33021;&#21516;&#26102;&#20063;&#38656;&#35201;&#20351;&#29992; loadusersymbols &#21152;&#36733;&#29992;&#25143;&#31243;&#24207;&#30340;&#31526;&#21495;&#34920;
+&#22914;&#26524;&#22312;&#24403;&#21069;&#32447;&#31243;&#21457;&#29983; page fault &#20043;&#21518;&#24819;&#35201;&#26597;&#30475;&#24403;&#21069;&#32447;&#31243;&#30340; backtrace&#65292;&#38656;&#35201;&#25191;&#34892; btpagefault &#21629;&#20196;

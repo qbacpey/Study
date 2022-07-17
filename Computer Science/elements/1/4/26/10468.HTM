@@ -1,0 +1,11 @@
+<DT><CODE><FONT face="Courier New">view<SPAN>&nbsp;</SPAN><VAR>stack-address</VAR><SPAN>&nbsp;</SPAN><SPAN class=roman>[</SPAN><SPAN>&nbsp;</SPAN><VAR>pc-addr</VAR><SPAN>&nbsp;</SPAN><SPAN class=roman>]</SPAN></FONT></CODE> 
+<DD>
+<P>View a frame that is not part of<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL>&#8217;s backtrace. The frame viewed has stack address<SPAN>&nbsp;</SPAN><VAR>stack-addr</VAR>, and optionally, a program counter address of<SPAN>&nbsp;</SPAN><VAR>pc-addr</VAR>.</P>
+<P>This is useful mainly if the chaining of stack frames has been damaged by a bug, making it impossible for<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to assign numbers properly to all frames. In addition, this can be useful when your program has multiple stacks and switches between them.</P>
+<P>When viewing a frame outside the current backtrace using<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">frame view</FONT></CODE><SPAN>&nbsp;</SPAN>then you can always return to the original stack using one of the previous stack frame selection instructions, for example<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">frame level 0</FONT></CODE>.</P>
+<DD>
+<P><SPAN class=extract>&#24403;&#25105;&#20204;&#24819;&#35201;&#22312;&#22810;&#32447;&#31243;&#31243;&#24207;&#20013;&#20999;&#25442;&#24403;&#21069;&#28966;&#28857;&#26632;&#65288;&#19981;&#26159;&#28966;&#28857;&#26632;&#24103;&#65289;&#25105;&#20204;&#21487;&#20197;&#25191;&#34892;&#20160;&#20040;&#25351;&#20196;&#65311;view &lt;stack-address&gt;</SPAN></P>
+<DD>
+<P><SPAN class=extract>&nbsp;</P>
+<P>&#22914;&#26524;&#31243;&#24207;&#20013;&#20986;&#29616;&#30340; Bug &#20351; GDB &#25171;&#21360;&#30340; backtrace &#20986;&#29616;&#26029;&#26723;&#65292;&#25105;&#20204;&#21487;&#20197;&#25191;&#34892;&#20160;&#20040;&#25351;&#20196;&#26597;&#30475;&#25351;&#23450;&#24103;&#65311;view &lt;stack-address&gt;</P>
+<P></SPAN>view &lt;stack-address&gt;&#65306;GDB &#19981;&#33021;&#29983;&#25104;&#21512;&#36866;&#30340; backtrace&#65288;&#31243;&#24207;&#25317;&#26377;&#22810;&#20010; backtrace &#25110;&#32773;&#24403;&#21069; backtrace &#34987; bug &#25171;&#26029;&#65289;&#26102;&#65292;&#20351;&#29992;&#36825;&#20010;&#21629;&#20196;&#22312;&#19981;&#21516;&#30340;&#26632;&#24103;&#20013;&#20999;&#25442;&#23601;&#38750;&#24120;&#21512;&#36866;

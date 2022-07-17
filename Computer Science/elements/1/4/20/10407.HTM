@@ -1,0 +1,6 @@
+File names are recorded in object files as debugging symbols, but<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>would ordinarily parse a typical file name, like<SPAN>&nbsp;</SPAN><SAMP>foo.c</SAMP>, as the three words &#8216;<SAMP>foo</SAMP>&#8217; &#8216;<SAMP>.</SAMP>&#8217; &#8216;<SAMP>c</SAMP>&#8217;. To allow<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to recognize &#8216;<SAMP>foo.c</SAMP>&#8217; as a single symbol, enclose it in single quotes; for example, 
+<P></P>
+<DIV class=smallexample><PRE class=smallexample>p 'foo.c'::x
+</PRE></DIV>
+<P>looks up the value of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">x</FONT></CODE><SPAN>&nbsp;</SPAN>in the scope of the file<SPAN>&nbsp;</SPAN><SAMP>foo.c</SAMP>.</P>
+<P><SPAN class=extract>&#22914;&#26524;&#24819;&#35201;&#35753; GDB &#25171;&#21360;&#25991;&#20214; 'foo.c' &#20013;&#30340;&#21464;&#37327; x&#65292;&#38656;&#35201;&#24590;&#20040;&#20570;&#65311;p 'foo.c'::x</SPAN>
