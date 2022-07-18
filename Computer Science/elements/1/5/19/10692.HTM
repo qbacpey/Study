@@ -1,0 +1,12 @@
+Issuing a<SPAN>&nbsp;</SPAN><KBD>ptype /o struct tuv</KBD><SPAN>&nbsp;</SPAN>command would print:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) ptype /o struct tuv
+/* offset      |    size */  type = struct tuv {
+/*      0      |       4 */    int a1;
+/* XXX  4-byte hole      */
+/*      8      |       8 */    char *a2;
+/*     16      |       4 */    int a3;
+
+                               /* total size (bytes):   24 */
+                             }
+</PRE></DIV>
+<P>Notice the format of the first column of comments. There, you can find two parts separated by the &#8216;<SAMP>|</SAMP>&#8217; character: the<SPAN>&nbsp;</SPAN><EM>offset</EM>, which indicates where the field is located inside the struct, in bytes, and the<SPAN>&nbsp;</SPAN><EM>size</EM><SPAN>&nbsp;</SPAN>of the field. Another interesting line is the marker of a<SPAN>&nbsp;</SPAN><EM>hole</EM><SPAN>&nbsp;</SPAN>in the struct, indicating that it may be possible to pack the struct and make it use less space by reorganizing its fields.

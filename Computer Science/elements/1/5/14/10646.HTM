@@ -1,0 +1,66 @@
+<DT><CODE><FONT face="Courier New"><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> 16 Examining the Symbol Table : ptype</SPAN></FONT>[/<VAR>flags</VAR>] [<VAR>arg</VAR>]</FONT></CODE> 
+<DD>
+<P><CODE><FONT face="Courier New"><SPAN class=extract><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>accepts the same arguments as<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>, but prints a detailed description of the type, instead of just the name of the type</SPAN></FONT></CODE>. See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Expressions.html#Expressions">Expressions</A>.</P><SPAN class=extract>
+<DD>
+<P>Contrary to<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>always unrolls any<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>s in its argument declaration, whether the argument is a variable, expression, or a data type. </P>
+<DD>
+<P>&nbsp;</P>
+<DD>
+<P>&#20351;&#29992; ptype &#25171;&#21360;&#21464;&#37327;&#20250;&#23558;&#21464;&#37327;&#30340;&#31867;&#22411;&#23436;&#20840;&#23637;&#24320;&#65292;&#22914;&#23450;&#20041;&#32467;&#26500;&#20307;&#31867;&#22411;&#21464;&#37327;&#30340;&#26102;&#20505;&#23601;&#20250;&#23558;&#32467;&#26500;&#20307;&#21464;&#37327;&#23436;&#20840;&#23637;&#24320;</P></SPAN><SPAN class=extract>
+<DD>
+<P>This means that<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>of a variable or an expression will not print literally its type as present in the source code&#8212;use<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE><SPAN>&nbsp;</SPAN>for that.<SPAN>&nbsp;</SPAN></P>
+<DD>
+<P><SPAN>&#20351;&#29992; whatis &#25171;&#21360;&#21464;&#37327;&#30340;&#26102;&#20505;&#24182;&#19981;&#20250;&#23637;&#24320;&#21464;&#37327;&#30340;&#31867;&#22411;&#65292;&#32780;&#20165;&#20165;&#21482;&#26159;&#20250;&#25171;&#21360;&#21464;&#37327;&#22312;&#28304;&#20195;&#30721;&#20013;&#30340;&#31867;&#22411;</SPAN></P></SPAN>
+<DD>
+<P><SPAN></SPAN><CODE><FONT face="Courier New"><SPAN class=extract>&nbsp;</P>
+<DD>
+<P><CODE><FONT face="Courier New">typedef</FONT></CODE>s at the pointer or reference targets are also unrolled.</P>
+<DD>
+<P>&#20351;&#29992; typedef &#23450;&#20041;&#30340;&#25351;&#38024;&#21464;&#37327;&#20063;&#20250;&#34987; ptype &#23637;&#24320;&#26469;&#25171;&#21360;</P></SPAN></FONT></CODE>
+<DD>
+<P>&nbsp;Only<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">typedef</FONT></CODE>s of fields, methods and inner<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">class typedef</FONT></CODE>s of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct</FONT></CODE>s,<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">class</FONT></CODE>es and<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">union</FONT></CODE>s are not unrolled even with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE>.</P>
+<DD>
+<P>For example, for this variable declaration:</P>
+<DIV class=smallexample><PRE class=smallexample>typedef double real_t;
+struct complex { real_t real; double imag; };
+typedef struct complex complex_t;
+complex_t var;
+real_t *real_pointer_var;
+</PRE></DIV>
+<P>the two commands give this output:</P>
+<DIV class=smallexample><PRE class=smallexample>(gdb) whatis var
+type = complex_t
+(gdb) ptype var
+type = struct complex {
+    real_t real;
+    double imag;
+}
+(gdb) whatis complex_t
+type = struct complex
+(gdb) whatis struct complex
+type = struct complex
+(gdb) ptype struct complex
+type = struct complex {
+    real_t real;
+    double imag;
+}
+(gdb) whatis real_pointer_var
+type = real_t *
+(gdb) ptype real_pointer_var
+type = double *
+</PRE></DIV>
+<P>As with<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">whatis</FONT></CODE>, using<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">ptype</FONT></CODE><SPAN>&nbsp;</SPAN>without an argument refers to the type of<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">$</FONT></CODE>, the last value in the value history.</P><A name=index-incomplete-type></A>
+<P>Sometimes, programs use opaque data types or incomplete specifications of complex data structure. If the debug information included in the program does not allow<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>to display a full declaration of the data type, it will say &#8216;<SAMP>&lt;incomplete type&gt;</SAMP>&#8217;. For example, given these declarations:</P>
+<DIV class=smallexample><PRE class=smallexample>    struct foo;
+    struct foo *fooptr;
+</PRE></DIV>
+<P>but no definition for<SPAN>&nbsp;</SPAN><CODE><FONT face="Courier New">struct foo</FONT></CODE><SPAN>&nbsp;</SPAN>itself,<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>will say:</P>
+<DIV class=smallexample><PRE class=smallexample>  (gdb) ptype foo
+  $1 = &lt;incomplete type&gt;
+</PRE></DIV><SPAN class=extract>
+<P>&#8220;Incomplete type&#8221; is C terminology for data types that are not completely specified.</P>
+<P></SPAN><A name=index-unknown-type></A>Othertimes, information about a variable&#8217;s type is completely absent from the debug information included in the program. This most often happens when the program or library where the variable is defined includes no debug information at all.<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>knows the variable exists from inspecting the linker/loader symbol table (e.g., the ELF dynamic symbol table), but such symbols do not contain type information. Inspecting the type of a (global) variable for which<SPAN>&nbsp;</SPAN><SMALL><FONT size=2>GDB</FONT></SMALL><SPAN>&nbsp;</SPAN>has no type information shows:</P>
+<DIV class=smallexample><PRE class=smallexample>  (gdb) ptype var
+  type = &lt;data variable, no debug info&gt;
+</PRE></DIV>
+<P>See<SPAN>&nbsp;</SPAN><A href="https://sourceware.org/gdb/current/onlinedocs/gdb/Variables.html#Variables">no debug info variables</A>, for how to print the values of such variables.
