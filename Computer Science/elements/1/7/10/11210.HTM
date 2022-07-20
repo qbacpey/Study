@@ -1,0 +1,18 @@
+<H1><SPAN class=headers>Title:</SPAN></B><SPAN class=RefText> What's the difference between DMA Controller and I/O processor : Direct Memory Access(DMA):</SPAN></FONT></H1><SPAN class=extract>
+<P>DMA provides this capability to carry out memory specific operations with minimal CPU intervention. </P>
+<P>When any I/O device needs a memory access. It sends a DMA request(in form of interrupt) to CPU.<SPAN>&nbsp;</SPAN></P>
+<P><SPAN>&#24403;&#20219;&#20309; IO &#35774;&#22791;&#38656;&#35201;&#25191;&#34892;&#20869;&#23384;&#35775;&#38382;&#25805;&#20316;&#30340;&#26102;&#20505;&#65292;&#23427;&#20250;&#20197;&#20013;&#26029;&#30340;&#24418;&#24335;&#21521; CPU &#21457;&#36865;&#19968;&#20010; DMA &#35831;&#27714;</SPAN></P>
+<P></SPAN><SPAN>&nbsp;</P>
+<HR>
+
+<P></SPAN>&nbsp;</P>
+<P><SPAN></SPAN><STRONG><SPAN class=extract>&nbsp;</P>
+<P><STRONG>CPU initiates the the transfer by providing appropriate grant signals to the data bus</STRONG>. And passes the control to the DMA controller which controls the rest of the data transfer and transfers the data directly to I/O device. </P>
+<P>CPU &#36890;&#36807;&#21521;&#25968;&#25454;&#24635;&#32447;&#25552;&#20379;&#21512;&#36866;&#30340;&#35768;&#21487;&#20449;&#21495;&#26469;&#21021;&#22987;&#21270;&#20256;&#36755;&#65292;&#38543;&#21518;&#23558;&#20869;&#23384;&#65288;&#25110;&#32773;&#30456;&#20851;&#30828;&#20214;&#65289;&#30340;&#25511;&#21046;&#26435;&#36716;&#32473; DMA &#25511;&#21046;&#22120;</P>
+<P>DMA &#25511;&#21046;&#22120;&#21017;&#36127;&#36131;&#21097;&#19979;&#30340;&#25968;&#25454;&#20256;&#36755;&#24037;&#20316;&#65292;&#21363;&#30452;&#25509;&#23558;&#25968;&#25454;&#20256;&#36882;&#32473; IO &#35774;&#22791;</P></SPAN></STRONG>
+<HR>
+
+<P>&nbsp;</P><SPAN class=extract>
+<P>During this time, CPU continues with other instructions. Once the Read/Write operation in completed (or any exception is occurred )the DMA controller initiates an interrupt and notifies the processor about the status of read/write operation.</P>
+<P>&#24403; IO &#25805;&#20316;&#23436;&#25104;&#65292;DMA &#25511;&#21046;&#22120;&#23601;&#20250;&#21521; CPU &#21457;&#20986;&#20013;&#26029;&#65292;&#20197;&#21578;&#30693;&#35835;&#20889;&#25805;&#20316;&#30340;&#29366;&#24577;</P></SPAN>
+<P>In this way<SPAN>&nbsp;</SPAN><STRONG>the read/write operation is also carried out and CPU also executes some other instruction during that time. However, initialization of DMA still requires CPU intervention.</STRONG><SPAN>&nbsp;</SPAN>And so the overall performance is maximized.

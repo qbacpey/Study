@@ -1,11 +1,11 @@
 SuperMemo Report
    Activity: Operation: apply a template to elements
    Collection: d:\application\supermemo\systems\computer science
-   Date: Wednesday, July 20, 2022, 8:04:50 PM
+   Date: Wednesday, July 20, 2022, 10:59:35 PM
    SuperMemo 18 (Build 18.05, Oct 29, 2020)
 
 
-Process completed at 8:04:51 PM in 00:00:00 sec (Wednesday, July 20, 2022)
+Process completed at 10:59:36 PM in 00:00:01 sec (Wednesday, July 20, 2022)
 
 NO ERRORS (Operation: apply a template to elements)
 
