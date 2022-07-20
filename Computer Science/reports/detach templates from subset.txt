@@ -1,0 +1,12 @@
+SuperMemo Report
+   Activity: Operation: detach templates from elements
+   Collection: d:\application\supermemo\systems\computer science
+   Date: Wednesday, July 20, 2022, 8:11:05 PM
+   SuperMemo 18 (Build 18.05, Oct 29, 2020)
+
+
+Process completed at 8:11:06 PM in 00:00:00 sec (Wednesday, July 20, 2022)
+
+NO ERRORS (Operation: detach templates from elements)
+
+____________________________________________________________
