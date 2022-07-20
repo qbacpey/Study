@@ -1,11 +1,11 @@
 SuperMemo Report
    Activity: Operation: change the reference in elements
    Collection: d:\application\supermemo\systems\computer science
-   Date: Thursday, May 26, 2022, 8:46:50 PM
+   Date: Wednesday, July 20, 2022, 11:44:03 AM
    SuperMemo 18 (Build 18.05, Oct 29, 2020)
 
 
-Process completed at 8:46:50 PM in 00:00:00 sec (Thursday, May 26, 2022)
+Process completed at 11:44:03 AM in 00:00:00 sec (Wednesday, July 20, 2022)
 
 NO ERRORS (Operation: change the reference in elements)
 
